@@ -2,6 +2,8 @@ import { NextResponse } from "next/server";
 import { buildBudgetText } from "@/lib/buildBudgetText";
 import { calculateBudget } from "@/lib/calculateBudget";
 import { parseJobDescription } from "@/lib/parseJobDescription";
+import { parseJobDescriptionWithAI } from "@/lib/parseJobDescriptionWithAI";
+import { estimateArea } from "@/lib/estimateArea";
 import type { BudgetRequest, BudgetResponse } from "@/types/budget";
 
 export async function POST(request: Request) {
@@ -11,23 +13,44 @@ export async function POST(request: Request) {
 
     if (!description) {
       return NextResponse.json(
-        { error: "Cal una descripció del treball." },
+        { error: "Cal indicar una descripció del treball." },
         { status: 400 },
       );
     }
 
-    const parsedJob = parseJobDescription(description);
+    let parsedJob;
+    let usedEstimatedArea = false;
+
+    try {
+      parsedJob = await parseJobDescriptionWithAI(description);
+    } catch {
+      parsedJob = parseJobDescription(description);
+    }
+
+    if (!parsedJob.areaM2) {
+      const estimatedArea = estimateArea(description);
+
+      if (estimatedArea) {
+        parsedJob.areaM2 = estimatedArea;
+        usedEstimatedArea = true;
+      }
+    }
+
     const breakdown = calculateBudget(parsedJob);
     const budgetText = buildBudgetText(parsedJob, breakdown);
 
     const errors: string[] = [];
 
     if (!parsedJob.areaM2) {
-      errors.push("No s’ha pogut detectar la superfície en m².");
+      errors.push("No hem pogut detectar els metres quadrats.");
     }
 
     if (!parsedJob.wallCondition) {
-      errors.push("No s’ha pogut detectar l’estat de les parets.");
+      errors.push("No hem pogut detectar l’estat de les parets.");
+    }
+
+    if (usedEstimatedArea) {
+      errors.push("Hem estimat els metres quadrats de manera aproximada.");
     }
 
     const response: BudgetResponse = {

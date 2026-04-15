@@ -5,7 +5,22 @@ export function buildBudgetText(
   breakdown: BudgetBreakdown | null,
 ): string {
   if (!breakdown) {
-    return "No hi ha prou informació per generar el pressupost. Si us plau, indica els metres quadrats i l'estat de les parets.";
+    const missingArea = !parsedJob.areaM2;
+    const missingCondition = !parsedJob.wallCondition;
+
+    if (missingArea && missingCondition) {
+      return "No hi ha prou informació per calcular el pressupost. Si us plau, indica els metres quadrats i l’estat de les parets.";
+    }
+
+    if (missingArea) {
+      return "No hi ha prou informació per calcular el pressupost. Si us plau, indica els metres quadrats.";
+    }
+
+    if (missingCondition) {
+      return "No hi ha prou informació per calcular el pressupost. Si us plau, indica l’estat de les parets.";
+    }
+
+    return "No hi ha prou informació per calcular el pressupost.";
   }
 
   const colorText = parsedJob.color ? ` en color ${parsedJob.color}` : "";
