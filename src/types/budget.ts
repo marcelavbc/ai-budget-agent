@@ -15,9 +15,8 @@ export interface ParsedJob {
 
 // calculated from parsed job
 export interface BudgetBreakdown {
-  baseVisitCost: number;
   pricePerM2: number;
-  conditionMultiplier: number;
+  paintableSurfaceM2: number;
   paintingCost: number;
   total: number;
 }

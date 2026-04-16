@@ -2,29 +2,28 @@ import { describe, expect, it } from "vitest";
 import { calculateBudget } from "../calculateBudget";
 
 describe("calculateBudget", () => {
-  it("calculates budget correctly for good wall condition", () => {
+  it("calculates budget using paintable surface", () => {
     const result = calculateBudget({
       jobType: "interior_painting",
       areaM2: 20,
       color: "blanc",
-      wallCondition: "good",
+      wallCondition: null,
     });
 
     expect(result).toEqual({
-      baseVisitCost: 30,
       pricePerM2: 12,
-      conditionMultiplier: 1,
-      paintingCost: 240,
-      total: 270,
+      paintableSurfaceM2: 60,
+      paintingCost: 720,
+      total: 720,
     });
   });
 
-  it("returns null when required data is missing", () => {
+  it("returns null when area is missing", () => {
     const result = calculateBudget({
       jobType: "interior_painting",
       areaM2: null,
       color: "blanc",
-      wallCondition: "good",
+      wallCondition: null,
     });
 
     expect(result).toBeNull();
