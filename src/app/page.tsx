@@ -22,9 +22,6 @@ export default function Home() {
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    setFormError(null);
-    setLastResponse(null);
-
     const trimmed = description.trim();
 
     if (!trimmed) {
@@ -32,6 +29,12 @@ export default function Home() {
       return;
     }
 
+    await doSubmit(trimmed);
+  }
+
+  async function doSubmit(trimmed: string) {
+    setFormError(null);
+    setLastResponse(null);
     setLoading(true);
 
     try {
@@ -93,7 +96,7 @@ export default function Home() {
         <header className={styles.header}>
           <h1 className={styles.title}>Pressupost de pintura</h1>
           <p className={styles.subtitle}>
-            Afegeix les partides una a una per construir el teu pressupost.
+            Escriu una partida i afegeix-la al pressupost.
           </p>
         </header>
 
@@ -107,48 +110,62 @@ export default function Home() {
             className={styles.textarea}
             name="description"
             value={description}
+            disabled={loading}
             onChange={(e) => setDescription(e.target.value)}
-            placeholder="Ex: Pintar menjador de 20m2 en blanc. Ex: Pintar 5 portes interiors."
+            placeholder="Ex.: Pintar menjador de 20 m² en blanc"
             autoComplete="off"
             spellCheck
+            onKeyDown={(e) => {
+              if (e.key === "Enter" && !e.shiftKey) {
+                e.preventDefault();
+                const trimmed = description.trim();
+
+                if (!trimmed) {
+                  setFormError("Escriu una descripció del treball.");
+                  return;
+                }
+
+                // reuse submission logic without a FormEvent
+                void doSubmit(trimmed);
+              }
+            }}
           />
 
-          <div className={styles.sliderField}>
-            <div className={styles.sliderHeader}>
-              <label className={styles.sliderLabel} htmlFor="price-per-sqm">
-                Preu orientatiu per m²
-              </label>
-              <span className={styles.sliderValue}>{pricePerSqm} €</span>
+          <div className={styles.actions}>
+            <div className={styles.priceBlock}>
+              <div className={styles.priceRow}>
+                <label className={styles.sliderLabel} htmlFor="price-per-sqm">
+                  Preu orientatiu per m²
+                </label>
+                <span className={styles.sliderValue}>{pricePerSqm} €</span>
+              </div>
+
+              <input
+                id="price-per-sqm"
+                className={styles.slider}
+                type="range"
+                min={8}
+                max={20}
+                step={1}
+                value={pricePerSqm}
+                onChange={(e) => setPricePerSqm(Number(e.target.value))}
+                disabled={loading}
+              />
+
+              <p className={styles.sliderHint}>
+                Valor aplicat a la pintura de parets i sostres.
+              </p>
             </div>
 
-            <input
-              id="price-per-sqm"
-              className={styles.slider}
-              type="range"
-              min={8}
-              max={20}
-              step={1}
-              value={pricePerSqm}
-              onChange={(e) => setPricePerSqm(Number(e.target.value))}
-            />
-
-            <p className={styles.sliderHint}>
-              Valor aplicat a la pintura de parets i sostres.
-            </p>
+            <button className={styles.submit} type="submit" disabled={loading}>
+              {loading ? "Afegint…" : "Afegir partida"}
+            </button>
           </div>
-
-          <button className={styles.submit} type="submit" disabled={loading}>
-            {loading ? "Afegint…" : "Afegir partida"}
-          </button>
 
           {formError ? <p className={styles.formError}>{formError}</p> : null}
         </form>
 
-        {draftLines.length === 0 ? (
-          <p className={styles.emptyHint}>
-            Comença per una partida i ves afegint-ne més si cal.{" "}
-          </p>
-        ) : null}
+        {null}
 
         {draftLines.length > 0 ? (
           <section className={styles.result} aria-live="polite">
