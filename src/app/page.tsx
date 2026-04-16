@@ -11,6 +11,7 @@ const EUR = new Intl.NumberFormat("ca-ES", {
 
 export default function Home() {
   const [description, setDescription] = useState("");
+  const [pricePerSqm, setPricePerSqm] = useState(12);
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<BudgetResponse | null>(null);
   const [formError, setFormError] = useState<string | null>(null);
@@ -40,7 +41,8 @@ export default function Home() {
 
       if (!res.ok) {
         setFormError(
-          data.error ?? "No s’ha pogut generar el pressupost. Torna-ho a provar.",
+          data.error ??
+            "No s’ha pogut generar el pressupost. Torna-ho a provar."
         );
         return;
       }
@@ -48,7 +50,7 @@ export default function Home() {
       setResult(data);
     } catch {
       setFormError(
-        "No s’ha pogut connectar. Comprova la connexió i torna-ho a provar.",
+        "No s’ha pogut connectar. Comprova la connexió i torna-ho a provar."
       );
     } finally {
       setLoading(false);
@@ -81,11 +83,28 @@ export default function Home() {
             autoComplete="off"
             spellCheck
           />
-          <button
-            className={styles.submit}
-            type="submit"
-            disabled={loading}
-          >
+          <div className={styles.sliderField}>
+            <div className={styles.sliderHeader}>
+              <label className={styles.sliderLabel} htmlFor="price-per-sqm">
+                Preu orientatiu per m²
+              </label>
+              <span className={styles.sliderValue}>{pricePerSqm} €</span>
+            </div>
+            <input
+              id="price-per-sqm"
+              className={styles.slider}
+              type="range"
+              min={8}
+              max={20}
+              step={1}
+              value={pricePerSqm}
+              onChange={(e) => setPricePerSqm(Number(e.target.value))}
+            />
+            <p className={styles.sliderHint}>
+              Pots ajustar-lo si cal abans de generar el pressupost.
+            </p>
+          </div>
+          <button className={styles.submit} type="submit" disabled={loading}>
             {loading ? "Generant…" : "Generar pressupost"}
           </button>
           {formError ? <p className={styles.formError}>{formError}</p> : null}
