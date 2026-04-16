@@ -6,6 +6,7 @@ import { parseJobDescriptionWithAI } from "@/lib/parseJobDescriptionWithAI";
 import { estimateArea } from "@/lib/estimateArea";
 import { extractExcludedArea } from "@/lib/extractExcludedArea";
 import type { BudgetRequest, BudgetResponse, ParsedJob } from "@/types/budget";
+import { buildBudgetLines } from "@/lib/buildBudgetLines";
 
 export async function POST(request: Request) {
   try {
@@ -52,6 +53,11 @@ export async function POST(request: Request) {
 
     // 4. Calculate
     const breakdown = calculateBudget(parsedJob);
+    const lines = buildBudgetLines(breakdown);
+    const total =
+      lines.length > 0
+        ? lines.reduce((sum, line) => sum + line.subtotal, 0)
+        : null;
 
     // 5. Build text
     const budgetText = buildBudgetText(parsedJob, breakdown);
@@ -70,9 +76,12 @@ export async function POST(request: Request) {
     if (usedExclusion) {
       errors.push("S’ha descomptat una part de la superfície indicada.");
     }
+
     const response: BudgetResponse = {
       parsedJob,
       breakdown,
+      lines,
+      total,
       budgetText,
       errors: errors.length ? errors : undefined,
     };

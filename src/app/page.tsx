@@ -22,12 +22,14 @@ export default function Home() {
     setResult(null);
 
     const trimmed = description.trim();
+
     if (!trimmed) {
       setFormError("Escriu una descripció del treball.");
       return;
     }
 
     setLoading(true);
+
     try {
       const res = await fetch("/api/generate-budget", {
         method: "POST",
@@ -57,12 +59,24 @@ export default function Home() {
     }
   }
 
-  // 👇 NUEVO: valores derivados
   const paintableSurfaceM2 = result?.breakdown?.paintableSurfaceM2 ?? null;
   const baseAreaM2 = result?.parsedJob.areaM2 ?? null;
 
+  const adjustedLines =
+    result?.lines.map((line) =>
+      line.unitLabel === "m²"
+        ? {
+            ...line,
+            unitPrice: pricePerSqm,
+            subtotal: line.quantity * pricePerSqm,
+          }
+        : line
+    ) ?? [];
+
   const adjustedTotal =
-    paintableSurfaceM2 != null ? paintableSurfaceM2 * pricePerSqm : null;
+    adjustedLines.length > 0
+      ? adjustedLines.reduce((sum, line) => sum + line.subtotal, 0)
+      : null;
 
   return (
     <div className={styles.wrap}>
@@ -90,7 +104,6 @@ export default function Home() {
             spellCheck
           />
 
-          {/* 👇 SLIDER */}
           <div className={styles.sliderField}>
             <div className={styles.sliderHeader}>
               <label className={styles.sliderLabel} htmlFor="price-per-sqm">
@@ -124,7 +137,6 @@ export default function Home() {
 
         {result ? (
           <section className={styles.result} aria-live="polite">
-            {/* 👇 TOTAL RECALCULADO */}
             <div className={styles.totalBlock}>
               {adjustedTotal != null ? (
                 <>
@@ -140,10 +152,9 @@ export default function Home() {
               )}
             </div>
 
-            {/* 👇 BLOQUE DE DATOS */}
-            {result?.breakdown ? (
+            {paintableSurfaceM2 != null ? (
               <div className={styles.calculationBlock}>
-                <h2 className={styles.calculationLabel}>Dades del càlcul</h2>
+                <h2 className={styles.calculationLabel}>Base del càlcul</h2>
 
                 <dl className={styles.calculationList}>
                   <div className={styles.calculationRow}>
@@ -164,10 +175,29 @@ export default function Home() {
               </div>
             ) : null}
 
-            <div className={styles.budgetBlock}>
-              <h2 className={styles.budgetLabel}>Text del pressupost</h2>
-              <div className={styles.budgetText}>{result.budgetText}</div>
-            </div>
+            {adjustedLines.length > 0 ? (
+              <div className={styles.linesBlock}>
+                <h2 className={styles.linesLabel}>Desglossament</h2>
+
+                <div className={styles.linesList}>
+                  {adjustedLines.map((line) => (
+                    <div key={line.id} className={styles.lineItem}>
+                      <div className={styles.lineMain}>
+                        <p className={styles.lineTitle}>{line.label}</p>
+                        <p className={styles.lineMeta}>
+                          {line.quantity} {line.unitLabel} × {line.unitPrice} €/
+                          {line.unitLabel}
+                        </p>
+                      </div>
+
+                      <p className={styles.lineSubtotal}>
+                        {EUR.format(line.subtotal)}
+                      </p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ) : null}
 
             {result.errors?.length ? (
               <div className={styles.warnings}>
