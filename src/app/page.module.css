@@ -193,6 +193,28 @@
   cursor: not-allowed;
 }
 
+.lineActions {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+.removeButton {
+  border: none;
+  background: transparent;
+  color: var(--text-muted);
+  font-size: 1rem;
+  line-height: 1;
+  cursor: pointer;
+  padding: 0.2rem;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .removeButton:hover {
+    color: var(--text);
+  }
+}
+
 @media (hover: hover) and (pointer: fine) {
   .submit:not(:disabled):hover {
     background: var(--accent-hover);

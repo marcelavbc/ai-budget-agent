@@ -20,6 +20,10 @@ export default function Home() {
   const [draftLines, setDraftLines] = useState<BudgetLine[]>([]);
   const [formError, setFormError] = useState<string | null>(null);
 
+  function handleRemoveLine(id: string) {
+    setDraftLines((prev) => prev.filter((line) => line.id !== id));
+  }
+
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     const trimmed = description.trim();
@@ -165,8 +169,6 @@ export default function Home() {
           {formError ? <p className={styles.formError}>{formError}</p> : null}
         </form>
 
-        {null}
-
         {draftLines.length > 0 ? (
           <section className={styles.result} aria-live="polite">
             <div className={styles.totalBlock}>
@@ -208,13 +210,24 @@ export default function Home() {
                         )}
                       </div>
 
-                      {line.type === "custom" && line.unitPrice === 0 ? (
-                        <p className={styles.lineSubtotalPending}>Pendent</p>
-                      ) : (
-                        <p className={styles.lineSubtotal}>
-                          {EUR.format(line.subtotal)}
-                        </p>
-                      )}
+                      <div className={styles.lineActions}>
+                        {line.type === "custom" && line.unitPrice === 0 ? (
+                          <p className={styles.lineSubtotalPending}>Pendent</p>
+                        ) : (
+                          <p className={styles.lineSubtotal}>
+                            {EUR.format(line.subtotal)}
+                          </p>
+                        )}
+
+                        <button
+                          type="button"
+                          className={styles.removeButton}
+                          onClick={() => handleRemoveLine(line.id)}
+                          aria-label={`Eliminar ${line.label}`}
+                        >
+                          ×
+                        </button>
+                      </div>
                     </div>
                   ))}
                 </div>
