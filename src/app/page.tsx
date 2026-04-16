@@ -57,7 +57,12 @@ export default function Home() {
     }
   }
 
-  const total = result?.breakdown?.total;
+  // 👇 NUEVO: valores derivados
+  const paintableSurfaceM2 = result?.breakdown?.paintableSurfaceM2 ?? null;
+  const baseAreaM2 = result?.parsedJob.areaM2 ?? null;
+
+  const adjustedTotal =
+    paintableSurfaceM2 != null ? paintableSurfaceM2 * pricePerSqm : null;
 
   return (
     <div className={styles.wrap}>
@@ -73,16 +78,19 @@ export default function Home() {
           <label className={styles.label} htmlFor="job-description">
             Descripció del treball
           </label>
+
           <textarea
             id="job-description"
             className={styles.textarea}
             name="description"
             value={description}
             onChange={(e) => setDescription(e.target.value)}
-            placeholder="Ex: Pintar menjador de 20m2 en blanc, en bon estat"
+            placeholder="Ex: Pintar menjador de 20m2 en blanc"
             autoComplete="off"
             spellCheck
           />
+
+          {/* 👇 SLIDER */}
           <div className={styles.sliderField}>
             <div className={styles.sliderHeader}>
               <label className={styles.sliderLabel} htmlFor="price-per-sqm">
@@ -90,6 +98,7 @@ export default function Home() {
               </label>
               <span className={styles.sliderValue}>{pricePerSqm} €</span>
             </div>
+
             <input
               id="price-per-sqm"
               className={styles.slider}
@@ -100,23 +109,29 @@ export default function Home() {
               value={pricePerSqm}
               onChange={(e) => setPricePerSqm(Number(e.target.value))}
             />
+
             <p className={styles.sliderHint}>
               Pots ajustar-lo si cal abans de generar el pressupost.
             </p>
           </div>
+
           <button className={styles.submit} type="submit" disabled={loading}>
             {loading ? "Generant…" : "Generar pressupost"}
           </button>
+
           {formError ? <p className={styles.formError}>{formError}</p> : null}
         </form>
 
         {result ? (
           <section className={styles.result} aria-live="polite">
+            {/* 👇 TOTAL RECALCULADO */}
             <div className={styles.totalBlock}>
-              {total != null ? (
+              {adjustedTotal != null ? (
                 <>
                   <span className={styles.totalLabel}>Total estimat</span>
-                  <span className={styles.totalValue}>{EUR.format(total)}</span>
+                  <span className={styles.totalValue}>
+                    {EUR.format(adjustedTotal)}
+                  </span>
                 </>
               ) : (
                 <p className={styles.totalUnavailable}>
@@ -124,6 +139,30 @@ export default function Home() {
                 </p>
               )}
             </div>
+
+            {/* 👇 BLOQUE DE DATOS */}
+            {result?.breakdown ? (
+              <div className={styles.calculationBlock}>
+                <h2 className={styles.calculationLabel}>Dades del càlcul</h2>
+
+                <dl className={styles.calculationList}>
+                  <div className={styles.calculationRow}>
+                    <dt>Superfície base</dt>
+                    <dd>{baseAreaM2 != null ? `${baseAreaM2} m²` : "-"}</dd>
+                  </div>
+
+                  <div className={styles.calculationRow}>
+                    <dt>Superfície a pintar</dt>
+                    <dd>{paintableSurfaceM2} m²</dd>
+                  </div>
+
+                  <div className={styles.calculationRow}>
+                    <dt>Preu aplicat</dt>
+                    <dd>{pricePerSqm} €/m²</dd>
+                  </div>
+                </dl>
+              </div>
+            ) : null}
 
             <div className={styles.budgetBlock}>
               <h2 className={styles.budgetLabel}>Text del pressupost</h2>

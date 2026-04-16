@@ -80,7 +80,7 @@
   flex-direction: column;
   gap: 0.35rem;
   width: 100%;
-  max-width: 12rem;
+  max-width: 14rem;
 }
 
 .sliderHeader {
@@ -204,31 +204,76 @@
 }
 
 .totalBlock {
-  margin-bottom: 1.75rem;
+  margin-bottom: 2rem;
 }
 
 .totalLabel {
   display: block;
-  font-size: 0.8rem;
+  font-size: 0.78rem;
   font-weight: 500;
   text-transform: uppercase;
-  letter-spacing: 0.06em;
+  letter-spacing: 0.08em;
   color: var(--text-muted);
-  margin-bottom: 0.35rem;
+  margin-bottom: 0.45rem;
 }
 
 .totalValue {
-  font-size: 2rem;
+  font-size: 2.25rem;
   font-weight: 600;
-  letter-spacing: -0.03em;
+  letter-spacing: -0.035em;
   color: var(--text);
-  line-height: 1.2;
+  line-height: 1.1;
 }
 
 .totalUnavailable {
   font-size: 1.05rem;
   font-weight: 500;
   color: var(--text-muted);
+}
+
+.calculationBlock {
+  margin-bottom: 1.75rem;
+  padding-top: 1.25rem;
+  border-top: 1px solid var(--border-soft);
+}
+
+.calculationLabel {
+  font-size: 0.8rem;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text-muted);
+  margin: 0 0 0.85rem;
+}
+
+.calculationList {
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+  margin: 0;
+}
+
+.calculationRow {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: baseline;
+  gap: 1rem;
+  font-size: 0.95rem;
+  line-height: 1.5;
+}
+
+.calculationRow dt,
+.calculationRow dd {
+  margin: 0;
+}
+
+.calculationRow dt {
+  color: var(--text-muted);
+}
+
+.calculationRow dd {
+  color: var(--text);
+  font-variant-numeric: tabular-nums;
 }
 
 .budgetBlock {
@@ -242,19 +287,20 @@
   text-transform: uppercase;
   letter-spacing: 0.06em;
   color: var(--text-muted);
-  margin: 0 0 0.75rem;
+  margin: 0 0 0.85rem;
 }
 
 .budgetText {
   margin: 0;
-  font-size: 0.95rem;
-  line-height: 1.65;
+  font-size: 0.96rem;
+  line-height: 1.72;
   white-space: pre-wrap;
   color: var(--text);
+  max-width: 60ch;
 }
 
 .warnings {
-  margin-top: 1.25rem;
+  margin-top: 1.5rem;
   padding-top: 1rem;
   border-top: 1px solid var(--border-soft);
 }
@@ -265,15 +311,15 @@
   text-transform: uppercase;
   letter-spacing: 0.05em;
   color: var(--text-muted);
-  margin: 0 0 0.4rem;
+  margin: 0 0 0.45rem;
 }
 
 .warningsList {
   margin: 0;
   padding-left: 1.1rem;
-  font-size: 0.85rem;
-  color: var(--error);
-  line-height: 1.5;
+  font-size: 0.84rem;
+  color: var(--text-muted);
+  line-height: 1.55;
 }
 
 .warningsList li {
@@ -282,4 +328,19 @@
 
 .warningsList li:last-child {
   margin-bottom: 0;
+}
+
+@media (max-width: 640px) {
+  .sliderField {
+    max-width: 100%;
+  }
+
+  .calculationRow {
+    grid-template-columns: 1fr;
+    gap: 0.15rem;
+  }
+
+  .budgetText {
+    max-width: 100%;
+  }
 }
