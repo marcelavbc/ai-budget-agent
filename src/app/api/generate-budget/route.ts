@@ -5,7 +5,7 @@ import { parseJobDescription } from "@/lib/parseJobDescription";
 import { parseJobDescriptionWithAI } from "@/lib/parseJobDescriptionWithAI";
 import { estimateArea } from "@/lib/estimateArea";
 import { extractExcludedArea } from "@/lib/extractExcludedArea";
-import type { BudgetRequest, BudgetResponse } from "@/types/budget";
+import type { BudgetRequest, BudgetResponse, ParsedJob } from "@/types/budget";
 
 export async function POST(request: Request) {
   try {
@@ -19,7 +19,7 @@ export async function POST(request: Request) {
       );
     }
 
-    let parsedJob;
+    let parsedJob: ParsedJob;
     let usedEstimatedArea = false;
     let usedExclusion = false;
 
@@ -45,7 +45,7 @@ export async function POST(request: Request) {
       const excluded = extractExcludedArea(description);
 
       if (excluded > 0) {
-        parsedJob.areaM2 = parsedJob.areaM2 - excluded;
+        parsedJob.areaM2 = Math.max(parsedJob.areaM2 - excluded, 0);
         usedExclusion = true;
       }
     }

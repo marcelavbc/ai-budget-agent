@@ -5,22 +5,7 @@ export function buildBudgetText(
   breakdown: BudgetBreakdown | null
 ): string {
   if (!breakdown) {
-    const missingArea = !parsedJob.areaM2;
-    const missingCondition = !parsedJob.wallCondition;
-
-    if (missingArea && missingCondition) {
-      return "No hi ha prou informació per calcular el pressupost. Si us plau, indica els metres quadrats i l’estat de les parets.";
-    }
-
-    if (missingArea) {
-      return "No hi ha prou informació per calcular el pressupost. Si us plau, indica els metres quadrats.";
-    }
-
-    if (missingCondition) {
-      return "No hi ha prou informació per calcular el pressupost. Si us plau, indica l’estat de les parets.";
-    }
-
-    return "No hi ha prou informació per calcular el pressupost.";
+    return "No hi ha prou informació per calcular el pressupost. Si us plau, indica els metres quadrats.";
   }
 
   const colorText = parsedJob.color
@@ -32,30 +17,24 @@ export function buildBudgetText(
   return [
     "PRESSUPOST",
     "",
-    "Pressupost per a les feines de pintura a realitzar segons la descripció indicada.",
+    "Pressupost per a les feines de pintura interior a realitzar.",
     "",
     "CONDICIONS GENERALS",
-    "1. Aquest pressupost cobreix les partides especificades en el mateix.",
+    "1. Aquest pressupost cobreix totes les partides especificades en el mateix.",
     "2. Si durant l’execució de l’obra apareixen partides no previstes, es facturaran a part.",
     "3. Tots els repassos no imputables al pintor aniran a càrrec del client.",
     "",
     "MATERIALS",
-    "Els materials utilitzats seran de qualitat professional i adequats per a aquest tipus de feina.",
+    "Els materials utilitzats seran de primeres marques i qualitat professional.",
     "",
     "TEMPS",
     `El temps estimat d’execució serà d’uns ${estimatedDays}.`,
     "",
     "INTERVENCIÓ",
     "Parets i sostres interiors:",
-    `- Protecció de les superfícies susceptibles de ser tacades, reparació dels desperfectes mitjançant massilla i aplicació de pintura plàstica ${colorText}.`,
+    `- Protecció de totes les superfícies i objectes susceptibles a ser tacats, reparació dels desperfectes mitjançant massilla i acabat amb pintura plàstica ${colorText}.`,
     "",
-    "DADES DE CÀLCUL",
-    `- Superfície base indicada: ${parsedJob.areaM2} m²`,
-    `- Superfície estimada a pintar: ${breakdown.paintableSurfaceM2} m²`,
-    `- Preu per m² de superfície pintable: ${breakdown.pricePerM2} €`,
-    `- Cost de pintura: ${breakdown.paintingCost} €`,
-    "",
-    `TOTAL ESTIMAT: ${breakdown.total} €`,
+    `IMPORT TOTAL: ${breakdown.total} €`,
     "",
     "FORMA DE PAGAMENT",
     "40% a l’inici de les feines.",
