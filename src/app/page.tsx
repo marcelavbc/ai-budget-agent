@@ -1,9 +1,10 @@
 "use client";
 
 import { useState } from "react";
-import type { BudgetResponse } from "@/types/budget";
-import styles from "./page.module.css";
+import type { BudgetLine, BudgetDraftResponse } from "@/types/budget";
+import { normalizeLinesWithDraftContext } from "@/utils/normalizeLinesWithDraftContext";
 
+import styles from "./page.module.css";
 const EUR = new Intl.NumberFormat("ca-ES", {
   style: "currency",
   currency: "EUR",
@@ -13,13 +14,16 @@ export default function Home() {
   const [description, setDescription] = useState("");
   const [pricePerSqm, setPricePerSqm] = useState(12);
   const [loading, setLoading] = useState(false);
-  const [result, setResult] = useState<BudgetResponse | null>(null);
+  const [lastResponse, setLastResponse] = useState<BudgetDraftResponse | null>(
+    null
+  );
+  const [draftLines, setDraftLines] = useState<BudgetLine[]>([]);
   const [formError, setFormError] = useState<string | null>(null);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setFormError(null);
-    setResult(null);
+    setLastResponse(null);
 
     const trimmed = description.trim();
 
@@ -31,13 +35,13 @@ export default function Home() {
     setLoading(true);
 
     try {
-      const res = await fetch("/api/generate-budget", {
+      const res = await fetch("/api/generate-budget-draft", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ description: trimmed }),
       });
 
-      const data = (await res.json()) as BudgetResponse & {
+      const data = (await res.json()) as BudgetDraftResponse & {
         error?: string;
       };
 
@@ -49,7 +53,12 @@ export default function Home() {
         return;
       }
 
-      setResult(data);
+      setDraftLines((prev) => {
+        const normalized = normalizeLinesWithDraftContext(data.lines, prev);
+        return [...prev, ...normalized];
+      });
+      setLastResponse(data);
+      setDescription("");
     } catch {
       setFormError(
         "No s’ha pogut connectar. Comprova la connexió i torna-ho a provar."
@@ -59,22 +68,18 @@ export default function Home() {
     }
   }
 
-  const paintableSurfaceM2 = result?.breakdown?.paintableSurfaceM2 ?? null;
-  const baseAreaM2 = result?.parsedJob.areaM2 ?? null;
-
-  const adjustedLines =
-    result?.lines.map((line) =>
-      line.unitLabel === "m²"
-        ? {
-            ...line,
-            unitPrice: pricePerSqm,
-            subtotal: line.quantity * pricePerSqm,
-          }
-        : line
-    ) ?? [];
+  const adjustedLines = draftLines.map((line) =>
+    line.type === "walls_and_ceilings" && line.unitLabel === "m²"
+      ? {
+          ...line,
+          unitPrice: pricePerSqm,
+          subtotal: line.quantity * pricePerSqm,
+        }
+      : line
+  );
 
   const adjustedTotal =
-    adjustedLines.length > 0
+    draftLines.length > 0
       ? adjustedLines.reduce((sum, line) => sum + line.subtotal, 0)
       : null;
 
@@ -84,7 +89,7 @@ export default function Home() {
         <header className={styles.header}>
           <h1 className={styles.title}>Pressupost de pintura</h1>
           <p className={styles.subtitle}>
-            Descriu el treball i rep un pressupost orientatiu.
+            Afegeix les partides una a una per construir el teu pressupost.
           </p>
         </header>
 
@@ -99,7 +104,7 @@ export default function Home() {
             name="description"
             value={description}
             onChange={(e) => setDescription(e.target.value)}
-            placeholder="Ex: Pintar menjador de 20m2 en blanc"
+            placeholder="Ex: Pintar menjador de 20m2 en blanc. Ex: Pintar 5 portes interiors."
             autoComplete="off"
             spellCheck
           />
@@ -124,18 +129,24 @@ export default function Home() {
             />
 
             <p className={styles.sliderHint}>
-              Pots ajustar-lo si cal abans de generar el pressupost.
+              Valor aplicat a la pintura de parets i sostres.
             </p>
           </div>
 
           <button className={styles.submit} type="submit" disabled={loading}>
-            {loading ? "Generant…" : "Generar pressupost"}
+            {loading ? "Afegint…" : "Afegir partida"}
           </button>
 
           {formError ? <p className={styles.formError}>{formError}</p> : null}
         </form>
 
-        {result ? (
+        {draftLines.length === 0 ? (
+          <p className={styles.emptyHint}>
+            Comença per una partida i ves afegint-ne més si cal.{" "}
+          </p>
+        ) : null}
+
+        {draftLines.length > 0 ? (
           <section className={styles.result} aria-live="polite">
             <div className={styles.totalBlock}>
               {adjustedTotal != null ? (
@@ -152,29 +163,6 @@ export default function Home() {
               )}
             </div>
 
-            {paintableSurfaceM2 != null ? (
-              <div className={styles.calculationBlock}>
-                <h2 className={styles.calculationLabel}>Base del càlcul</h2>
-
-                <dl className={styles.calculationList}>
-                  <div className={styles.calculationRow}>
-                    <dt>Superfície base</dt>
-                    <dd>{baseAreaM2 != null ? `${baseAreaM2} m²` : "-"}</dd>
-                  </div>
-
-                  <div className={styles.calculationRow}>
-                    <dt>Superfície a pintar</dt>
-                    <dd>{paintableSurfaceM2} m²</dd>
-                  </div>
-
-                  <div className={styles.calculationRow}>
-                    <dt>Preu aplicat</dt>
-                    <dd>{pricePerSqm} €/m²</dd>
-                  </div>
-                </dl>
-              </div>
-            ) : null}
-
             {adjustedLines.length > 0 ? (
               <div className={styles.linesBlock}>
                 <h2 className={styles.linesLabel}>Desglossament</h2>
@@ -184,26 +172,38 @@ export default function Home() {
                     <div key={line.id} className={styles.lineItem}>
                       <div className={styles.lineMain}>
                         <p className={styles.lineTitle}>{line.label}</p>
-                        <p className={styles.lineMeta}>
-                          {line.quantity} {line.unitLabel} × {line.unitPrice} €/
-                          {line.unitLabel}
-                        </p>
+
+                        {line.type === "custom" && line.unitPrice === 0 ? (
+                          <p className={styles.lineMeta}>
+                            {line.quantity} {line.unitLabel} · preu pendent
+                          </p>
+                        ) : (
+                          <p className={styles.lineMeta}>
+                            {line.quantity} {line.unitLabel} × {line.unitPrice}{" "}
+                            €/
+                            {line.unitLabel}
+                          </p>
+                        )}
                       </div>
 
-                      <p className={styles.lineSubtotal}>
-                        {EUR.format(line.subtotal)}
-                      </p>
+                      {line.type === "custom" && line.unitPrice === 0 ? (
+                        <p className={styles.lineSubtotalPending}>Pendent</p>
+                      ) : (
+                        <p className={styles.lineSubtotal}>
+                          {EUR.format(line.subtotal)}
+                        </p>
+                      )}
                     </div>
                   ))}
                 </div>
               </div>
             ) : null}
 
-            {result.errors?.length ? (
+            {lastResponse?.errors?.length ? (
               <div className={styles.warnings}>
                 <p className={styles.warningsTitle}>Avís</p>
                 <ul className={styles.warningsList}>
-                  {result.errors.map((msg) => (
+                  {lastResponse.errors!.map((msg) => (
                     <li key={msg}>{msg}</li>
                   ))}
                 </ul>

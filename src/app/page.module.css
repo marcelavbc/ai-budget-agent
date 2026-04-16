@@ -391,6 +391,21 @@
   white-space: nowrap;
 }
 
+.emptyHint {
+  margin: 1.5rem 0 0;
+  font-size: 0.88rem;
+  color: var(--text-muted);
+  opacity: 0.7;
+}
+
+.lineSubtotalPending {
+  margin: 0;
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: var(--text-muted);
+  white-space: nowrap;
+}
+
 @media (max-width: 640px) {
   .sliderField {
     max-width: 100%;

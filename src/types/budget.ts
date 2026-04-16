@@ -50,3 +50,9 @@ export interface BudgetResponse {
   budgetText: string;
   errors?: string[];
 }
+
+export interface BudgetDraftResponse {
+  lines: BudgetLine[];
+  total: number | null;
+  errors?: string[];
+}
