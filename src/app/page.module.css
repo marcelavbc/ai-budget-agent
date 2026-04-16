@@ -406,6 +406,14 @@
   white-space: nowrap;
 }
 
+.totalPending {
+  font-size: 1.8rem;
+  font-weight: 500;
+  letter-spacing: -0.02em;
+  color: var(--text-muted);
+  line-height: 1.2;
+}
+
 @media (max-width: 640px) {
   .sliderField {
     max-width: 100%;

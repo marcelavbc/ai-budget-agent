@@ -78,6 +78,10 @@ export default function Home() {
       : line
   );
 
+  const hasPending = adjustedLines.some(
+    (line) => line.type === "custom" && line.unitPrice === 0
+  );
+
   const adjustedTotal =
     draftLines.length > 0
       ? adjustedLines.reduce((sum, line) => sum + line.subtotal, 0)
@@ -149,13 +153,14 @@ export default function Home() {
         {draftLines.length > 0 ? (
           <section className={styles.result} aria-live="polite">
             <div className={styles.totalBlock}>
-              {adjustedTotal != null ? (
-                <>
-                  <span className={styles.totalLabel}>Total estimat</span>
-                  <span className={styles.totalValue}>
-                    {EUR.format(adjustedTotal)}
-                  </span>
-                </>
+              <span className={styles.totalLabel}>Total estimat</span>
+
+              {hasPending ? (
+                <span className={styles.totalPending}>Pendent</span>
+              ) : adjustedTotal != null ? (
+                <span className={styles.totalValue}>
+                  {EUR.format(adjustedTotal)}
+                </span>
               ) : (
                 <p className={styles.totalUnavailable}>
                   No s’ha pogut calcular un total amb les dades indicades.
