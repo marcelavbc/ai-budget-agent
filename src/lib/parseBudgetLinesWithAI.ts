@@ -1,17 +1,5 @@
 import type { AIParsedBudgetLines } from "@/types/aiBudget";
-
-interface GroqMessage {
-  role: "system" | "user";
-  content: string;
-}
-
-interface GroqResponse {
-  choices?: Array<{
-    message?: {
-      content?: string;
-    };
-  }>;
-}
+import type { GroqMessage, GroqResponse } from "@/types/groq";
 
 export async function parseBudgetLinesWithAI(
   description: string

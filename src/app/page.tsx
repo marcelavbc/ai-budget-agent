@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import type { BudgetLine, BudgetDraftResponse } from "@/types/budget";
-import { normalizeLinesWithDraftContext } from "@/utils/normalizeLinesWithDraftContext";
+import { normalizeLinesWithDraftContext } from "@/lib/normalizeLinesWithDraftContext";
 
 import styles from "./page.module.css";
 const EUR = new Intl.NumberFormat("ca-ES", {

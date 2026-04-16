@@ -1,17 +1,5 @@
 import { ParsedJob, WallCondition } from "@/types/budget";
-
-interface GroqMessage {
-  role: "system" | "user";
-  content: string;
-}
-
-interface GroqResponse {
-  choices?: Array<{
-    message?: {
-      content?: string;
-    };
-  }>;
-}
+import type { GroqMessage, GroqResponse } from "@/types/groq";
 
 interface AIParsedJob {
   jobType?: string;
@@ -20,7 +8,9 @@ interface AIParsedJob {
   wallCondition?: string | null;
 }
 
-function normalizeWallCondition(value: string | null | undefined): WallCondition | null {
+function normalizeWallCondition(
+  value: string | null | undefined
+): WallCondition | null {
   if (!value) return null;
 
   const normalized = value.toLowerCase().trim();
@@ -36,13 +26,16 @@ function safeParsedJob(data: AIParsedJob): ParsedJob {
   return {
     jobType: "interior_painting",
     areaM2: typeof data.areaM2 === "number" ? data.areaM2 : null,
-    color: typeof data.color === "string" && data.color.trim() ? data.color.trim() : null,
+    color:
+      typeof data.color === "string" && data.color.trim()
+        ? data.color.trim()
+        : null,
     wallCondition: normalizeWallCondition(data.wallCondition),
   };
 }
 
 export async function parseJobDescriptionWithAI(
-  description: string,
+  description: string
 ): Promise<ParsedJob> {
   const apiKey = process.env.GROQ_API_KEY;
 
@@ -78,19 +71,22 @@ export async function parseJobDescriptionWithAI(
     },
   ];
 
-  const response = await fetch("https://api.groq.com/openai/v1/chat/completions", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${apiKey}`,
-    },
-    body: JSON.stringify({
-      model: "llama-3.1-8b-instant",
-      temperature: 0,
-      messages,
-      response_format: { type: "json_object" },
-    }),
-  });
+  const response = await fetch(
+    "https://api.groq.com/openai/v1/chat/completions",
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${apiKey}`,
+      },
+      body: JSON.stringify({
+        model: "llama-3.1-8b-instant",
+        temperature: 0,
+        messages,
+        response_format: { type: "json_object" },
+      }),
+    }
+  );
 
   if (!response.ok) {
     throw new Error("Groq request failed");

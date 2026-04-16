@@ -139,12 +139,12 @@ function getNormalizedLabel(
 ): string {
   const cleaned = aiLabel?.trim();
 
-  // Para custom queremos preservar el texto que escribió Roger,
-  // especialmente si venía de una clasificación automática rara.
+  // For custom lines, preserve the original label from the AI description,
+  // especially when it came from an unusual automatic classification.
   if (normalizedType === "custom") {
     return cleaned || fallback;
   }
 
-  // Para tipos conocidos, mejor usar label estable del template.
+  // For known types, use the stable label from the template.
   return fallback;
 }
