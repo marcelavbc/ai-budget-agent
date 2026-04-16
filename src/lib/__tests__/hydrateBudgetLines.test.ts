@@ -14,7 +14,7 @@ describe("hydrateBudgetLines", () => {
 
     expect(result).toEqual([
       {
-        id: "doors-0",
+        id: expect.stringMatching(/^doors-0-/),
         type: "doors",
         label: "Pintura de portes",
         quantity: 5,
@@ -38,7 +38,7 @@ describe("hydrateBudgetLines", () => {
 
     expect(result).toEqual([
       {
-        id: "custom-0",
+        id: expect.stringMatching(/^custom-0-/),
         type: "custom",
         label: "Partida especial",
         quantity: 1,
@@ -62,7 +62,7 @@ describe("hydrateBudgetLines", () => {
 
     expect(result).toEqual([
       {
-        id: "repair-0",
+        id: expect.stringMatching(/^repair-0-/),
         type: "repair",
         label: "Reparació de desperfectes",
         quantity: 0,

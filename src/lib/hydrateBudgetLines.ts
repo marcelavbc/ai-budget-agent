@@ -20,7 +20,7 @@ export function hydrateBudgetLines(aiLines: AIParsedLine[]): BudgetLine[] {
     );
 
     return {
-      id: `${normalizedType}-${index}`,
+      id: `${normalizedType}-${index}-${crypto.randomUUID()}`,
       type: normalizedType,
       label,
       quantity,
