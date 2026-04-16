@@ -34,6 +34,27 @@ export const lineTemplates: Record<BudgetLineType, LineTemplate> = {
     defaultPrice: 30,
     pricingMode: "input",
   },
+  windows: {
+    type: "windows",
+    label: "Pintura de finestres",
+    unitLabel: "unitat",
+    defaultPrice: 35,
+    pricingMode: "input",
+  },
+  enamel_varnish: {
+    type: "enamel_varnish",
+    label: "Esmalt o vernís",
+    unitLabel: "m²",
+    defaultPrice: 14,
+    pricingMode: "input",
+  },
+  exterior: {
+    type: "exterior",
+    label: "Pintura exterior",
+    unitLabel: "m²",
+    defaultPrice: 16,
+    pricingMode: "range",
+  },
   custom: {
     type: "custom",
     label: "Partida especial",
