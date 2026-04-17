@@ -1,5 +1,10 @@
 import { useState } from "react";
-import type { BudgetLine, BudgetGroup, BudgetListItem } from "@/types/budget";
+import type {
+  BudgetLine,
+  BudgetGroup,
+  BudgetListItem,
+  BudgetLineType,
+} from "@/types/budget";
 import { isBudgetGroup, templateGroup, canGroup } from "@/types/budget";
 import { normalizeLinesWithDraftContext } from "@/lib/normalizeLinesWithDraftContext";
 import {
@@ -49,6 +54,83 @@ function stripLine(prev: BudgetListItem[], lineId: string): BudgetListItem[] {
     .filter((item): item is BudgetListItem => item !== null);
 }
 
+const AUTO_GROUP_RULES: Record<string, BudgetLineType[]> = {
+  interior: ["walls_and_ceilings", "repair"],
+  openings: ["doors", "windows"],
+  exterior: ["exterior"],
+};
+
+function autoGroup(items: BudgetListItem[]): BudgetListItem[] {
+  let result = [...items];
+
+  for (const [zone, types] of Object.entries(AUTO_GROUP_RULES)) {
+    // Collect loose lines that belong to this zone
+    const looseIds = new Set(
+      result
+        .filter(
+          (item): item is BudgetLine =>
+            !isBudgetGroup(item) && types.includes((item as BudgetLine).type)
+        )
+        .map((l) => l.id)
+    );
+
+    if (looseIds.size === 0) continue;
+
+    // Find an existing group for this zone
+    const existingGroup = result.find(
+      (item) => isBudgetGroup(item) && (item as BudgetGroup).zone === zone
+    ) as BudgetGroup | undefined;
+
+    if (existingGroup) {
+      // Add loose lines into the existing group
+      const looseLines = result.filter(
+        (item): item is BudgetLine =>
+          !isBudgetGroup(item) && looseIds.has((item as BudgetLine).id)
+      );
+      result = result
+        .filter(
+          (item) =>
+            !(!isBudgetGroup(item) && looseIds.has((item as BudgetLine).id))
+        )
+        .map((item) => {
+          if (isBudgetGroup(item) && item.id === existingGroup.id) {
+            const lines = [...item.lines, ...looseLines];
+            return { ...item, lines, subtotal: groupSubtotal(lines) };
+          }
+          return item;
+        });
+    } else if (looseIds.size > 1) {
+      // Create a new group only when there are 2+ loose lines
+      const looseLines = result.filter(
+        (item): item is BudgetLine =>
+          !isBudgetGroup(item) && looseIds.has((item as BudgetLine).id)
+      );
+      const newGroup: BudgetGroup = {
+        id: `group-${crypto.randomUUID()}`,
+        zone,
+        lines: looseLines,
+        subtotal: groupSubtotal(looseLines),
+      };
+      // Replace loose lines with the new group (at position of first loose line)
+      let placed = false;
+      result = result
+        .map((item): BudgetListItem | null => {
+          if (isBudgetGroup(item)) return item;
+          const id = (item as BudgetLine).id;
+          if (!looseIds.has(id)) return item;
+          if (!placed) {
+            placed = true;
+            return newGroup;
+          }
+          return null;
+        })
+        .filter((item): item is BudgetListItem => item !== null);
+    }
+  }
+
+  return result;
+}
+
 // ─── hook ─────────────────────────────────────────────────────────────────────
 
 export function useBudgetLines() {
@@ -62,7 +144,7 @@ export function useBudgetLines() {
         newLines,
         existingLines
       );
-      return [...prev, ...normalized];
+      return autoGroup([...prev, ...normalized]);
     });
   }
 
