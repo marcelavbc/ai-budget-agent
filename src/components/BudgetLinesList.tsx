@@ -1,13 +1,27 @@
 "use client";
 
 import { useState } from "react";
-import type { BudgetLine } from "@/types/budget";
+import {
+  DndContext,
+  PointerSensor,
+  useSensor,
+  useSensors,
+} from "@dnd-kit/core";
+import type {
+  DragEndEvent,
+  DragStartEvent,
+  DragOverEvent,
+} from "@dnd-kit/core";
+import type { BudgetLine, BudgetListItem } from "@/types/budget";
+import { isBudgetGroup } from "@/types/budget";
 import { formatEUR } from "@/lib/formatCurrency";
-import { isPricePending } from "@/lib/isPricePending";
+import { extractZone } from "@/lib/extractZone";
+import { DraggableLine } from "./DraggableLine";
+import { BudgetGroupCard } from "./BudgetGroupCard";
 import styles from "./BudgetLinesList.module.css";
 
 interface Props {
-  lines: BudgetLine[];
+  items: BudgetListItem[];
   hasPending: boolean;
   total: number | null;
   warnings?: string[];
@@ -16,45 +30,63 @@ interface Props {
     id: string,
     patch: Partial<Pick<BudgetLine, "label" | "quantity" | "unitPrice">>
   ) => void;
+  onGroupLines: (dragId: string, targetId: string) => boolean;
 }
 
 export function BudgetLinesList({
-  lines,
+  items,
   hasPending,
   total,
   warnings,
   onRemoveLine,
   onUpdateLine,
+  onGroupLines,
 }: Props) {
-  const [editingId, setEditingId] = useState<string | null>(null);
-  const [editDraft, setEditDraft] = useState({
-    label: "",
-    quantity: "",
-    unitPrice: "",
-  });
+  const [activeId, setActiveId] = useState<string | null>(null);
+  const [overId, setOverId] = useState<string | null>(null);
+  const [dropError, setDropError] = useState<string | null>(null);
 
-  function startEdit(line: BudgetLine) {
-    setEditingId(line.id);
-    setEditDraft({
-      label: line.label,
-      quantity: String(line.quantity),
-      unitPrice: String(line.unitPrice),
-    });
+  const sensors = useSensors(useSensor(PointerSensor));
+
+  // Zone of the line currently being dragged (null when nothing is dragged)
+  const activeDragZone = (() => {
+    if (!activeId) return null;
+    for (const item of items) {
+      if (!isBudgetGroup(item)) {
+        if ((item as BudgetLine).id === activeId)
+          return extractZone((item as BudgetLine).label);
+      } else {
+        const found = (item as import("@/types/budget").BudgetGroup).lines.find(
+          (l) => l.id === activeId
+        );
+        if (found) return extractZone(found.label);
+      }
+    }
+    return null;
+  })();
+
+  function handleDragStart(event: DragStartEvent) {
+    setActiveId(event.active.id as string);
+    setDropError(null);
   }
 
-  function saveEdit(line: BudgetLine) {
-    onUpdateLine(line.id, {
-      label: editDraft.label.trim() || line.label,
-      quantity: parseFloat(editDraft.quantity) || 0,
-      unitPrice: parseFloat(editDraft.unitPrice) || 0,
-    });
-    setEditingId(null);
+  function handleDragOver(event: DragOverEvent) {
+    setOverId(event.over ? (event.over.id as string) : null);
   }
 
-  function cancelEdit() {
-    setEditingId(null);
+  function handleDragEnd(event: DragEndEvent) {
+    const { active, over } = event;
+    setActiveId(null);
+    setOverId(null);
+    if (!over || active.id === over.id) return;
+    const ok = onGroupLines(active.id as string, over.id as string);
+    if (!ok)
+      setDropError(
+        "Zones incompatibles — només es poden agrupar línies de la mateixa zona."
+      );
   }
-  if (lines.length === 0) return null;
+
+  if (items.length === 0) return null;
 
   return (
     <section className={styles.result} aria-live="polite">
@@ -67,7 +99,7 @@ export function BudgetLinesList({
           <span className={styles.totalValue}>{formatEUR(total)}</span>
         ) : (
           <p className={styles.totalUnavailable}>
-            No s'ha pogut calcular un total amb les dades indicades.
+            No s&apos;ha pogut calcular un total amb les dades indicades.
           </p>
         )}
       </div>
@@ -75,122 +107,48 @@ export function BudgetLinesList({
       <div className={styles.linesBlock}>
         <h2 className={styles.linesLabel}>Desglossament</h2>
 
-        <div className={styles.linesList}>
-          {lines.map((line) => (
-            <div
-              key={line.id}
-              className={`${styles.lineItem} ${editingId === line.id ? styles.lineItemEditing : ""}`}
-            >
-              {editingId === line.id ? (
-                <form
-                  className={styles.editForm}
-                  onSubmit={(e) => {
-                    e.preventDefault();
-                    saveEdit(line);
-                  }}
-                >
-                  <label className={styles.editLabel}>
-                    <span className={styles.editLabelText}>Descripció</span>
-                    <input
-                      className={`${styles.editField} ${styles.editFieldWide}`}
-                      value={editDraft.label}
-                      onChange={(e) =>
-                        setEditDraft((d) => ({ ...d, label: e.target.value }))
-                      }
-                      autoFocus
-                    />
-                  </label>
-                  <div className={styles.editRow}>
-                    <label className={styles.editLabel}>
-                      <span className={styles.editLabelText}>Quantitat</span>
-                      <input
-                        className={`${styles.editField} ${styles.editFieldNumber}`}
-                        type="number"
-                        min="0"
-                        step="any"
-                        value={editDraft.quantity}
-                        onChange={(e) =>
-                          setEditDraft((d) => ({
-                            ...d,
-                            quantity: e.target.value,
-                          }))
-                        }
-                      />
-                    </label>
-                    <label className={styles.editLabel}>
-                      <span className={styles.editLabelText}>Preu (€)</span>
-                      <input
-                        className={`${styles.editField} ${styles.editFieldNumber}`}
-                        type="number"
-                        min="0"
-                        step="any"
-                        value={editDraft.unitPrice}
-                        onChange={(e) =>
-                          setEditDraft((d) => ({
-                            ...d,
-                            unitPrice: e.target.value,
-                          }))
-                        }
-                      />
-                    </label>
-                    <div className={styles.editActions}>
-                      <button type="submit" className={styles.saveButton}>
-                        Guardar
-                      </button>
-                      <button
-                        type="button"
-                        className={styles.cancelButton}
-                        onClick={cancelEdit}
-                      >
-                        Cancel·lar
-                      </button>
-                    </div>
-                  </div>
-                </form>
-              ) : (
-                <>
-                  <div className={styles.lineMain}>
-                    <p className={styles.lineTitle}>{line.label}</p>
-                    {isPricePending(line) ? (
-                      <p className={styles.lineMeta}>preu pendent</p>
-                    ) : (
-                      <p className={styles.lineMeta}>
-                        {line.quantity} {line.unitLabel} × {line.unitPrice} €/
-                        {line.unitLabel}
-                      </p>
-                    )}
-                  </div>
+        {dropError && (
+          <p className={styles.dropError} role="alert">
+            {dropError}
+          </p>
+        )}
 
-                  <div className={styles.lineActions}>
-                    {isPricePending(line) ? (
-                      <p className={styles.lineSubtotalPending}>Pendent</p>
-                    ) : (
-                      <p className={styles.lineSubtotal}>
-                        {formatEUR(line.subtotal)}
-                      </p>
-                    )}
-                    <button
-                      type="button"
-                      className={styles.editButton}
-                      onClick={() => startEdit(line)}
-                      aria-label={`Editar ${line.label}`}
-                    >
-                      Editar
-                    </button>
-                    <button
-                      type="button"
-                      className={styles.removeButton}
-                      onClick={() => onRemoveLine(line.id)}
-                      aria-label={`Eliminar ${line.label}`}
-                    >
-                      Eliminar
-                    </button>
-                  </div>
-                </>
-              )}
-            </div>
-          ))}
-        </div>
+        <DndContext
+          sensors={sensors}
+          onDragStart={handleDragStart}
+          onDragOver={handleDragOver}
+          onDragEnd={handleDragEnd}
+        >
+          <div className={styles.linesList}>
+            {items.map((item) =>
+              isBudgetGroup(item) ? (
+                <BudgetGroupCard
+                  key={item.id}
+                  group={item}
+                  activeDragZone={activeDragZone}
+                  onRemoveLine={onRemoveLine}
+                  onUpdateLine={onUpdateLine}
+                />
+              ) : (
+                <DraggableLine
+                  key={(item as BudgetLine).id}
+                  line={item as BudgetLine}
+                  isDragOver={overId === (item as BudgetLine).id}
+                  isDropCompatible={
+                    activeId === null
+                      ? null
+                      : activeDragZone ===
+                        extractZone((item as BudgetLine).label)
+                  }
+                  onRemove={() => onRemoveLine((item as BudgetLine).id)}
+                  onUpdate={(patch) =>
+                    onUpdateLine((item as BudgetLine).id, patch)
+                  }
+                />
+              )
+            )}
+          </div>
+        </DndContext>
       </div>
 
       {warnings && warnings.length > 0 ? (

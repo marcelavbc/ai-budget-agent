@@ -1,0 +1,63 @@
+.groupCard {
+  border: 1px solid var(--border-soft);
+  border-radius: 10px;
+  overflow: hidden;
+  transition:
+    box-shadow 0.15s,
+    border-color 0.15s;
+}
+
+.dropCompatible {
+  border-color: #a8d5a8;
+  box-shadow: 0 0 0 2px #a8d5a8;
+}
+
+.dropIncompatible {
+  border-color: #f5b8b8;
+  box-shadow: 0 0 0 2px #f5b8b8;
+}
+
+.groupHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.6rem 0.9rem;
+  background: var(--border-soft);
+  gap: 1rem;
+}
+
+.groupZone {
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  color: var(--text-muted);
+}
+
+.groupSubtotal {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--text);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.groupSubtotalPending {
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: var(--text-muted);
+  white-space: nowrap;
+}
+
+.groupLines {
+  padding: 0 0.9rem;
+}
+
+.zoneError {
+  margin: 0;
+  padding: 0.45rem 0.9rem;
+  font-size: 0.8rem;
+  color: #b94040;
+  background: #fff5f5;
+  border-top: 1px solid #f5b8b8;
+}

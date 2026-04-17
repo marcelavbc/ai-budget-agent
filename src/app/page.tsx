@@ -10,7 +10,7 @@ import styles from "./page.module.css";
 export default function Home() {
   const { submit, loading, formError, lastResponse } = useGenerateBudgetDraft();
   const {
-    adjustedLines,
+    items,
     hasPending,
     adjustedTotal,
     pricePerSqm,
@@ -18,6 +18,7 @@ export default function Home() {
     addLines,
     removeLine,
     updateLine,
+    moveLineToTarget,
   } = useBudgetLines();
 
   async function handleSubmit(description: string): Promise<boolean> {
@@ -48,12 +49,13 @@ export default function Home() {
         />
 
         <BudgetLinesList
-          lines={adjustedLines}
+          items={items}
           hasPending={hasPending}
           total={adjustedTotal}
           warnings={lastResponse?.errors}
           onRemoveLine={removeLine}
           onUpdateLine={updateLine}
+          onGroupLines={moveLineToTarget}
         />
       </div>
     </div>

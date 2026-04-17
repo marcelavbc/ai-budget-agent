@@ -56,3 +56,16 @@ export interface BudgetDraftResponse {
   total: number | null;
   errors?: string[];
 }
+
+export interface BudgetGroup {
+  id: string;
+  zone: string;
+  lines: BudgetLine[];
+  subtotal: number;
+}
+
+export type BudgetListItem = BudgetLine | BudgetGroup;
+
+export function isBudgetGroup(item: BudgetListItem): item is BudgetGroup {
+  return "zone" in item && "lines" in item;
+}
