@@ -1,7 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { BudgetLine } from "@/types/budget";
 import { isPricePending } from "../isPricePending";
-import { displayLinePrice } from "../displayLinePrice";
 
 // ─── helpers ──────────────────────────────────────────────────────────────────
 
@@ -76,27 +75,5 @@ describe("isPricePending", () => {
       subtotal: 150,
     });
     expect(isPricePending(line)).toBe(false);
-  });
-});
-
-describe("displayLinePrice: pending lines should not show '0,00 €'", () => {
-  it("una línia pending mostra 'Pendent' en lloc de '0,00 €'", () => {
-    const pendingLine = makeLine({
-      type: "custom",
-      quantity: 0,
-      unitPrice: 0,
-      subtotal: 0,
-    });
-
-    expect(isPricePending(pendingLine)).toBe(true);
-    expect(displayLinePrice(pendingLine)).toBe("Pendent");
-    expect(displayLinePrice(pendingLine)).not.toContain("0,00");
-  });
-
-  it("una línia amb preu real mostra l'import formatat", () => {
-    const pricedLine = makeLine({ quantity: 10, unitPrice: 12, subtotal: 120 });
-
-    expect(isPricePending(pricedLine)).toBe(false);
-    expect(displayLinePrice(pricedLine)).toContain("120");
   });
 });

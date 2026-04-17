@@ -1,8 +1,8 @@
-export function formatEUR(amount: number) {
-  const formatter = new Intl.NumberFormat("ca-ES", {
-    style: "currency",
-    currency: "EUR",
-  });
+const eurFormatter = new Intl.NumberFormat("ca-ES", {
+  style: "currency",
+  currency: "EUR",
+});
 
-  return formatter.format(amount);
+export function formatEUR(amount: number) {
+  return eurFormatter.format(amount);
 }

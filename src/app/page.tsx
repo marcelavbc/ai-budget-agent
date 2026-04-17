@@ -22,9 +22,9 @@ export default function Home() {
   } = useBudgetLines();
 
   async function handleSubmit(description: string): Promise<boolean> {
-    const result = await submit(description);
-    if (result) {
-      addLines(result.lines);
+    const lines = await submit(description);
+    if (lines) {
+      addLines(lines);
       return true;
     }
     return false;

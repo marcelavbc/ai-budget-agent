@@ -25,7 +25,7 @@ export function DraggableLine({
   onRemove,
   onUpdate,
 }: Props) {
-  const [editingId, setEditingId] = useState<string | null>(null);
+  const [isEditing, setIsEditing] = useState(false);
   const [editDraft, setEditDraft] = useState({
     label: "",
     quantity: "",
@@ -47,7 +47,7 @@ export function DraggableLine({
   };
 
   function startEdit() {
-    setEditingId(line.id);
+    setIsEditing(true);
     setEditDraft({
       label: line.label,
       quantity: String(line.quantity),
@@ -61,10 +61,8 @@ export function DraggableLine({
       quantity: parseFloat(editDraft.quantity) || 0,
       unitPrice: parseFloat(editDraft.unitPrice) || 0,
     });
-    setEditingId(null);
+    setIsEditing(false);
   }
-
-  const isEditing = editingId === line.id;
 
   const dropClass =
     isDragOver && isDropCompatible === true
@@ -135,7 +133,7 @@ export function DraggableLine({
               <button
                 type="button"
                 className={styles.cancelButton}
-                onClick={() => setEditingId(null)}
+                onClick={() => setIsEditing(false)}
               >
                 Cancel·lar
               </button>

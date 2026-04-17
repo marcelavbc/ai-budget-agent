@@ -1,11 +1,6 @@
 import { useState } from "react";
 import type { BudgetLine, BudgetDraftResponse } from "@/types/budget";
 
-interface SubmitResult {
-  lines: BudgetLine[];
-  response: BudgetDraftResponse;
-}
-
 export function useGenerateBudgetDraft() {
   const [loading, setLoading] = useState(false);
   const [formError, setFormError] = useState<string | null>(null);
@@ -13,7 +8,7 @@ export function useGenerateBudgetDraft() {
     null
   );
 
-  async function submit(description: string): Promise<SubmitResult | null> {
+  async function submit(description: string): Promise<BudgetLine[] | null> {
     setFormError(null);
     setLastResponse(null);
     setLoading(true);
@@ -38,7 +33,7 @@ export function useGenerateBudgetDraft() {
       }
 
       setLastResponse(data);
-      return { lines: data.lines, response: data };
+      return data.lines;
     } catch {
       setFormError(
         "No s'ha pogut connectar. Comprova la connexió i torna-ho a provar."

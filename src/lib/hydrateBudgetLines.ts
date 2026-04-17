@@ -13,12 +13,7 @@ export function hydrateBudgetLines(aiLines: AIParsedLine[]): BudgetLine[] {
     const rawQuantity = line.quantity ?? getDefaultQuantity(unitLabel);
     const quantity = normalizeQuantity(normalizedType, unitLabel, rawQuantity);
 
-    const label = getNormalizedLabel(
-      normalizedType,
-      line.label,
-      template.label,
-      line.type
-    );
+    const label = getNormalizedLabel(line.label, template.label);
 
     return {
       id: `${normalizedType}-${index}-${crypto.randomUUID()}`,
@@ -132,14 +127,7 @@ function getDefaultQuantity(unitLabel: BudgetLineUnit): number {
   return 0;
 }
 
-function getNormalizedLabel(
-  normalizedType: BudgetLine["type"],
-  aiLabel: string,
-  fallback: string,
-  originalType: BudgetLine["type"]
-): string {
+function getNormalizedLabel(aiLabel: string, fallback: string): string {
   const cleaned = aiLabel?.trim();
-
-  // Prefer the AI-generated label when it exists; fall back to the template.
   return cleaned || fallback;
 }

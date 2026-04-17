@@ -1,21 +1,5 @@
-export type WallCondition = "good" | "medium" | "bad";
-
 export interface BudgetRequest {
   description: string;
-}
-
-export interface ParsedJob {
-  jobType: "interior_painting";
-  areaM2: number | null;
-  color: string | null;
-  wallCondition: WallCondition | null;
-}
-
-export interface BudgetBreakdown {
-  pricePerM2: number;
-  paintableSurfaceM2: number;
-  paintingCost: number;
-  total: number;
 }
 
 export type BudgetLineType =
@@ -40,15 +24,6 @@ export interface BudgetLine {
   unitPrice: number;
   subtotal: number;
   pricingMode: BudgetLinePricingMode;
-}
-
-export interface BudgetResponse {
-  parsedJob: ParsedJob;
-  breakdown: BudgetBreakdown | null;
-  lines: BudgetLine[];
-  total: number | null;
-  budgetText: string;
-  errors?: string[];
 }
 
 export interface BudgetDraftResponse {
