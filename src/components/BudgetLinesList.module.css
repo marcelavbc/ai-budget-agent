@@ -196,77 +196,90 @@
 .lineItemEditing {
   flex-direction: column;
   align-items: stretch;
+  background: var(--bg-subtle, #f9f9f9);
+  border-radius: 8px;
+  padding: 0.85rem;
+  border: 1px solid var(--border-soft);
 }
 
 .editForm {
   display: flex;
   flex-direction: column;
-  gap: 0.6rem;
+  gap: 0.65rem;
   width: 100%;
 }
 
-.editFields {
+.editRow {
   display: flex;
   gap: 0.75rem;
-  flex-wrap: wrap;
   align-items: flex-end;
+  flex-wrap: wrap;
 }
 
 .editLabel {
   display: flex;
   flex-direction: column;
-  gap: 0.25rem;
+  gap: 0.3rem;
 }
 
 .editLabelText {
-  font-size: 0.75rem;
-  font-weight: 500;
+  font-size: 0.72rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
   color: var(--text-muted);
-  letter-spacing: 0.01em;
 }
 
 .editField {
   border: 1px solid var(--border-soft);
   border-radius: 6px;
-  padding: 0.35rem 0.55rem;
+  padding: 0.45rem 0.65rem;
   font-size: 0.9rem;
+  font-family: inherit;
   color: var(--text);
   background: var(--bg, #fff);
   outline: none;
+  transition: border-color 0.15s;
+  height: 2.25rem;
+  box-sizing: border-box;
 }
 
 .editField:focus {
-  border-color: var(--text-muted);
+  border-color: var(--text);
 }
 
-.editFieldLabel {
-  flex: 1 1 180px;
-  min-width: 0;
+.editFieldWide {
+  width: 100%;
 }
 
 .editFieldNumber {
-  width: 80px;
+  width: 90px;
 }
 
 .editActions {
   display: flex;
   gap: 0.5rem;
+  align-items: flex-end;
+  margin-left: auto;
 }
 
 .saveButton {
   border: none;
   background: var(--text);
   color: var(--bg, #fff);
-  font-size: 0.875rem;
+  font-size: 0.85rem;
   font-weight: 500;
+  font-family: inherit;
   border-radius: 6px;
-  padding: 0.35rem 0.75rem;
+  padding: 0 0.9rem;
+  height: 2.25rem;
   cursor: pointer;
+  transition: opacity 0.15s;
 }
 
 @media (hover: hover) and (pointer: fine) {
   .saveButton:hover {
-    opacity: 0.85;
+    opacity: 0.8;
   }
 }
 
@@ -274,7 +287,16 @@
   border: none;
   background: transparent;
   color: var(--text-muted);
-  font-size: 0.875rem;
+  font-size: 0.85rem;
+  font-family: inherit;
   cursor: pointer;
-  padding: 0.35rem 0.5rem;
+  padding: 0 0.4rem;
+  height: 2.25rem;
+  transition: color 0.15s;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .cancelButton:hover {
+    color: var(--text);
+  }
 }

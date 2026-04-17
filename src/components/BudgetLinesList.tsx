@@ -89,17 +89,18 @@ export function BudgetLinesList({
                     saveEdit(line);
                   }}
                 >
-                  <div className={styles.editFields}>
-                    <label className={styles.editLabel}>
-                      <span className={styles.editLabelText}>Descripció</span>
-                      <input
-                        className={`${styles.editField} ${styles.editFieldLabel}`}
-                        value={editDraft.label}
-                        onChange={(e) =>
-                          setEditDraft((d) => ({ ...d, label: e.target.value }))
-                        }
-                      />
-                    </label>
+                  <label className={styles.editLabel}>
+                    <span className={styles.editLabelText}>Descripció</span>
+                    <input
+                      className={`${styles.editField} ${styles.editFieldWide}`}
+                      value={editDraft.label}
+                      onChange={(e) =>
+                        setEditDraft((d) => ({ ...d, label: e.target.value }))
+                      }
+                      autoFocus
+                    />
+                  </label>
+                  <div className={styles.editRow}>
                     <label className={styles.editLabel}>
                       <span className={styles.editLabelText}>Quantitat</span>
                       <input
@@ -117,9 +118,7 @@ export function BudgetLinesList({
                       />
                     </label>
                     <label className={styles.editLabel}>
-                      <span className={styles.editLabelText}>
-                        Preu unitari (€)
-                      </span>
+                      <span className={styles.editLabelText}>Preu (€)</span>
                       <input
                         className={`${styles.editField} ${styles.editFieldNumber}`}
                         type="number"
@@ -134,18 +133,18 @@ export function BudgetLinesList({
                         }
                       />
                     </label>
-                  </div>
-                  <div className={styles.editActions}>
-                    <button type="submit" className={styles.saveButton}>
-                      Guardar
-                    </button>
-                    <button
-                      type="button"
-                      className={styles.cancelButton}
-                      onClick={cancelEdit}
-                    >
-                      Cancel·lar
-                    </button>
+                    <div className={styles.editActions}>
+                      <button type="submit" className={styles.saveButton}>
+                        Guardar
+                      </button>
+                      <button
+                        type="button"
+                        className={styles.cancelButton}
+                        onClick={cancelEdit}
+                      >
+                        Cancel·lar
+                      </button>
+                    </div>
                   </div>
                 </form>
               ) : (
