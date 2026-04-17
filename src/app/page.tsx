@@ -19,6 +19,7 @@ export default function Home() {
     removeLine,
     updateLine,
     moveLineToTarget,
+    ungroupGroup,
   } = useBudgetLines();
 
   async function handleSubmit(description: string): Promise<boolean> {
@@ -56,6 +57,7 @@ export default function Home() {
           onRemoveLine={removeLine}
           onUpdateLine={updateLine}
           onGroupLines={moveLineToTarget}
+          onUngroupGroup={ungroupGroup}
         />
       </div>
     </div>

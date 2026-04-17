@@ -176,6 +176,15 @@ export function useBudgetLines() {
     return compatible;
   }
 
+  function ungroupGroup(groupId: string) {
+    setItems((prev) =>
+      prev.flatMap((item) => {
+        if (isBudgetGroup(item) && item.id === groupId) return item.lines;
+        return [item];
+      })
+    );
+  }
+
   // ─── derived state ──────────────────────────────────────────────────────────
 
   const allLines = getAllLines(items);
@@ -196,5 +205,6 @@ export function useBudgetLines() {
     removeLine,
     updateLine,
     moveLineToTarget,
+    ungroupGroup,
   };
 }

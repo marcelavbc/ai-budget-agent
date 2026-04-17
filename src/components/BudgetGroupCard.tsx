@@ -15,6 +15,7 @@ interface Props {
     lineId: string,
     patch: Partial<Pick<BudgetLine, "label" | "quantity" | "unitPrice">>
   ) => void;
+  onUngroup: () => void;
 }
 
 export function BudgetGroupCard({
@@ -22,6 +23,7 @@ export function BudgetGroupCard({
   activeDragZone,
   onRemoveLine,
   onUpdateLine,
+  onUngroup,
 }: Props) {
   const isCompatible =
     activeDragZone !== null ? activeDragZone === group.zone : null;
@@ -41,6 +43,14 @@ export function BudgetGroupCard({
     <div ref={setNodeRef} className={`${styles.groupCard} ${dropClass}`}>
       <div className={styles.groupHeader}>
         <span className={styles.groupZone}>{group.zone}</span>
+        <button
+          className={styles.ungroupBtn}
+          onClick={onUngroup}
+          title="Desagrupar"
+          aria-label={`Desagrupar ${group.zone}`}
+        >
+          Desagrupar
+        </button>
         {hasPending ? (
           <span className={styles.groupSubtotalPending}>Pendent</span>
         ) : (

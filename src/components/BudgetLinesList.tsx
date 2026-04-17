@@ -31,6 +31,7 @@ interface Props {
     patch: Partial<Pick<BudgetLine, "label" | "quantity" | "unitPrice">>
   ) => void;
   onGroupLines: (dragId: string, targetId: string) => boolean;
+  onUngroupGroup: (groupId: string) => void;
 }
 
 export function BudgetLinesList({
@@ -41,6 +42,7 @@ export function BudgetLinesList({
   onRemoveLine,
   onUpdateLine,
   onGroupLines,
+  onUngroupGroup,
 }: Props) {
   const [activeId, setActiveId] = useState<string | null>(null);
   const [overId, setOverId] = useState<string | null>(null);
@@ -128,6 +130,7 @@ export function BudgetLinesList({
                   activeDragZone={activeDragZone}
                   onRemoveLine={onRemoveLine}
                   onUpdateLine={onUpdateLine}
+                  onUngroup={() => onUngroupGroup(item.id)}
                 />
               ) : (
                 <DraggableLine
