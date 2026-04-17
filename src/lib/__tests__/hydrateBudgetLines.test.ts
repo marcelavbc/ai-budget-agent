@@ -73,4 +73,30 @@ describe("hydrateBudgetLines", () => {
       },
     ]);
   });
+
+  it("sets unitPrice 0 and pricingMode input when AI unit mismatches template unit", () => {
+    // Template for "repair" expects m², but AI returned "partida".
+    // 4 €/m² applied to 1 partida is nonsensical — price must be entered manually.
+    const result = hydrateBudgetLines([
+      {
+        type: "repair",
+        label: "Reparació d'esquerdes",
+        quantity: 1,
+        unitLabel: "partida",
+      },
+    ]);
+
+    expect(result).toEqual([
+      {
+        id: expect.stringMatching(/^repair-0-/),
+        type: "repair",
+        label: "Reparació d'esquerdes",
+        quantity: 1,
+        unitLabel: "partida",
+        unitPrice: 0,
+        subtotal: 0,
+        pricingMode: "input",
+      },
+    ]);
+  });
 });

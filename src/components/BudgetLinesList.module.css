@@ -172,3 +172,109 @@
     color: var(--text);
   }
 }
+
+/* ── Edit button ── */
+
+.editButton {
+  border: none;
+  background: transparent;
+  color: var(--text-muted);
+  font-size: 1rem;
+  line-height: 1;
+  cursor: pointer;
+  padding: 0.2rem;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .editButton:hover {
+    color: var(--text);
+  }
+}
+
+/* ── Inline edit form ── */
+
+.lineItemEditing {
+  flex-direction: column;
+  align-items: stretch;
+}
+
+.editForm {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  width: 100%;
+}
+
+.editFields {
+  display: flex;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+  align-items: flex-end;
+}
+
+.editLabel {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.editLabelText {
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: var(--text-muted);
+  letter-spacing: 0.01em;
+}
+
+.editField {
+  border: 1px solid var(--border-soft);
+  border-radius: 6px;
+  padding: 0.35rem 0.55rem;
+  font-size: 0.9rem;
+  color: var(--text);
+  background: var(--bg, #fff);
+  outline: none;
+}
+
+.editField:focus {
+  border-color: var(--text-muted);
+}
+
+.editFieldLabel {
+  flex: 1 1 180px;
+  min-width: 0;
+}
+
+.editFieldNumber {
+  width: 80px;
+}
+
+.editActions {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.saveButton {
+  border: none;
+  background: var(--text);
+  color: var(--bg, #fff);
+  font-size: 0.875rem;
+  font-weight: 500;
+  border-radius: 6px;
+  padding: 0.35rem 0.75rem;
+  cursor: pointer;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .saveButton:hover {
+    opacity: 0.85;
+  }
+}
+
+.cancelButton {
+  border: none;
+  background: transparent;
+  color: var(--text-muted);
+  font-size: 0.875rem;
+  cursor: pointer;
+  padding: 0.35rem 0.5rem;
+}

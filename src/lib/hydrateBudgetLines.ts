@@ -8,6 +8,7 @@ export function hydrateBudgetLines(aiLines: AIParsedLine[]): BudgetLine[] {
     const template = lineTemplates[normalizedType] ?? lineTemplates.custom;
 
     const unitLabel = normalizeUnitLabel(line.unitLabel, template.unitLabel);
+    const unitMismatch = unitLabel !== template.unitLabel;
 
     const rawQuantity = line.quantity ?? getDefaultQuantity(unitLabel);
     const quantity = normalizeQuantity(normalizedType, unitLabel, rawQuantity);
@@ -25,9 +26,9 @@ export function hydrateBudgetLines(aiLines: AIParsedLine[]): BudgetLine[] {
       label,
       quantity,
       unitLabel,
-      unitPrice: template.defaultPrice,
+      unitPrice: unitMismatch ? 0 : template.defaultPrice,
       subtotal: 0,
-      pricingMode: template.pricingMode,
+      pricingMode: unitMismatch ? "input" : template.pricingMode,
     };
   });
 

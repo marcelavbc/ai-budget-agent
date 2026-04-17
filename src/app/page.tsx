@@ -17,6 +17,7 @@ export default function Home() {
     setPricePerSqm,
     addLines,
     removeLine,
+    updateLine,
   } = useBudgetLines();
 
   async function handleSubmit(description: string): Promise<boolean> {
@@ -52,6 +53,7 @@ export default function Home() {
           total={adjustedTotal}
           warnings={lastResponse?.errors}
           onRemoveLine={removeLine}
+          onUpdateLine={updateLine}
         />
       </div>
     </div>

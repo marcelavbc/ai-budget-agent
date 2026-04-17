@@ -22,6 +22,19 @@ export function useBudgetLines() {
     setDraftLines((prev) => prev.filter((line) => line.id !== id));
   }
 
+  function updateLine(
+    id: string,
+    patch: Partial<Pick<BudgetLine, "label" | "quantity" | "unitPrice">>
+  ) {
+    setDraftLines((prev) =>
+      prev.map((line) => {
+        if (line.id !== id) return line;
+        const updated = { ...line, ...patch };
+        return { ...updated, subtotal: updated.quantity * updated.unitPrice };
+      })
+    );
+  }
+
   const adjustedLines = applyPricePerSqm(draftLines, pricePerSqm);
   const hasPending = computeHasPending(adjustedLines);
   const adjustedTotal = computeTotal(adjustedLines);
@@ -34,5 +47,6 @@ export function useBudgetLines() {
     setPricePerSqm,
     addLines,
     removeLine,
+    updateLine,
   };
 }
