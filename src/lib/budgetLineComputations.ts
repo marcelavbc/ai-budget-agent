@@ -1,4 +1,5 @@
 import type { BudgetLine } from "@/types/budget";
+import { isPricePending } from "@/lib/isPricePending";
 
 export function applyPricePerSqm(
   lines: BudgetLine[],
@@ -16,7 +17,7 @@ export function applyPricePerSqm(
 }
 
 export function computeHasPending(lines: BudgetLine[]): boolean {
-  return lines.some((line) => line.type === "custom" && line.unitPrice === 0);
+  return lines.some(isPricePending);
 }
 
 export function computeTotal(lines: BudgetLine[]): number | null {

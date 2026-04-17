@@ -2,6 +2,7 @@
 
 import type { BudgetLine } from "@/types/budget";
 import { formatEUR } from "@/lib/formatCurrency";
+import { isPricePending } from "@/lib/isPricePending";
 import styles from "./BudgetLinesList.module.css";
 
 interface Props {
@@ -59,7 +60,7 @@ export function BudgetLinesList({
               </div>
 
               <div className={styles.lineActions}>
-                {line.type === "custom" && line.unitPrice === 0 ? (
+                {isPricePending(line) ? (
                   <p className={styles.lineSubtotalPending}>Pendent</p>
                 ) : (
                   <p className={styles.lineSubtotal}>

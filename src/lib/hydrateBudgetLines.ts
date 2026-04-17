@@ -139,12 +139,6 @@ function getNormalizedLabel(
 ): string {
   const cleaned = aiLabel?.trim();
 
-  // For custom lines, preserve the original label from the AI description,
-  // especially when it came from an unusual automatic classification.
-  if (normalizedType === "custom") {
-    return cleaned || fallback;
-  }
-
-  // For known types, use the stable label from the template.
-  return fallback;
+  // Prefer the AI-generated label when it exists; fall back to the template.
+  return cleaned || fallback;
 }

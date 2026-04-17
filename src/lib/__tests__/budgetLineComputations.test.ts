@@ -37,7 +37,12 @@ describe("applyPricePerSqm", () => {
   });
 
   it("does not modify non-walls_and_ceilings lines", () => {
-    const line = makeLine({ type: "doors", unitLabel: "unitat", unitPrice: 80, subtotal: 80 });
+    const line = makeLine({
+      type: "doors",
+      unitLabel: "unitat",
+      unitPrice: 80,
+      subtotal: 80,
+    });
     const [result] = applyPricePerSqm([line], 20);
 
     expect(result.unitPrice).toBe(80);
@@ -45,7 +50,12 @@ describe("applyPricePerSqm", () => {
   });
 
   it("does not modify walls_and_ceilings lines with non-m² unit", () => {
-    const line = makeLine({ type: "walls_and_ceilings", unitLabel: "partida", unitPrice: 200, subtotal: 200 });
+    const line = makeLine({
+      type: "walls_and_ceilings",
+      unitLabel: "partida",
+      unitPrice: 200,
+      subtotal: 200,
+    });
     const [result] = applyPricePerSqm([line], 15);
 
     expect(result.unitPrice).toBe(200);
@@ -63,10 +73,10 @@ describe("computeHasPending", () => {
     ).toBe(true);
   });
 
-  it("returns false for non-custom lines with unitPrice=0", () => {
-    expect(
-      computeHasPending([makeLine({ type: "doors", unitPrice: 0 })])
-    ).toBe(false);
+  it("returns true for non-custom lines with unitPrice=0 (any unpriced line is pending)", () => {
+    expect(computeHasPending([makeLine({ type: "doors", unitPrice: 0 })])).toBe(
+      true
+    );
   });
 
   it("returns false for empty array", () => {
@@ -81,10 +91,7 @@ describe("computeTotal", () => {
 
   it("sums subtotals of all lines", () => {
     expect(
-      computeTotal([
-        makeLine({ subtotal: 100 }),
-        makeLine({ subtotal: 50 }),
-      ])
+      computeTotal([makeLine({ subtotal: 100 }), makeLine({ subtotal: 50 })])
     ).toBe(150);
   });
 
