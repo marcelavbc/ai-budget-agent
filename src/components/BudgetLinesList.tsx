@@ -31,6 +31,7 @@ interface Props {
   ) => void;
   onGroupLines: (dragId: string, targetId: string) => boolean;
   onUngroupGroup: (groupId: string) => void;
+  onGenerateDraft?: () => void;
 }
 
 export function BudgetLinesList({
@@ -42,6 +43,7 @@ export function BudgetLinesList({
   onUpdateLine,
   onGroupLines,
   onUngroupGroup,
+  onGenerateDraft,
 }: Props) {
   const [activeId, setActiveId] = useState<string | null>(null);
   const [overId, setOverId] = useState<string | null>(null);
@@ -164,6 +166,14 @@ export function BudgetLinesList({
           </ul>
         </div>
       ) : null}
+
+      {!hasPending && onGenerateDraft && (
+        <div className={styles.generateBlock}>
+          <button className={styles.generateBtn} onClick={onGenerateDraft}>
+            Generar esborrany
+          </button>
+        </div>
+      )}
     </section>
   );
 }

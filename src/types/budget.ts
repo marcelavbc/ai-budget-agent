@@ -60,3 +60,10 @@ export function canGroup(a: BudgetLine, b: BudgetLine): boolean {
   const groupB = templateGroup[b.type];
   return groupA === groupB && groupA !== "custom";
 }
+
+export interface BudgetClientItem {
+  id: string;
+  title: string;
+  description: string;
+  total: number;
+}

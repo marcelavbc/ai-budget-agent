@@ -220,3 +220,28 @@
     color: var(--text);
   }
 }
+
+.generateBlock {
+  margin-top: 2rem;
+  display: flex;
+  justify-content: flex-end;
+}
+
+.generateBtn {
+  border: none;
+  background: var(--text);
+  color: var(--bg, #fff);
+  font-size: 0.9rem;
+  font-weight: 500;
+  font-family: inherit;
+  border-radius: 7px;
+  padding: 0.6rem 1.25rem;
+  cursor: pointer;
+  transition: opacity 0.15s;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .generateBtn:hover {
+    opacity: 0.75;
+  }
+}
