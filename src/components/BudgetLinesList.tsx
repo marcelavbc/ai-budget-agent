@@ -73,7 +73,7 @@ export function BudgetLinesList({
                   onClick={() => onRemoveLine(line.id)}
                   aria-label={`Eliminar ${line.label}`}
                 >
-                  ×
+                  <span className={styles.removeButton}>Eliminar</span>
                 </button>
               </div>
             </div>
