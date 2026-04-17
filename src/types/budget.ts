@@ -44,3 +44,19 @@ export type BudgetListItem = BudgetLine | BudgetGroup;
 export function isBudgetGroup(item: BudgetListItem): item is BudgetGroup {
   return "zone" in item && "lines" in item;
 }
+
+export const templateGroup: Record<BudgetLineType, string> = {
+  walls_and_ceilings: "interior",
+  repair: "interior",
+  exterior: "exterior",
+  doors: "openings",
+  windows: "openings",
+  enamel_varnish: "enamel",
+  custom: "custom",
+};
+
+export function canGroup(a: BudgetLine, b: BudgetLine): boolean {
+  const groupA = templateGroup[a.type];
+  const groupB = templateGroup[b.type];
+  return groupA === groupB && groupA !== "custom";
+}

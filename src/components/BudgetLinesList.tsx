@@ -13,9 +13,8 @@ import type {
   DragOverEvent,
 } from "@dnd-kit/core";
 import type { BudgetLine, BudgetListItem } from "@/types/budget";
-import { isBudgetGroup } from "@/types/budget";
+import { isBudgetGroup, canGroup, templateGroup } from "@/types/budget";
 import { formatEUR } from "@/lib/formatCurrency";
-import { extractZone } from "@/lib/extractZone";
 import { DraggableLine } from "./DraggableLine";
 import { BudgetGroupCard } from "./BudgetGroupCard";
 import styles from "./BudgetLinesList.module.css";
@@ -50,22 +49,24 @@ export function BudgetLinesList({
 
   const sensors = useSensors(useSensor(PointerSensor));
 
-  // Zone of the line currently being dragged (null when nothing is dragged)
-  const activeDragZone = (() => {
+  // Line currently being dragged (null when nothing is dragged)
+  const activeLine = (() => {
     if (!activeId) return null;
     for (const item of items) {
       if (!isBudgetGroup(item)) {
-        if ((item as BudgetLine).id === activeId)
-          return extractZone((item as BudgetLine).label);
+        if ((item as BudgetLine).id === activeId) return item as BudgetLine;
       } else {
         const found = (item as import("@/types/budget").BudgetGroup).lines.find(
           (l) => l.id === activeId
         );
-        if (found) return extractZone(found.label);
+        if (found) return found;
       }
     }
     return null;
   })();
+
+  // Template group of the line currently being dragged
+  const activeDragZone = activeLine ? templateGroup[activeLine.type] : null;
 
   function handleDragStart(event: DragStartEvent) {
     setActiveId(event.active.id as string);
@@ -84,7 +85,7 @@ export function BudgetLinesList({
     const ok = onGroupLines(active.id as string, over.id as string);
     if (!ok)
       setDropError(
-        "Zones incompatibles — només es poden agrupar línies de la mateixa zona."
+        "Grups incompatibles — només es poden agrupar línies del mateix grup."
       );
   }
 
@@ -138,10 +139,9 @@ export function BudgetLinesList({
                   line={item as BudgetLine}
                   isDragOver={overId === (item as BudgetLine).id}
                   isDropCompatible={
-                    activeId === null
+                    activeLine === null
                       ? null
-                      : activeDragZone ===
-                        extractZone((item as BudgetLine).label)
+                      : canGroup(activeLine, item as BudgetLine)
                   }
                   onRemove={() => onRemoveLine((item as BudgetLine).id)}
                   onUpdate={(patch) =>

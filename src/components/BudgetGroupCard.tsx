@@ -9,7 +9,7 @@ import styles from "./BudgetGroupCard.module.css";
 
 interface Props {
   group: BudgetGroup;
-  activeDragZone: string | null; // zone of the line currently being dragged
+  activeDragZone: string | null; // template group of the line currently being dragged
   onRemoveLine: (lineId: string) => void;
   onUpdateLine: (
     lineId: string,
@@ -75,7 +75,7 @@ export function BudgetGroupCard({
 
       {isOver && isCompatible === false && (
         <p className={styles.zoneError}>
-          Zona incompatible — només s&apos;accepten línies de &ldquo;
+          Grup incompatible — només s&apos;accepten línies del grup &ldquo;
           {group.zone}&rdquo;
         </p>
       )}

@@ -85,7 +85,7 @@ export function BudgetForm({
             id="price-per-sqm"
             className={styles.slider}
             type="range"
-            min={8}
+            min={6}
             max={20}
             step={1}
             value={pricePerSqm}

@@ -1,13 +1,12 @@
 import { useState } from "react";
 import type { BudgetLine, BudgetGroup, BudgetListItem } from "@/types/budget";
-import { isBudgetGroup } from "@/types/budget";
+import { isBudgetGroup, templateGroup, canGroup } from "@/types/budget";
 import { normalizeLinesWithDraftContext } from "@/lib/normalizeLinesWithDraftContext";
 import {
   applyPricePerSqm,
   computeHasPending,
   computeTotal,
 } from "@/lib/budgetLineComputations";
-import { extractZone } from "@/lib/extractZone";
 
 // ─── helpers ──────────────────────────────────────────────────────────────────
 
@@ -99,7 +98,7 @@ export function useBudgetLines() {
 
   /**
    * Moves dragLineId onto targetId (another line or a group).
-   * Returns false when zones are incompatible — no state change is made.
+   * Returns false when template groups are incompatible — no state change is made.
    */
   function moveLineToTarget(dragLineId: string, targetId: string): boolean {
     let compatible = false;
@@ -109,7 +108,7 @@ export function useBudgetLines() {
       const dragLine = allLines.find((l) => l.id === dragLineId);
       if (!dragLine) return prev;
 
-      const dragZone = extractZone(dragLine.label);
+      const dragGroup = templateGroup[dragLine.type];
 
       // ── dropped on a group ───────────────────────────────────────────────
       const targetGroup = prev.find(
@@ -117,7 +116,8 @@ export function useBudgetLines() {
       ) as BudgetGroup | undefined;
 
       if (targetGroup) {
-        if (targetGroup.zone !== dragZone) return prev;
+        if (dragGroup === "custom" || targetGroup.zone !== dragGroup)
+          return prev;
         compatible = true;
         const stripped = stripLine(prev, dragLineId);
         return stripped.map((item) => {
@@ -133,7 +133,7 @@ export function useBudgetLines() {
       const targetLine = allLines.find((l) => l.id === targetId);
       if (!targetLine) return prev;
 
-      if (extractZone(targetLine.label) !== dragZone) return prev;
+      if (!canGroup(dragLine, targetLine)) return prev;
       compatible = true;
 
       // If targetLine is inside an existing group, add dragLine there
@@ -157,7 +157,7 @@ export function useBudgetLines() {
       // Both ungrouped → create new group at targetLine's position
       const newGroup: BudgetGroup = {
         id: `group-${crypto.randomUUID()}`,
-        zone: dragZone,
+        zone: dragGroup,
         lines: [targetLine, dragLine],
         subtotal: groupSubtotal([targetLine, dragLine]),
       };
