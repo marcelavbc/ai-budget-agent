@@ -1,3 +1,5 @@
+import { buildAutoQuoteNumber } from "@/lib/generateQuoteNumber";
+
 export interface BudgetRequest {
   description: string;
 }
@@ -66,4 +68,32 @@ export interface BudgetClientItem {
   title: string;
   description: string;
   total: number;
+}
+
+/** Capçalera del pressupost (client + referència); preparat per exportar a PDF més endavant. */
+export interface BudgetClientDetails {
+  nameOrCompany: string;
+  email: string;
+  address: string;
+  quoteNumber: string;
+  /** ISO YYYY-MM-DD (compatible amb input type="date") */
+  date: string;
+  /** Termini o text lliure (p. ex. dies hàbils). */
+  estimatedTime: string;
+}
+
+export function defaultBudgetClientDetails(): BudgetClientDetails {
+  const today = new Date();
+  const y = today.getFullYear();
+  const m = String(today.getMonth() + 1).padStart(2, "0");
+  const d = String(today.getDate()).padStart(2, "0");
+  const date = `${y}-${m}-${d}`;
+  return {
+    nameOrCompany: "",
+    email: "",
+    address: "",
+    quoteNumber: buildAutoQuoteNumber("", date),
+    date,
+    estimatedTime: "",
+  };
 }

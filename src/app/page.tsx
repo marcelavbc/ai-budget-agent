@@ -1,13 +1,18 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState, type SetStateAction } from "react";
+import { buildAutoQuoteNumber } from "@/lib/generateQuoteNumber";
 import { useGenerateBudgetDraft } from "@/hooks/useGenerateBudgetDraft";
 import { useBudgetLines } from "@/hooks/useBudgetLines";
 import { BudgetForm } from "@/components/BudgetForm";
 import { BudgetLinesList } from "@/components/BudgetLinesList";
 import { BudgetDraftView } from "@/components/BudgetDraftView";
 import { generateBudgetDraft } from "@/lib/generateBudgetDraft";
-import type { BudgetClientItem } from "@/types/budget";
+import {
+  defaultBudgetClientDetails,
+  type BudgetClientDetails,
+  type BudgetClientItem,
+} from "@/types/budget";
 
 import styles from "./page.module.css";
 
@@ -28,6 +33,46 @@ export default function Home() {
 
   const [view, setView] = useState<"lines" | "draft">("lines");
   const [draftItems, setDraftItems] = useState<BudgetClientItem[]>([]);
+  const [clientDetails, setClientDetails] = useState<BudgetClientDetails>(
+    defaultBudgetClientDetails,
+  );
+  const [quoteManuallyEdited, setQuoteManuallyEdited] = useState(false);
+  const quoteManuallyEditedRef = useRef(false);
+
+  function setClientWithAutoQuote(
+    action: SetStateAction<BudgetClientDetails>,
+  ) {
+    setClientDetails((prev) => {
+      const next =
+        typeof action === "function"
+          ? (action as (p: BudgetClientDetails) => BudgetClientDetails)(prev)
+          : action;
+      const nameOrDateChanged =
+        next.nameOrCompany !== prev.nameOrCompany || next.date !== prev.date;
+      if (!quoteManuallyEditedRef.current && nameOrDateChanged) {
+        return {
+          ...next,
+          quoteNumber: buildAutoQuoteNumber(next.nameOrCompany, next.date),
+        };
+      }
+      return next;
+    });
+  }
+
+  function handleQuoteNumberChange(value: string) {
+    setQuoteManuallyEdited(true);
+    quoteManuallyEditedRef.current = true;
+    setClientDetails((prev) => ({ ...prev, quoteNumber: value }));
+  }
+
+  function handleResetQuoteAutomation() {
+    setQuoteManuallyEdited(false);
+    quoteManuallyEditedRef.current = false;
+    setClientDetails((prev) => ({
+      ...prev,
+      quoteNumber: buildAutoQuoteNumber(prev.nameOrCompany, prev.date),
+    }));
+  }
 
   async function handleSubmit(description: string): Promise<boolean> {
     const lines = await submit(description);
@@ -76,7 +121,15 @@ export default function Home() {
             />
           </>
         ) : (
-          <BudgetDraftView items={draftItems} onBack={() => setView("lines")} />
+          <BudgetDraftView
+            items={draftItems}
+            clientDetails={clientDetails}
+            onClientDetailsChange={setClientWithAutoQuote}
+            quoteManuallyEdited={quoteManuallyEdited}
+            onQuoteNumberChange={handleQuoteNumberChange}
+            onResetQuoteAutomation={handleResetQuoteAutomation}
+            onBack={() => setView("lines")}
+          />
         )}
       </div>
     </div>
