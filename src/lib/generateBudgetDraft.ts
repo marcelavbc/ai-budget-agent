@@ -17,7 +17,7 @@ function getTemplateDescription(zone: string, lines: BudgetLine[]): string {
     case "exterior":
       return `Sanejat de la superficie, aplicació de fons fixador Isaval Fixenol i acabat amb dues capes de revestiment per exteriors d'alta qualitat a base de resina de silicona Isaval Bixolan en un color a escollir.`;
     case "openings":
-      return `Polit i neteja de la superficie i acabat amb esmalt Titanlux Ecològic en color blanc els interiors i verd exteriors.`;
+      return `Polit i neteja de la superficie i acabat amb esmalt Titanlux Ecològic en color a escollir.`;
     case "enamel":
       return `Polit i neteja de la superficie, aplicació d'imprimació antioxidant de la marca Isaval i acabat amb esmalt sintètic Jotun Jotaprof en color a escollir.`;
     default:
@@ -45,6 +45,9 @@ export function generateBudgetDraft(
       title: line.label,
       description: getTemplateDescription(templateGroup[line.type], [line]),
       total: line.subtotal,
+      quantity: line.quantity,
+      unitLabel: line.unitLabel,
+      unitPrice: line.unitPrice,
     };
   });
 }

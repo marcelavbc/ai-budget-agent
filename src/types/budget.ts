@@ -68,6 +68,9 @@ export interface BudgetClientItem {
   title: string;
   description: string;
   total: number;
+  quantity?: number;
+  unitLabel?: BudgetLineUnit;
+  unitPrice?: number;
 }
 
 /** Capçalera del pressupost (client + referència); preparat per exportar a PDF més endavant. */

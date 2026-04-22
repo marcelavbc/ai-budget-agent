@@ -249,6 +249,31 @@
   gap: 0.4rem;
 }
 
+.generatePdfBtn {
+  margin-top: 1rem;
+  align-self: flex-start;
+  border: 1px solid var(--border);
+  background: var(--text);
+  color: var(--bg);
+  border-radius: 10px;
+  padding: 0.7rem 1rem;
+  font-size: 0.9rem;
+  font-family: inherit;
+  font-weight: 600;
+  cursor: pointer;
+  transition: transform 0.06s ease, opacity 0.15s ease;
+}
+
+.generatePdfBtn:active {
+  transform: translateY(1px);
+}
+
+.generatePdfBtn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+  transform: none;
+}
+
 .totalLabel {
   font-size: 0.78rem;
   font-weight: 500;

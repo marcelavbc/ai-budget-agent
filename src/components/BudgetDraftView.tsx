@@ -4,6 +4,8 @@ import { useState } from "react";
 import type { BudgetClientDetails, BudgetClientItem } from "@/types/budget";
 import { formatEUR } from "@/lib/formatCurrency";
 import { isValidEmail } from "@/lib/isValidEmail";
+import { isBudgetDraftComplete } from "@/lib/budgetDraft";
+import { generateBudgetPdf } from "@/lib/generateBudgetPdf";
 import styles from "./BudgetDraftView.module.css";
 
 interface Props {
@@ -12,6 +14,7 @@ interface Props {
   onClientDetailsChange: React.Dispatch<
     React.SetStateAction<BudgetClientDetails>
   >;
+  onItemDescriptionChange: (id: string, value: string) => void;
   quoteManuallyEdited: boolean;
   onQuoteNumberChange: (value: string) => void;
   onResetQuoteAutomation: () => void;
@@ -22,20 +25,41 @@ export function BudgetDraftView({
   items,
   clientDetails: client,
   onClientDetailsChange: setClient,
+  onItemDescriptionChange,
   quoteManuallyEdited,
   onQuoteNumberChange,
   onResetQuoteAutomation,
   onBack,
 }: Props) {
-  const [descriptions, setDescriptions] = useState<Record<string, string>>(() =>
-    Object.fromEntries(items.map((item) => [item.id, item.description]))
-  );
-
+  const [generatingPdf, setGeneratingPdf] = useState(false);
   const total = items.reduce((sum, item) => sum + item.total, 0);
   const emailInvalid = client.email.trim().length > 0 && !isValidEmail(client.email);
+  const draftComplete = isBudgetDraftComplete({ client, items });
 
   function handleDescriptionChange(id: string, value: string) {
-    setDescriptions((prev) => ({ ...prev, [id]: value }));
+    onItemDescriptionChange(id, value);
+  }
+
+  async function handleGeneratePdf() {
+    if (!draftComplete || generatingPdf) return;
+    setGeneratingPdf(true);
+    try {
+      const blob = await generateBudgetPdf({ client, items, total });
+      const url = URL.createObjectURL(blob);
+
+      window.open(url, "_blank", "noopener,noreferrer");
+
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `Pressupost-${client.quoteNumber || "pressupost"}.pdf`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+
+      window.setTimeout(() => URL.revokeObjectURL(url), 30_000);
+    } finally {
+      setGeneratingPdf(false);
+    }
   }
 
   function setClientField<K extends keyof BudgetClientDetails>(
@@ -163,7 +187,7 @@ export function BudgetDraftView({
             </div>
             <textarea
               className={styles.descTextarea}
-              value={descriptions[item.id]}
+              value={item.description}
               onChange={(e) => handleDescriptionChange(item.id, e.target.value)}
               rows={4}
               placeholder="Descripció de la partida…"
@@ -175,6 +199,14 @@ export function BudgetDraftView({
       <div className={styles.footer}>
         <span className={styles.totalLabel}>Total pressupost</span>
         <span className={styles.totalValue}>{formatEUR(total)}</span>
+        <button
+          type="button"
+          className={styles.generatePdfBtn}
+          onClick={handleGeneratePdf}
+          disabled={!draftComplete || generatingPdf}
+        >
+          {generatingPdf ? "Generant PDF…" : "Generar PDF"}
+        </button>
       </div>
     </section>
   );
