@@ -41,6 +41,42 @@ function compactLines(values: Array<string | undefined | null>): string[] {
   return values.map((v) => safeTrim(v)).filter((v) => v.length > 0);
 }
 
+function formatDateDdMmYyyy(value: string): string {
+  const v = value.trim();
+  const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(v);
+  if (!m) return v;
+  const [, yyyy, mm, dd] = m;
+  return `${dd}-${mm}-${yyyy}`;
+}
+
+function formatMeasurement(item: BudgetClientItem): string {
+  const unit = safeTrim(item.unitLabel);
+  const hasQty =
+    typeof item.quantity === "number" && Number.isFinite(item.quantity);
+
+  if (!hasQty && unit.length === 0) return "—";
+  if (!hasQty) return unit;
+
+  const qRaw = item.quantity as number;
+  const q =
+    Math.abs(qRaw - Math.round(qRaw)) < 1e-9
+      ? String(Math.round(qRaw))
+      : String(qRaw).replace(".", ",");
+
+  if (unit.length === 0) return q;
+  if (unit === "m²") return `${q} ${unit}`;
+
+  if (unit === "unitat") {
+    return `${q} ${q === "1" ? "unitat" : "unitats"}`;
+  }
+
+  if (unit === "partida") {
+    return `${q} ${q === "1" ? "partida" : "partides"}`;
+  }
+
+  return `${q} ${unit}`;
+}
+
 function drawTextBlock(
   doc: jsPDF,
   text: string,
@@ -106,32 +142,40 @@ export async function generateBudgetPdf({
   const headerTop = 40;
   const contentBottomY = pageHeight - footerH - 18;
   const firstPageStartY = headerTop + 136;
+  const continuedPageStartY = headerTop + 76;
   const tableCols = {
-    partida: 165,
-    detail: 260,
+    concept: 150,
+    measure: 70,
+    description: 205,
     amount: 82,
   };
-  const tableWidth = tableCols.partida + tableCols.detail + tableCols.amount;
+  const tableWidth =
+    tableCols.concept +
+    tableCols.measure +
+    tableCols.description +
+    tableCols.amount;
 
   let y = 0;
 
-  function addPageBase() {
+  type HeaderVariant = "first" | "rest";
+
+  function addPageBase(variant: HeaderVariant) {
     doc.addPage();
-    drawPageChrome();
-    y = 196;
+    drawPageChrome(variant);
+    y = variant === "first" ? firstPageStartY : continuedPageStartY;
   }
 
   function ensureSpace(requiredHeight: number) {
     if (y + requiredHeight > contentBottomY) {
-      addPageBase();
+      addPageBase("rest");
     }
   }
 
-  function drawPageChrome() {
-    drawHeader();
+  function drawPageChrome(variant: HeaderVariant) {
+    drawHeader(variant);
   }
 
-  function drawHeader() {
+  function drawHeader(variant: HeaderVariant) {
     const top = headerTop;
     const left = marginX;
     const right = pageWidth - marginX;
@@ -164,15 +208,12 @@ export async function generateBudgetPdf({
     doc.setLineWidth(1);
     doc.line(marginX, top + 54, pageWidth - marginX, top + 54);
 
-    doc.setFont("helvetica", "bold");
-    doc.setFontSize(17);
-    setTextColor(doc, COLORS.text);
-    doc.text("PRESSUPOST DE PINTURA", marginX, top + 86);
-
-    doc.setFont("helvetica", "normal");
-    doc.setFontSize(10);
-    setTextColor(doc, COLORS.muted);
-    doc.text(buildIntroText(client), marginX, top + 106);
+    if (variant === "first") {
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(17);
+      setTextColor(doc, COLORS.text);
+      doc.text("PRESSUPOST DE PINTURA", marginX, top + 86);
+    }
   }
 
   function drawFooter(pageNumber: number, totalPages: number) {
@@ -241,7 +282,7 @@ export async function generateBudgetPdf({
       doc.setFont("helvetica", "normal");
       doc.setFontSize(10);
       setTextColor(doc, COLORS.muted);
-      doc.text(`Data: ${date}`, marginX, y);
+      doc.text(`Data: ${formatDateDdMmYyyy(date)}`, marginX, y);
       y += 10;
     }
 
@@ -295,216 +336,215 @@ export async function generateBudgetPdf({
     doc.setFontSize(9);
     setTextColor(doc, COLORS.muted);
 
-    doc.text("PARTIDA", marginX + 10, y + 16);
-    doc.text("DETALL", marginX + tableCols.partida + 10, y + 16);
-    doc.text("IMPORT", marginX + tableWidth - 10, y + 16, { align: "right" });
+    const pad = 10;
+    const xConcept = marginX + pad;
+    const xMeasure = marginX + tableCols.concept + pad;
+    const xDesc = marginX + tableCols.concept + tableCols.measure + pad;
+
+    doc.text("CONCEPTE", xConcept, y + 16);
+    doc.text("MESURA", xMeasure, y + 16);
+    doc.text("DESCRIPCIÓ", xDesc, y + 16);
+    doc.text("IMPORT", marginX + tableWidth - pad, y + 16, { align: "right" });
 
     y += rowH + 6;
   }
 
   function drawItemRow(item: BudgetClientItem) {
     const padding = 10;
-    const partidaX = marginX + padding;
-    const detailX = marginX + tableCols.partida + padding;
+    const conceptX = marginX + padding;
+    const measureX = marginX + tableCols.concept + padding;
+    const descX = marginX + tableCols.concept + tableCols.measure + padding;
     const amountX = marginX + tableWidth - padding;
 
-    const title = item.title?.trim() || "Partida";
-    const detail = item.description?.trim() || "Segons treball indicat.";
+    const concept = item.title?.trim() || "Concepte";
+    const description = item.description?.trim() || "Segons treball indicat.";
+    const measurement = formatMeasurement(item);
     const amount = formatEUR(item.total);
 
     doc.setFont("helvetica", "bold");
     doc.setFontSize(10);
-    const partidaLines = doc.splitTextToSize(
-      title,
-      tableCols.partida - padding * 2
+    const conceptLines = doc.splitTextToSize(
+      concept,
+      tableCols.concept - padding * 2
     ) as string[];
 
     doc.setFont("helvetica", "normal");
     doc.setFontSize(9.5);
-    const detailLines = doc.splitTextToSize(
-      detail,
-      tableCols.detail - padding * 2
+    const descLines = doc.splitTextToSize(
+      description,
+      tableCols.description - padding * 2
     ) as string[];
 
     const lineH = 13;
-    const textLines = Math.max(partidaLines.length, detailLines.length);
-    const rowH = Math.max(34, textLines * lineH + 14);
+    const conceptH = conceptLines.length * lineH;
+    const descH = descLines.length * lineH;
+    const rowH = Math.max(34, Math.max(conceptH, descH) + 14);
 
     ensureSpace(rowH + 2);
 
     doc.setDrawColor(COLORS.softLine.r, COLORS.softLine.g, COLORS.softLine.b);
     doc.line(marginX, y + rowH, marginX + tableWidth, y + rowH);
 
+    // Concept
     doc.setFont("helvetica", "bold");
     doc.setFontSize(10);
     setTextColor(doc, COLORS.text);
-
-    let partidaY = y + 14;
-    for (const line of partidaLines) {
-      doc.text(line, partidaX, partidaY);
-      partidaY += lineH;
+    let conceptY = y + 14;
+    for (const line of conceptLines) {
+      doc.text(line, conceptX, conceptY);
+      conceptY += lineH;
     }
 
+    // Measurement (single line, subtle)
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(9.5);
+    setTextColor(doc, COLORS.muted);
+    const measureW = tableCols.measure - padding * 2;
+    const measureText =
+      measurement.length > 0
+        ? (doc.splitTextToSize(measurement, measureW) as string[])[0]
+        : "—";
+    doc.text(measureText ?? "—", measureX, y + 14);
+
+    // Description
     doc.setFont("helvetica", "normal");
     doc.setFontSize(9.5);
     setTextColor(doc, COLORS.text);
-
-    let detailY = y + 14;
-    for (const line of detailLines) {
-      doc.text(line, detailX, detailY);
-      detailY += lineH;
+    let descY = y + 14;
+    for (const line of descLines) {
+      doc.text(line, descX, descY);
+      descY += lineH;
     }
 
+    // Amount
     doc.setFont("helvetica", "bold");
     doc.setFontSize(10);
+    setTextColor(doc, COLORS.text);
     doc.text(amount, amountX, y + 14, { align: "right" });
 
     y += rowH;
   }
 
   function drawTotalsBox(subtotal: number) {
-    const iva = subtotal * 0.21;
-    const grand = subtotal + iva;
+    const totalAmount = subtotal;
 
-    const boxW = 220;
-    const boxX = pageWidth - marginX - boxW;
-    const boxY = y + 8;
-    const boxH = 88;
+    const rowH = 34;
+    ensureSpace(rowH + 18);
 
-    ensureSpace(boxH + 20);
+    const right = pageWidth - marginX;
+    const left = right - 260;
 
-    doc.setFillColor(
-      COLORS.accentSoft.r,
-      COLORS.accentSoft.g,
-      COLORS.accentSoft.b
-    );
-    doc.setDrawColor(COLORS.softLine.r, COLORS.softLine.g, COLORS.softLine.b);
-    doc.roundedRect(boxX, boxY, boxW, boxH, 8, 8, "FD");
-
-    const left = boxX + 14;
-    const right = boxX + boxW - 14;
-    let ty = boxY + 24;
-
-    doc.setFont("helvetica", "normal");
-    doc.setFontSize(10);
-    setTextColor(doc, COLORS.muted);
-    doc.text("Subtotal", left, ty);
-    setTextColor(doc, COLORS.text);
-    doc.text(formatEUR(subtotal), right, ty, { align: "right" });
-
-    ty += 18;
-    setTextColor(doc, COLORS.muted);
-    doc.text("IVA (21%)", left, ty);
-    setTextColor(doc, COLORS.text);
-    doc.text(formatEUR(iva), right, ty, { align: "right" });
-
-    ty += 24;
     doc.setFont("helvetica", "bold");
-    doc.setFontSize(13);
+    doc.setFontSize(12.5);
     setTextColor(doc, COLORS.text);
-    doc.text("Total", left, ty);
-    doc.text(formatEUR(grand), right, ty, { align: "right" });
+    doc.text("Total", left, y + 28);
+    doc.text(formatEUR(totalAmount), right, y + 28, { align: "right" });
 
-    y = boxY + boxH + 26;
+    y += rowH + 16;
   }
 
-  function drawNoteBlock(title: string, text: string) {
+  function drawFinalTextSection(input: {
+    heading: string;
+    materials: string;
+    payment: string;
+    validity: string;
+    generalConditions: string[];
+  }) {
     const width = pageWidth - marginX * 2;
-    const paddingX = 14;
-    const paddingTop = 14;
-    const titleToBodyGap = 10;
-    const bodyLineH = 13.2;
+    const bodyW = width;
 
-    doc.setFont("helvetica", "normal");
-    doc.setFontSize(9.6);
-    const lines = doc.splitTextToSize(text, width - paddingX * 2) as string[];
+    function drawSubsection(label: string, paragraph: string) {
+      ensureSpace(84);
 
-    const bodyH = lines.length * bodyLineH;
-    const blockH = paddingTop + 12 + titleToBodyGap + bodyH + 14;
-
-    ensureSpace(blockH + 10);
-
-    doc.setDrawColor(COLORS.softLine.r, COLORS.softLine.g, COLORS.softLine.b);
-    doc.setFillColor(COLORS.softFill.r, COLORS.softFill.g, COLORS.softFill.b);
-    doc.roundedRect(marginX, y, width, blockH, 8, 8, "FD");
-
-    doc.setFont("helvetica", "bold");
-    doc.setFontSize(10);
-    setTextColor(doc, COLORS.text);
-    doc.text(title, marginX + paddingX, y + paddingTop + 10);
-
-    doc.setFont("helvetica", "normal");
-    doc.setFontSize(9.6);
-    setTextColor(doc, COLORS.muted);
-
-    let ty = y + paddingTop + 10 + titleToBodyGap + 8;
-    for (const line of lines) {
-      doc.text(line, marginX + paddingX, ty);
-      ty += bodyLineH;
-    }
-
-    y += blockH + 14;
-  }
-
-  function drawConditionsGeneralsBlock(conditions: string[]) {
-    const width = pageWidth - marginX * 2;
-    const paddingX = 14;
-    const paddingTop = 14;
-    const numberColW = 16;
-    const textW = width - paddingX * 2 - numberColW;
-    const lineH = 12.6;
-
-    doc.setFont("helvetica", "normal");
-    doc.setFontSize(9.2);
-
-    const wrappedByCondition = conditions.map((c) =>
-      (doc.splitTextToSize(c, textW) as string[]).filter((l) => l.trim().length)
-    );
-
-    const linesCount =
-      wrappedByCondition.reduce((sum, lines) => sum + lines.length, 0) +
-      Math.max(0, conditions.length - 1); // extra gaps between items
-
-    const bodyH = linesCount * lineH;
-    const blockH = paddingTop + 12 + 10 + bodyH + 14;
-
-    ensureSpace(blockH + 10);
-
-    doc.setDrawColor(COLORS.softLine.r, COLORS.softLine.g, COLORS.softLine.b);
-    doc.setFillColor(255, 255, 255);
-    doc.roundedRect(marginX, y, width, blockH, 8, 8, "FD");
-
-    doc.setFont("helvetica", "bold");
-    doc.setFontSize(10);
-    setTextColor(doc, COLORS.text);
-    doc.text("Condicions generals", marginX + paddingX, y + paddingTop + 10);
-
-    doc.setFont("helvetica", "normal");
-    doc.setFontSize(9.2);
-    setTextColor(doc, COLORS.muted);
-
-    let ty = y + paddingTop + 10 + 18;
-    for (let i = 0; i < wrappedByCondition.length; i += 1) {
-      const n = `${i + 1}.`;
       doc.setFont("helvetica", "bold");
-      setTextColor(doc, COLORS.muted);
-      doc.text(n, marginX + paddingX, ty);
+      doc.setFontSize(10.2);
+      setTextColor(doc, COLORS.text);
+      doc.text(label, marginX, y);
+      y += 16;
 
       doc.setFont("helvetica", "normal");
+      doc.setFontSize(10);
       setTextColor(doc, COLORS.muted);
-      const lines = wrappedByCondition[i];
-      let innerY = ty;
-      for (const line of lines) {
-        doc.text(line, marginX + paddingX + numberColW, innerY);
-        innerY += lineH;
+      const wrapped = doc.splitTextToSize(paragraph, bodyW) as string[];
+      ensureSpace(wrapped.length * 13 + 26);
+      for (const line of wrapped) {
+        doc.text(line, marginX, y);
+        y += 13;
       }
-      ty = innerY + lineH * 0.6;
+
+      y += 18;
     }
 
-    y += blockH + 14;
+    function drawNumberedConditions(label: string, conditions: string[]) {
+      ensureSpace(120);
+
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(10.2);
+      setTextColor(doc, COLORS.text);
+      doc.text(label, marginX, y);
+      y += 18;
+
+      const numW = 18;
+      const textX = marginX + numW;
+      const textW = bodyW - numW;
+      const lineH = 12.8;
+
+      doc.setFont("helvetica", "normal");
+      doc.setFontSize(9.6);
+      setTextColor(doc, COLORS.muted);
+
+      for (let i = 0; i < conditions.length; i += 1) {
+        const c = conditions[i];
+        const n = `${i + 1}.`;
+        const wrapped = doc.splitTextToSize(c, textW) as string[];
+
+        ensureSpace(Math.max(44, wrapped.length * lineH + 18));
+
+        doc.setFont("helvetica", "bold");
+        doc.setFontSize(9.6);
+        setTextColor(doc, COLORS.muted);
+        doc.text(n, marginX, y);
+
+        doc.setFont("helvetica", "normal");
+        doc.setFontSize(9.6);
+        setTextColor(doc, COLORS.muted);
+        for (const line of wrapped) {
+          doc.text(line, textX, y);
+          y += lineH;
+        }
+        y += 10;
+      }
+
+      y += 10;
+    }
+
+    ensureSpace(80);
+
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(12.5);
+    setTextColor(doc, COLORS.text);
+    doc.text(input.heading, marginX, y);
+
+    doc.setDrawColor(COLORS.accent.r, COLORS.accent.g, COLORS.accent.b);
+    doc.setLineWidth(1);
+    doc.line(marginX, y + 10, marginX + 120, y + 10);
+    y += 32;
+
+    drawSubsection("Materials", input.materials);
+    drawSubsection("Forma de pagament", input.payment);
+    drawSubsection("Validesa del pressupost", input.validity);
+
+    // Separació editorial abans del bloc legal numerat
+    ensureSpace(20);
+    doc.setDrawColor(COLORS.softLine.r, COLORS.softLine.g, COLORS.softLine.b);
+    doc.setLineWidth(1);
+    doc.line(marginX, y - 6, pageWidth - marginX, y - 6);
+    y += 10;
+
+    drawNumberedConditions("Condicions generals", input.generalConditions);
   }
 
-  drawPageChrome();
+  drawPageChrome("first");
   y = firstPageStartY;
   drawClientIntroBlock();
   drawTableHeader();
@@ -515,30 +555,24 @@ export async function generateBudgetPdf({
 
   drawTotalsBox(total);
 
-  y += 10;
-  drawSectionTitleWide("Informació addicional");
-
-  drawNoteBlock(
-    "Materials",
-    "Els materials utilitzats seran els especificats a cada partida i seran de qualitat professional."
-  );
-
-  drawNoteBlock(
-    "Forma de pagament",
-    "40% del pressupost a l'inici de les feines i 60% a la finalització dels treballs."
-  );
-
-  drawNoteBlock(
-    "Validesa del pressupost",
-    "Aquest pressupost té una validesa de 3 mesos des de la data d'emissió."
-  );
-
-  drawConditionsGeneralsBlock([
-    "Els imports d’aquest pressupost s’han calculat segons les normes de medició d’ANSPI (Federació Nacional d’Empresaris de Pintura).",
-    "Aquest pressupost inclou únicament les partides descrites. Les partides no previstes que apareguin durant l’execució es pressupostaran i facturaran a part.",
-    "Els repassos o correccions que no siguin imputables al pintor aniran a càrrec del client.",
-    "L’empresa respon dels danys imputables a la seva responsabilitat civil i es reserva el dret d’emprendre les accions pertinents si és perjudicada pel mateix concepte.",
-  ]);
+  // Secció final: sempre comença en una pàgina nova.
+  addPageBase("rest");
+  y += 4;
+  drawFinalTextSection({
+    heading: "Condicions i informació addicional",
+    materials:
+      "Els materials utilitzats seran els especificats a cada partida i seran de qualitat professional.",
+    payment:
+      "40% del pressupost a l'inici de les feines i 60% a la finalització dels treballs.",
+    validity:
+      "Aquest pressupost no inclou l’IVA i té una validesa de 3 mesos des de la data d'emissió.",
+    generalConditions: [
+      "Els imports d’aquest pressupost s’han calculat segons les normes de medició d’ANSPI (Federació Nacional d’Empresaris de Pintura).",
+      "Aquest pressupost inclou únicament les partides descrites. Les partides no previstes que apareguin durant l’execució es pressupostaran i facturaran a part.",
+      "Els repassos o correccions que no siguin imputables al pintor aniran a càrrec del client.",
+      "L’empresa respon dels danys imputables a la seva responsabilitat civil i es reserva el dret d’emprendre les accions pertinents si és perjudicada pel mateix concepte.",
+    ],
+  });
 
   const totalPages = doc.getNumberOfPages();
   for (let i = 1; i <= totalPages; i += 1) {
