@@ -3,9 +3,59 @@
   border-bottom: 1px solid var(--border-soft);
 }
 
+.inner {
+  max-width: 860px;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
 .name {
   font-size: 0.95rem;
   font-weight: 500;
   letter-spacing: -0.01em;
   color: var(--text-muted);
+}
+
+.nav {
+  display: flex;
+  gap: 0.9rem;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.navLink {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  text-decoration: none;
+  border-bottom: 1px solid transparent;
+  padding-bottom: 0.1rem;
+  transition: border-color 0.15s, color 0.15s;
+  white-space: nowrap;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .navLink:hover {
+    color: var(--text);
+    border-color: var(--border);
+  }
+}
+
+@media (max-width: 520px) {
+  .header {
+    padding: 1rem 1.1rem;
+  }
+
+  .inner {
+    align-items: baseline;
+  }
+
+  .nav {
+    width: 100%;
+    justify-content: flex-start;
+  }
 }

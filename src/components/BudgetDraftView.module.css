@@ -188,6 +188,41 @@
   gap: 1rem;
 }
 
+.itemsTopBar {
+  margin: 0 0 0.75rem;
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.itemsTitle {
+  font-size: 0.78rem;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text-muted);
+  margin: 0;
+}
+
+.addItemBtn {
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text);
+  border-radius: 10px;
+  padding: 0.55rem 0.75rem;
+  font-size: 0.86rem;
+  font-family: inherit;
+  font-weight: 600;
+  cursor: pointer;
+  transition: transform 0.06s ease, opacity 0.15s ease;
+}
+
+.addItemBtn:active {
+  transform: translateY(1px);
+}
+
 .card {
   background: var(--surface);
   border: 1px solid var(--border);
@@ -213,11 +248,70 @@
   line-height: 1.35;
 }
 
+.itemTitleInput {
+  width: 100%;
+  border: 1px solid var(--border-soft);
+  border-radius: 8px;
+  padding: 0.5rem 0.65rem;
+  font-size: 0.95rem;
+  font-family: inherit;
+  font-weight: 500;
+  color: var(--text);
+  background: var(--surface);
+  outline: none;
+  transition: border-color 0.15s;
+}
+
+.itemTitleInput:focus {
+  border-color: #c8c8c8;
+  box-shadow: var(--shadow-soft);
+}
+
 .cardTotal {
   font-size: 0.95rem;
   font-weight: 600;
   color: var(--text);
   white-space: nowrap;
+}
+
+.itemMetaRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  align-items: flex-end;
+}
+
+.itemField {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.itemFieldLabel {
+  font-size: 0.74rem;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text-muted);
+}
+
+.itemFieldInput {
+  border: 1px solid var(--border-soft);
+  border-radius: 8px;
+  padding: 0.5rem 0.65rem;
+  font-size: 0.9rem;
+  font-family: inherit;
+  color: var(--text);
+  background: var(--surface);
+  outline: none;
+  transition: border-color 0.15s;
+  min-width: 110px;
+  height: 2.25rem;
+}
+
+.itemFieldInput:focus {
+  border-color: #c8c8c8;
+  box-shadow: var(--shadow-soft);
 }
 
 .descTextarea {

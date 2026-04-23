@@ -98,6 +98,22 @@ export async function createClient({
   return { id: String(data.id) };
 }
 
+export async function updateClientById(
+  id: string,
+  patch: Partial<Pick<ClientRow, "name" | "email" | "phone" | "address">>
+): Promise<void> {
+  const normalized = {
+    name: typeof patch.name === "string" ? patch.name.trim() : patch.name,
+    email: typeof patch.email === "string" ? patch.email.trim() : patch.email,
+    phone: typeof patch.phone === "string" ? patch.phone.trim() : patch.phone,
+    address:
+      typeof patch.address === "string" ? patch.address.trim() : patch.address,
+  };
+
+  const { error } = await supabase.from("clients").update(normalized).eq("id", id);
+  if (error) throw new Error(error.message);
+}
+
 export async function getClientById(id: string): Promise<ClientRow> {
   const { data, error } = await supabase
     .from("clients")
@@ -170,6 +186,53 @@ export async function getBudgetById(id: string): Promise<BudgetRow> {
   return data as BudgetRow;
 }
 
+export async function updateBudgetById(
+  id: string,
+  patch: Partial<
+    Pick<
+      BudgetRow,
+      | "title"
+      | "job_address"
+      | "quote_number"
+      | "document_date"
+      | "estimated_time"
+      | "status"
+      | "subtotal"
+      | "tax_rate"
+      | "tax_amount"
+      | "total"
+    >
+  >
+): Promise<void> {
+  const normalized = {
+    title: typeof patch.title === "string" ? patch.title.trim() : patch.title,
+    job_address:
+      typeof patch.job_address === "string"
+        ? patch.job_address.trim()
+        : patch.job_address,
+    quote_number:
+      typeof patch.quote_number === "string"
+        ? patch.quote_number.trim()
+        : patch.quote_number,
+    document_date:
+      typeof patch.document_date === "string"
+        ? patch.document_date.trim()
+        : patch.document_date,
+    estimated_time:
+      typeof patch.estimated_time === "string"
+        ? patch.estimated_time.trim()
+        : patch.estimated_time,
+    status: typeof patch.status === "string" ? patch.status.trim() : patch.status,
+    subtotal: patch.subtotal,
+    tax_rate: patch.tax_rate,
+    tax_amount: patch.tax_amount,
+    total: patch.total,
+  };
+
+  const { error } = await supabase.from("budgets").update(normalized).eq("id", id);
+  if (error) throw new Error(error.message);
+}
+
 export async function getBudgets(): Promise<BudgetListRow[]> {
   const { data, error } = await supabase
     .from("budgets")
@@ -178,6 +241,86 @@ export async function getBudgets(): Promise<BudgetListRow[]> {
 
   if (error) throw new Error(error.message);
   return (data ?? []) as BudgetListRow[];
+}
+
+export async function deleteBudgetLines(budgetId: string): Promise<void> {
+  const { error } = await supabase.from("budget_lines").delete().eq("budget_id", budgetId);
+  if (error) throw new Error(error.message);
+}
+
+export async function deleteBudgetById(budgetId: string): Promise<void> {
+  const { error } = await supabase.from("budgets").delete().eq("id", budgetId);
+  if (error) throw new Error(error.message);
+}
+
+export async function deleteBudgetWithLines(budgetId: string): Promise<void> {
+  await deleteBudgetLines(budgetId);
+  await deleteBudgetById(budgetId);
+}
+
+export async function replaceBudgetLines(
+  budgetId: string,
+  items: BudgetClientItem[]
+): Promise<void> {
+  const rows = items.map((item, idx) => ({
+    budget_id: budgetId,
+    title: item.title.trim().length > 0 ? item.title.trim() : null,
+    description: item.description.trim().length > 0 ? item.description.trim() : null,
+    quantity: item.quantity ?? 1,
+    unit:
+      (item.unitLabel ?? "").trim().length > 0 ? (item.unitLabel ?? "").trim() : null,
+    unit_price: item.unitPrice ?? null,
+    line_total: item.total,
+    sort_order: idx,
+  }));
+
+  await deleteBudgetLines(budgetId);
+  const { error } = await supabase.from("budget_lines").insert(rows);
+  if (error) throw new Error(error.message);
+}
+
+export async function updateBudgetWithLines(args: {
+  budgetId: string;
+  clientId: string;
+  client: BudgetClientDetails;
+  items: BudgetClientItem[];
+  taxRate?: number;
+  status?: BudgetStatus;
+}): Promise<void> {
+  const { budgetId, clientId, client, items, taxRate = 0, status = "draft" } = args;
+
+  const subtotal = items.reduce((sum, item) => sum + item.total, 0);
+  const tax_amount = Math.round(subtotal * (taxRate / 100) * 100) / 100;
+  const total = Math.round((subtotal + tax_amount) * 100) / 100;
+
+  const derivedTitle = (() => {
+    const name = client.nameOrCompany.trim();
+    const addr = client.address.trim();
+    if (name.length > 0) return `Pressupost - ${name}`;
+    if (addr.length > 0) return `Pressupost - ${addr}`;
+    return null;
+  })();
+
+  await updateClientById(clientId, {
+    name: client.nameOrCompany,
+    email: client.email,
+    address: client.address,
+  });
+
+  await updateBudgetById(budgetId, {
+    title: derivedTitle,
+    job_address: client.address.trim().length > 0 ? client.address : null,
+    quote_number: client.quoteNumber.trim().length > 0 ? client.quoteNumber : null,
+    document_date: client.date.trim().length > 0 ? client.date : null,
+    estimated_time: client.estimatedTime.trim().length > 0 ? client.estimatedTime : null,
+    status,
+    subtotal,
+    tax_rate: taxRate,
+    tax_amount,
+    total,
+  });
+
+  await replaceBudgetLines(budgetId, items);
 }
 
 export interface CreateBudgetLinesInput {

@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { getBudgets } from "@/lib/budgets";
 import { formatEUR } from "@/lib/formatCurrency";
+import { BudgetListItemActions } from "@/components/BudgetListItemActions";
 import styles from "./page.module.css";
 
 function formatDate(value: string | null) {
@@ -33,9 +34,6 @@ export default async function BudgetsPage() {
           </header>
 
           <div className={styles.actions}>
-            <Link className={styles.linkQuiet} href="/">
-              ← Nou pressupost
-            </Link>
             <Link className={styles.cta} href="/">
               Crear pressupost
             </Link>
@@ -72,10 +70,21 @@ export default async function BudgetsPage() {
 
               return (
                 <li key={b.id}>
-                  <Link className={styles.card} href={`/budgets/${b.id}`}>
+                  <div className={styles.card}>
                     <div className={styles.cardTop}>
-                      <h3 className={styles.cardTitle}>{title}</h3>
-                      <span className={styles.total}>{total}</span>
+                      <div className={styles.cardTopLeft}>
+                        <Link
+                          className={styles.cardTitleLink}
+                          href={`/budgets/${b.id}`}
+                        >
+                          <h3 className={styles.cardTitle}>{title}</h3>
+                        </Link>
+                      </div>
+
+                      <div className={styles.cardActions}>
+                        <span className={styles.total}>{total}</span>
+                        <BudgetListItemActions budgetId={b.id} />
+                      </div>
                     </div>
 
                     <div className={styles.meta}>
@@ -110,7 +119,7 @@ export default async function BudgetsPage() {
                         </span>
                       ) : null}
                     </div>
-                  </Link>
+                  </div>
                 </li>
               );
             })}

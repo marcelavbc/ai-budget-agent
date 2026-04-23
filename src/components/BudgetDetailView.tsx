@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import type { BudgetClientDetails, BudgetClientItem } from "@/types/budget";
 import type { BudgetLineRow, BudgetRow, ClientRow } from "@/lib/budgets";
 import { formatEUR } from "@/lib/formatCurrency";
@@ -135,23 +136,51 @@ export function BudgetDetailView({ budget, client, lines }: Props) {
         {formatEUR(budget.total ?? budget.subtotal ?? 0)}
       </p>
 
-      <button
-        type="button"
-        onClick={handleGeneratePdf}
-        disabled={generatingPdf}
+      <div
         style={{
           marginTop: "1rem",
-          padding: "0.7rem 1rem",
-          borderRadius: 10,
-          border: "1px solid #ddd",
-          background: "#111",
-          color: "#fff",
-          cursor: generatingPdf ? "not-allowed" : "pointer",
-          opacity: generatingPdf ? 0.6 : 1,
+          display: "flex",
+          gap: "0.75rem",
+          flexWrap: "wrap",
+          alignItems: "center",
         }}
       >
-        {generatingPdf ? "Generant PDF…" : "Generar PDF"}
-      </button>
+        <Link
+          href={`/budgets/${budget.id}/edit`}
+          style={{
+            display: "inline-flex",
+            alignItems: "center",
+            justifyContent: "center",
+            border: "1px solid #ddd",
+            background: "#fff",
+            color: "#2a2a2a",
+            borderRadius: 10,
+            padding: "0.7rem 1rem",
+            fontSize: "0.9rem",
+            fontWeight: 600,
+            textDecoration: "none",
+          }}
+        >
+          Editar
+        </Link>
+
+        <button
+          type="button"
+          onClick={handleGeneratePdf}
+          disabled={generatingPdf}
+          style={{
+            padding: "0.7rem 1rem",
+            borderRadius: 10,
+            border: "1px solid #ddd",
+            background: "#111",
+            color: "#fff",
+            cursor: generatingPdf ? "not-allowed" : "pointer",
+            opacity: generatingPdf ? 0.6 : 1,
+          }}
+        >
+          {generatingPdf ? "Generant PDF…" : "Generar PDF"}
+        </button>
+      </div>
     </section>
   );
 }

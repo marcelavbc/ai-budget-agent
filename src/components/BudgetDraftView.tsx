@@ -10,12 +10,19 @@ import { saveBudgetWithLines } from "@/lib/budgets";
 import styles from "./BudgetDraftView.module.css";
 
 interface Props {
+  mode?: "create" | "edit";
   items: BudgetClientItem[];
   clientDetails: BudgetClientDetails;
   onClientDetailsChange: React.Dispatch<
     React.SetStateAction<BudgetClientDetails>
   >;
-  onItemDescriptionChange: (id: string, value: string) => void;
+  onItemChange: (id: string, patch: Partial<BudgetClientItem>) => void;
+  onAddItem?: () => void;
+  onSave?: (args: {
+    client: BudgetClientDetails;
+    items: BudgetClientItem[];
+    subtotal: number;
+  }) => Promise<void>;
   quoteManuallyEdited: boolean;
   onQuoteNumberChange: (value: string) => void;
   onResetQuoteAutomation: () => void;
@@ -23,10 +30,13 @@ interface Props {
 }
 
 export function BudgetDraftView({
+  mode = "create",
   items,
   clientDetails: client,
   onClientDetailsChange: setClient,
-  onItemDescriptionChange,
+  onItemChange,
+  onAddItem,
+  onSave,
   quoteManuallyEdited,
   onQuoteNumberChange,
   onResetQuoteAutomation,
@@ -40,7 +50,7 @@ export function BudgetDraftView({
   const draftComplete = isBudgetDraftComplete({ client, items });
 
   function handleDescriptionChange(id: string, value: string) {
-    onItemDescriptionChange(id, value);
+    onItemChange(id, { description: value });
   }
 
   async function handleSaveBudget() {
@@ -48,8 +58,12 @@ export function BudgetDraftView({
     setSaveError(null);
     setIsSaving(true);
     try {
-      const { budgetId } = await saveBudgetWithLines({ client, items, subtotal });
-      router.push(`/budgets/${budgetId}`);
+      if (onSave) {
+        await onSave({ client, items, subtotal });
+      } else {
+        const { budgetId } = await saveBudgetWithLines({ client, items, subtotal });
+        router.push(`/budgets/${budgetId}`);
+      }
     } catch (e) {
       setSaveError(
         e instanceof Error
@@ -74,7 +88,9 @@ export function BudgetDraftView({
         <button type="button" className={styles.backBtn} onClick={onBack}>
           ← Tornar a les línies
         </button>
-        <h2 className={styles.heading}>Esborrany del pressupost</h2>
+        <h2 className={styles.heading}>
+          {mode === "edit" ? "Editar pressupost" : "Esborrany del pressupost"}
+        </h2>
       </div>
 
       <div className={styles.clientSection}>
@@ -177,13 +193,92 @@ export function BudgetDraftView({
         </div>
       </div>
 
+      {mode === "edit" && onAddItem ? (
+        <div className={styles.itemsTopBar}>
+          <h3 className={styles.itemsTitle}>Partides</h3>
+          <button type="button" className={styles.addItemBtn} onClick={onAddItem}>
+            + Afegir partida
+          </button>
+        </div>
+      ) : null}
+
       <ul className={styles.list}>
         {items.map((item) => (
           <li key={item.id} className={styles.card}>
             <div className={styles.cardHeader}>
-              <span className={styles.cardTitle}>{item.title}</span>
+              {mode === "edit" ? (
+                <input
+                  className={styles.itemTitleInput}
+                  type="text"
+                  value={item.title}
+                  onChange={(e) => onItemChange(item.id, { title: e.target.value })}
+                  placeholder="Títol de la partida"
+                />
+              ) : (
+                <span className={styles.cardTitle}>{item.title}</span>
+              )}
               <span className={styles.cardTotal}>{formatEUR(item.total)}</span>
             </div>
+
+            {mode === "edit" ? (
+              <div className={styles.itemMetaRow}>
+                <label className={styles.itemField}>
+                  <span className={styles.itemFieldLabel}>Quant.</span>
+                  <input
+                    className={styles.itemFieldInput}
+                    type="number"
+                    inputMode="decimal"
+                    value={item.quantity ?? 1}
+                    min={0}
+                    step="0.01"
+                    onChange={(e) => {
+                      const q = Number(e.target.value);
+                      const quantity = Number.isFinite(q) ? q : 0;
+                      const unitPrice = item.unitPrice ?? 0;
+                      const total = Math.round(quantity * unitPrice * 100) / 100;
+                      onItemChange(item.id, { quantity, total });
+                    }}
+                  />
+                </label>
+
+                <label className={styles.itemField}>
+                  <span className={styles.itemFieldLabel}>Unitat</span>
+                  <select
+                    className={styles.itemFieldInput}
+                    value={item.unitLabel ?? "partida"}
+                    onChange={(e) =>
+                      onItemChange(item.id, {
+                        unitLabel: e.target.value as BudgetClientItem["unitLabel"],
+                      })
+                    }
+                  >
+                    <option value="partida">partida</option>
+                    <option value="unitat">unitat</option>
+                    <option value="m²">m²</option>
+                  </select>
+                </label>
+
+                <label className={styles.itemField}>
+                  <span className={styles.itemFieldLabel}>Preu</span>
+                  <input
+                    className={styles.itemFieldInput}
+                    type="number"
+                    inputMode="decimal"
+                    value={item.unitPrice ?? 0}
+                    min={0}
+                    step="0.01"
+                    onChange={(e) => {
+                      const p = Number(e.target.value);
+                      const unitPrice = Number.isFinite(p) ? p : 0;
+                      const quantity = item.quantity ?? 1;
+                      const total = Math.round(quantity * unitPrice * 100) / 100;
+                      onItemChange(item.id, { unitPrice, total });
+                    }}
+                  />
+                </label>
+              </div>
+            ) : null}
+
             <textarea
               className={styles.descTextarea}
               value={item.description}
@@ -209,7 +304,11 @@ export function BudgetDraftView({
           onClick={handleSaveBudget}
           disabled={!draftComplete || isSaving}
         >
-          {isSaving ? "Guardant pressupost…" : "Guardar pressupost"}
+          {isSaving
+            ? "Guardant pressupost…"
+            : mode === "edit"
+              ? "Guardar canvis"
+              : "Guardar pressupost"}
         </button>
       </div>
     </section>

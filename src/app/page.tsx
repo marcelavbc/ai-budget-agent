@@ -125,10 +125,10 @@ export default function Home() {
             items={draftItems}
             clientDetails={clientDetails}
             onClientDetailsChange={setClientWithAutoQuote}
-            onItemDescriptionChange={(id, value) => {
+            onItemChange={(id, patch) => {
               setDraftItems((prev) =>
                 prev.map((item) =>
-                  item.id === id ? { ...item, description: value } : item,
+                  item.id === id ? { ...item, ...patch } : item,
                 ),
               );
             }}
