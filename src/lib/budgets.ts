@@ -31,6 +31,17 @@ export type BudgetLineRow = {
   sort_order: number | null;
 };
 
+export type BudgetListRow = {
+  id: string;
+  title: string | null;
+  job_address: string | null;
+  quote_number: string | null;
+  document_date: string | null;
+  status: string | null;
+  total: number | null;
+  created_at: string | null;
+};
+
 export type ClientRow = {
   id: string;
   name: string | null;
@@ -157,6 +168,16 @@ export async function getBudgetById(id: string): Promise<BudgetRow> {
     .single();
   if (error) throw new Error(error.message);
   return data as BudgetRow;
+}
+
+export async function getBudgets(): Promise<BudgetListRow[]> {
+  const { data, error } = await supabase
+    .from("budgets")
+    .select("id,title,job_address,status,document_date,quote_number,total,created_at")
+    .order("created_at", { ascending: false });
+
+  if (error) throw new Error(error.message);
+  return (data ?? []) as BudgetListRow[];
 }
 
 export interface CreateBudgetLinesInput {
