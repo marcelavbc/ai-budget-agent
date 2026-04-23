@@ -249,6 +249,13 @@
   gap: 0.4rem;
 }
 
+.saveError {
+  margin: 0.75rem 0 0;
+  font-size: 0.85rem;
+  color: var(--error);
+  line-height: 1.4;
+}
+
 .generatePdfBtn {
   margin-top: 1rem;
   align-self: flex-start;

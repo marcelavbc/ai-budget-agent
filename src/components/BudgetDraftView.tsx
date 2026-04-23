@@ -1,11 +1,12 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import type { BudgetClientDetails, BudgetClientItem } from "@/types/budget";
 import { formatEUR } from "@/lib/formatCurrency";
 import { isValidEmail } from "@/lib/isValidEmail";
 import { isBudgetDraftComplete } from "@/lib/budgetDraft";
-import { generateBudgetPdf } from "@/lib/generateBudgetPdf";
+import { saveBudgetWithLines } from "@/lib/budgets";
 import styles from "./BudgetDraftView.module.css";
 
 interface Props {
@@ -31,8 +32,10 @@ export function BudgetDraftView({
   onResetQuoteAutomation,
   onBack,
 }: Props) {
-  const [generatingPdf, setGeneratingPdf] = useState(false);
-  const total = items.reduce((sum, item) => sum + item.total, 0);
+  const [isSaving, setIsSaving] = useState(false);
+  const [saveError, setSaveError] = useState<string | null>(null);
+  const router = useRouter();
+  const subtotal = items.reduce((sum, item) => sum + item.total, 0);
   const emailInvalid = client.email.trim().length > 0 && !isValidEmail(client.email);
   const draftComplete = isBudgetDraftComplete({ client, items });
 
@@ -40,25 +43,21 @@ export function BudgetDraftView({
     onItemDescriptionChange(id, value);
   }
 
-  async function handleGeneratePdf() {
-    if (!draftComplete || generatingPdf) return;
-    setGeneratingPdf(true);
+  async function handleSaveBudget() {
+    if (!draftComplete || isSaving) return;
+    setSaveError(null);
+    setIsSaving(true);
     try {
-      const blob = await generateBudgetPdf({ client, items, total });
-      const url = URL.createObjectURL(blob);
-
-      window.open(url, "_blank", "noopener,noreferrer");
-
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = `Pressupost-${client.quoteNumber || "pressupost"}.pdf`;
-      document.body.appendChild(a);
-      a.click();
-      a.remove();
-
-      window.setTimeout(() => URL.revokeObjectURL(url), 30_000);
+      const { budgetId } = await saveBudgetWithLines({ client, items, subtotal });
+      router.push(`/budgets/${budgetId}`);
+    } catch (e) {
+      setSaveError(
+        e instanceof Error
+          ? e.message
+          : "No s'ha pogut guardar el pressupost. Torna-ho a provar."
+      );
     } finally {
-      setGeneratingPdf(false);
+      setIsSaving(false);
     }
   }
 
@@ -198,14 +197,19 @@ export function BudgetDraftView({
 
       <div className={styles.footer}>
         <span className={styles.totalLabel}>Total pressupost</span>
-        <span className={styles.totalValue}>{formatEUR(total)}</span>
+        <span className={styles.totalValue}>{formatEUR(subtotal)}</span>
+        {saveError ? (
+          <p className={styles.saveError} role="alert">
+            {saveError}
+          </p>
+        ) : null}
         <button
           type="button"
           className={styles.generatePdfBtn}
-          onClick={handleGeneratePdf}
-          disabled={!draftComplete || generatingPdf}
+          onClick={handleSaveBudget}
+          disabled={!draftComplete || isSaving}
         >
-          {generatingPdf ? "Generant PDF…" : "Generar PDF"}
+          {isSaving ? "Guardant pressupost…" : "Guardar pressupost"}
         </button>
       </div>
     </section>
