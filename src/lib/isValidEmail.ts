@@ -1,7 +1,7 @@
-/** Cadena buida = vàlid (camp opcional). */
+/** Empty string is valid (optional field). */
 export function isValidEmail(value: string): boolean {
   const v = value.trim();
   if (v.length === 0) return true;
-  // Prou per detectar errors habituals sense ser excessivament estricte
+  // Intentionally permissive: catches common mistakes without being overly strict.
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v);
 }

@@ -1,6 +1,12 @@
 import { jsPDF } from "jspdf";
 import type { BudgetClientDetails, BudgetClientItem } from "@/types/budget";
 import { formatEUR } from "@/lib/formatCurrency";
+import {
+  formatUnitCa,
+  pdfCompanyCopyCa,
+  pdfFinalSectionCopyCa,
+  pdfLabelsCa,
+} from "@/lib/pdfCopy.ca";
 
 export interface GenerateBudgetPdfInput {
   client: BudgetClientDetails;
@@ -19,13 +25,6 @@ const COLORS = {
   softFill2: { r: 245, g: 245, b: 245 },
   accent: { r: 200, g: 169, b: 110 }, // #c8a96e
   accentSoft: { r: 248, g: 243, b: 234 },
-};
-
-const COMPANY = {
-  brand: "SANMARTÍ",
-  subtitle: "Pintura decorativa",
-  email: "navarroisanmarti@gmail.com",
-  phone: "616 287 601",
 };
 
 function setTextColor(doc: jsPDF, rgb?: RGB) {
@@ -66,66 +65,7 @@ function formatMeasurement(item: BudgetClientItem): string {
   if (unit.length === 0) return q;
   if (unit === "m²") return `${q} ${unit}`;
 
-  if (unit === "unitat") {
-    return `${q} ${q === "1" ? "unitat" : "unitats"}`;
-  }
-
-  if (unit === "partida") {
-    return `${q} ${q === "1" ? "partida" : "partides"}`;
-  }
-
-  return `${q} ${unit}`;
-}
-
-function drawTextBlock(
-  doc: jsPDF,
-  text: string,
-  x: number,
-  y: number,
-  width: number,
-  lineHeight = 14
-): number {
-  const lines = doc.splitTextToSize(text, width) as string[];
-  let currentY = y;
-
-  for (const line of lines) {
-    doc.text(line, x, currentY);
-    currentY += lineHeight;
-  }
-
-  return currentY;
-}
-
-function buildIntroText(client: BudgetClientDetails): string {
-  const address = safeTrim(client.address);
-  if (address) {
-    const singleLineAddress = address.replace(/\n+/g, ", ");
-    return `Treballs de pintura a realitzar a ${singleLineAddress}.`;
-  }
-
-  return "Treballs de pintura detallats segons les partides indicades en aquest pressupost.";
-}
-
-function buildInterventionSummary(items: BudgetClientItem[]): string {
-  const nonEmptyTitles = items
-    .map((item) => item.title?.trim())
-    .filter((value): value is string => Boolean(value));
-
-  if (nonEmptyTitles.length === 0) {
-    return "S'inclou la preparació de superfícies, la protecció dels elements susceptibles de ser tacats i l'acabat final segons les partides indicades.";
-  }
-
-  const uniqueTitles = Array.from(new Set(nonEmptyTitles)).slice(0, 3);
-
-  if (uniqueTitles.length === 1) {
-    return `Intervenció prevista sobre ${uniqueTitles[0].toLowerCase()}, amb preparació de superfícies i acabat final segons necessitat.`;
-  }
-
-  if (uniqueTitles.length === 2) {
-    return `Intervenció prevista sobre ${uniqueTitles[0].toLowerCase()} i ${uniqueTitles[1].toLowerCase()}, amb preparació de superfícies i acabat final segons necessitat.`;
-  }
-
-  return `Intervenció prevista sobre ${uniqueTitles[0].toLowerCase()}, ${uniqueTitles[1].toLowerCase()} i altres elements indicats al detall de partides.`;
+  return `${q} ${formatUnitCa(unit, q)}`;
 }
 
 export async function generateBudgetPdf({
@@ -183,7 +123,7 @@ export async function generateBudgetPdf({
     doc.setFont("helvetica", "bold");
     doc.setFontSize(24);
     setTextColor(doc, COLORS.text);
-    doc.text(COMPANY.brand, left, top + 8);
+    doc.text(pdfCompanyCopyCa.brand, left, top + 8);
 
     doc.setDrawColor(COLORS.accent.r, COLORS.accent.g, COLORS.accent.b);
     doc.setLineWidth(2);
@@ -192,11 +132,11 @@ export async function generateBudgetPdf({
     doc.setFont("helvetica", "normal");
     doc.setFontSize(10);
     setTextColor(doc, COLORS.muted);
-    doc.text(COMPANY.subtitle.toUpperCase(), left, top + 36);
+    doc.text(pdfCompanyCopyCa.subtitle.toUpperCase(), left, top + 36);
 
     const quote = safeTrim(client.quoteNumber);
     if (quote.length > 0) {
-      const label = `Pressupost núm. ${quote}`;
+      const label = pdfLabelsCa.quoteNumber(quote);
       doc.setFont("helvetica", "normal");
       doc.setFontSize(9.5);
       setTextColor(doc, COLORS.muted);
@@ -212,7 +152,7 @@ export async function generateBudgetPdf({
       doc.setFont("helvetica", "bold");
       doc.setFontSize(17);
       setTextColor(doc, COLORS.text);
-      doc.text("PRESSUPOST DE PINTURA", marginX, top + 86);
+      doc.text(pdfLabelsCa.documentTitle, marginX, top + 86);
     }
   }
 
@@ -229,12 +169,12 @@ export async function generateBudgetPdf({
     setTextColor(doc, COLORS.muted);
 
     doc.text(
-      `${COMPANY.brand} · ${COMPANY.subtitle} · ${COMPANY.phone}`,
+      `${pdfCompanyCopyCa.brand} · ${pdfCompanyCopyCa.subtitle} · ${pdfCompanyCopyCa.phone}`,
       marginX,
       bottomY
     );
 
-    const pageLabel = `Pàgina ${pageNumber} / ${totalPages}`;
+    const pageLabel = pdfLabelsCa.page(pageNumber, totalPages);
     const labelWidth = doc.getTextWidth(pageLabel);
     doc.text(pageLabel, pageWidth - marginX - labelWidth, bottomY);
   }
@@ -252,7 +192,7 @@ export async function generateBudgetPdf({
     doc.setFont("helvetica", "normal");
     doc.setFontSize(9);
     setTextColor(doc, COLORS.muted);
-    doc.text("Client", marginX, y);
+    doc.text(pdfLabelsCa.client, marginX, y);
     y += 14;
 
     if (name.length > 0) {
@@ -282,41 +222,11 @@ export async function generateBudgetPdf({
       doc.setFont("helvetica", "normal");
       doc.setFontSize(10);
       setTextColor(doc, COLORS.muted);
-      doc.text(`Data: ${formatDateDdMmYyyy(date)}`, marginX, y);
+      doc.text(pdfLabelsCa.date(formatDateDdMmYyyy(date)), marginX, y);
       y += 10;
     }
 
     y += 10;
-  }
-
-  function drawSectionTitle(title: string) {
-    ensureSpace(28);
-
-    doc.setFont("helvetica", "bold");
-    doc.setFontSize(11);
-    setTextColor(doc, COLORS.text);
-    doc.text(title, marginX, y);
-
-    doc.setDrawColor(COLORS.accent.r, COLORS.accent.g, COLORS.accent.b);
-    doc.setLineWidth(1);
-    doc.line(marginX, y + 8, marginX + 56, y + 8);
-
-    y += 22;
-  }
-
-  function drawSectionTitleWide(title: string) {
-    ensureSpace(30);
-
-    doc.setFont("helvetica", "bold");
-    doc.setFontSize(11.5);
-    setTextColor(doc, COLORS.text);
-    doc.text(title, marginX, y);
-
-    doc.setDrawColor(COLORS.line.r, COLORS.line.g, COLORS.line.b);
-    doc.setLineWidth(1);
-    doc.line(marginX, y + 10, pageWidth - marginX, y + 10);
-
-    y += 26;
   }
 
   function drawTableHeader() {
@@ -341,10 +251,12 @@ export async function generateBudgetPdf({
     const xMeasure = marginX + tableCols.concept + pad;
     const xDesc = marginX + tableCols.concept + tableCols.measure + pad;
 
-    doc.text("CONCEPTE", xConcept, y + 16);
-    doc.text("MESURA", xMeasure, y + 16);
-    doc.text("DESCRIPCIÓ", xDesc, y + 16);
-    doc.text("IMPORT", marginX + tableWidth - pad, y + 16, { align: "right" });
+    doc.text(pdfLabelsCa.table.concept, xConcept, y + 16);
+    doc.text(pdfLabelsCa.table.measure, xMeasure, y + 16);
+    doc.text(pdfLabelsCa.table.description, xDesc, y + 16);
+    doc.text(pdfLabelsCa.table.amount, marginX + tableWidth - pad, y + 16, {
+      align: "right",
+    });
 
     y += rowH + 6;
   }
@@ -356,8 +268,9 @@ export async function generateBudgetPdf({
     const descX = marginX + tableCols.concept + tableCols.measure + padding;
     const amountX = marginX + tableWidth - padding;
 
-    const concept = item.title?.trim() || "Concepte";
-    const description = item.description?.trim() || "Segons treball indicat.";
+    const concept = item.title?.trim() || pdfLabelsCa.fallbackConcept;
+    const description =
+      item.description?.trim() || pdfLabelsCa.fallbackDescription;
     const measurement = formatMeasurement(item);
     const amount = formatEUR(item.total);
 
@@ -437,7 +350,7 @@ export async function generateBudgetPdf({
     doc.setFont("helvetica", "bold");
     doc.setFontSize(12.5);
     setTextColor(doc, COLORS.text);
-    doc.text("Total", left, y + 28);
+    doc.text(pdfLabelsCa.total, left, y + 28);
     doc.text(formatEUR(totalAmount), right, y + 28, { align: "right" });
 
     y += rowH + 16;
@@ -530,18 +443,21 @@ export async function generateBudgetPdf({
     doc.line(marginX, y + 10, marginX + 120, y + 10);
     y += 32;
 
-    drawSubsection("Materials", input.materials);
-    drawSubsection("Forma de pagament", input.payment);
-    drawSubsection("Validesa del pressupost", input.validity);
+    drawSubsection(pdfLabelsCa.finalSection.materialsLabel, input.materials);
+    drawSubsection(pdfLabelsCa.finalSection.paymentLabel, input.payment);
+    drawSubsection(pdfLabelsCa.finalSection.validityLabel, input.validity);
 
-    // Separació editorial abans del bloc legal numerat
+    // Visual separator before the numbered legal section.
     ensureSpace(20);
     doc.setDrawColor(COLORS.softLine.r, COLORS.softLine.g, COLORS.softLine.b);
     doc.setLineWidth(1);
     doc.line(marginX, y - 6, pageWidth - marginX, y - 6);
     y += 10;
 
-    drawNumberedConditions("Condicions generals", input.generalConditions);
+    drawNumberedConditions(
+      pdfLabelsCa.finalSection.generalConditionsLabel,
+      input.generalConditions
+    );
   }
 
   drawPageChrome("first");
@@ -555,23 +471,15 @@ export async function generateBudgetPdf({
 
   drawTotalsBox(total);
 
-  // Secció final: sempre comença en una pàgina nova.
+  // The final section always starts on a new page to avoid splitting legal text.
   addPageBase("rest");
   y += 4;
   drawFinalTextSection({
-    heading: "Condicions i informació addicional",
-    materials:
-      "Els materials utilitzats seran els especificats a cada partida i seran de qualitat professional.",
-    payment:
-      "40% del pressupost a l'inici de les feines i 60% a la finalització dels treballs.",
-    validity:
-      "Aquest pressupost no inclou l’IVA i té una validesa de 3 mesos des de la data d'emissió.",
-    generalConditions: [
-      "Els imports d’aquest pressupost s’han calculat segons les normes de medició d’ANSPI (Federació Nacional d’Empresaris de Pintura).",
-      "Aquest pressupost inclou únicament les partides descrites. Les partides no previstes que apareguin durant l’execució es pressupostaran i facturaran a part.",
-      "Els repassos o correccions que no siguin imputables al pintor aniran a càrrec del client.",
-      "L’empresa respon dels danys imputables a la seva responsabilitat civil i es reserva el dret d’emprendre les accions pertinents si és perjudicada pel mateix concepte.",
-    ],
+    heading: pdfLabelsCa.finalSection.heading,
+    materials: pdfFinalSectionCopyCa.materials,
+    payment: pdfFinalSectionCopyCa.payment,
+    validity: pdfFinalSectionCopyCa.validity,
+    generalConditions: pdfFinalSectionCopyCa.generalConditions,
   });
 
   const totalPages = doc.getNumberOfPages();

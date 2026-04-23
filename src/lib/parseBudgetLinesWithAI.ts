@@ -1,6 +1,64 @@
 import type { AIParsedBudgetLines } from "@/types/aiBudget";
 import type { GroqMessage, GroqResponse } from "@/types/groq";
 
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null;
+}
+
+function getGroqContent(data: unknown): string | null {
+  if (!isRecord(data)) return null;
+  const choices = data.choices;
+  if (!Array.isArray(choices) || choices.length === 0) return null;
+  const first = choices[0];
+  if (!isRecord(first)) return null;
+  const message = first.message;
+  if (!isRecord(message)) return null;
+  const content = message.content;
+  return typeof content === "string" ? content : null;
+}
+
+const ALLOWED_TYPES = new Set([
+  "walls_and_ceilings",
+  "repair",
+  "doors",
+  "windows",
+  "enamel_varnish",
+  "exterior",
+  "custom",
+]);
+
+const ALLOWED_UNITS = new Set(["m²", "unitat", "partida"]);
+
+function isAIParsedBudgetLines(value: unknown): value is AIParsedBudgetLines {
+  if (!isRecord(value)) return false;
+  const lines = value.lines;
+  if (!Array.isArray(lines)) return false;
+
+  return lines.every((line) => {
+    if (!isRecord(line)) return false;
+    const type = line.type;
+    const label = line.label;
+    const quantity = line.quantity;
+    const unitLabel = line.unitLabel;
+
+    if (typeof type !== "string" || !ALLOWED_TYPES.has(type)) return false;
+    if (typeof label !== "string" || label.trim().length === 0) return false;
+    if (
+      !(
+        quantity === null ||
+        (typeof quantity === "number" && Number.isFinite(quantity))
+      )
+    ) {
+      return false;
+    }
+    if (typeof unitLabel !== "string" || !ALLOWED_UNITS.has(unitLabel)) {
+      return false;
+    }
+
+    return true;
+  });
+}
+
 export async function parseBudgetLinesWithAI(
   description: string
 ): Promise<AIParsedBudgetLines> {
@@ -121,11 +179,22 @@ export async function parseBudgetLinesWithAI(
   }
 
   const data = (await response.json()) as GroqResponse;
-  const content = data.choices?.[0]?.message?.content;
+  const content = getGroqContent(data);
 
   if (!content) {
     throw new Error("Empty Groq response");
   }
 
-  return JSON.parse(content) as AIParsedBudgetLines;
+  let parsed: unknown;
+  try {
+    parsed = JSON.parse(content) as unknown;
+  } catch {
+    throw new Error("Invalid JSON in Groq response");
+  }
+
+  if (!isAIParsedBudgetLines(parsed)) {
+    throw new Error("Unexpected Groq response schema");
+  }
+
+  return parsed;
 }
