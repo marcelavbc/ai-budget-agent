@@ -25,9 +25,50 @@ const COLORS = {
   softLine: { r: 236, g: 236, b: 236 },
   softFill: { r: 250, g: 249, b: 247 },
   softFill2: { r: 245, g: 245, b: 245 },
-  accent: { r: 200, g: 169, b: 110 }, // #c8a96e
+  accent: { r: 200, g: 169, b: 110 },
   accentSoft: { r: 248, g: 243, b: 234 },
 };
+
+async function loadImageAsDataUrl(src: string): Promise<string> {
+  const response = await fetch(src);
+  const blob = await response.blob();
+
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onloadend = () => resolve(reader.result as string);
+    reader.onerror = reject;
+    reader.readAsDataURL(blob);
+  });
+}
+
+function naturalSizeFromDataUrl(
+  dataUrl: string
+): Promise<{ w: number; h: number }> {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    img.onload = () =>
+      resolve({ w: img.naturalWidth, h: img.naturalHeight });
+    img.onerror = () => reject(new Error("No s'ha pogut llegir el logo"));
+    img.src = dataUrl;
+  });
+}
+
+function fitLogoSize(
+  naturalW: number,
+  naturalH: number,
+  maxW: number,
+  maxH: number
+): { w: number; h: number } {
+  if (naturalW <= 0 || naturalH <= 0) return { w: maxW, h: maxH };
+  const aspect = naturalW / naturalH;
+  let w = maxW;
+  let h = w / aspect;
+  if (h > maxH) {
+    h = maxH;
+    w = h * aspect;
+  }
+  return { w, h };
+}
 
 function setTextColor(doc: jsPDF, rgb?: RGB) {
   const c = rgb ?? COLORS.text;
@@ -45,17 +86,21 @@ function compactLines(values: Array<string | undefined | null>): string[] {
 function splitFirstSentence(text: string): { first: string; rest: string } {
   const t = safeTrim(text);
   if (!t) return { first: "", rest: "" };
+
   const idx = t.indexOf(".");
   if (idx === -1) return { first: t, rest: "" };
-  const first = t.slice(0, idx + 1).trim();
-  const rest = t.slice(idx + 1).trim();
-  return { first, rest };
+
+  return {
+    first: t.slice(0, idx + 1).trim(),
+    rest: t.slice(idx + 1).trim(),
+  };
 }
 
 function formatDateDdMmYyyy(value: string): string {
   const v = value.trim();
   const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(v);
   if (!m) return v;
+
   const [, yyyy, mm, dd] = m;
   return `${dd}-${mm}-${yyyy}`;
 }
@@ -87,24 +132,40 @@ export async function generateBudgetPdf({
   lang = "ca",
 }: GenerateBudgetPdfInput): Promise<Blob> {
   const doc = new jsPDF({ unit: "pt", format: "a4" });
+  const logoDataUrl = await loadImageAsDataUrl("/logo-sanmarti.png");
+  const logoNatural = await naturalSizeFromDataUrl(logoDataUrl);
+  const { w: logoW, h: logoH } = fitLogoSize(
+    logoNatural.w,
+    logoNatural.h,
+    380,
+    136
+  );
+
   const pageWidth = doc.internal.pageSize.getWidth();
   const pageHeight = doc.internal.pageSize.getHeight();
 
   const labels = lang === "es" ? pdfLabelsEs : pdfLabelsCa;
-  const finalSectionCopy = lang === "es" ? pdfFinalSectionCopyEs : pdfFinalSectionCopyCa;
+  const finalSectionCopy =
+    lang === "es" ? pdfFinalSectionCopyEs : pdfFinalSectionCopyCa;
 
   const marginX = 48;
   const footerH = 54;
   const headerTop = 40;
   const contentBottomY = pageHeight - footerH - 18;
-  const firstPageStartY = headerTop + 136;
-  const continuedPageStartY = headerTop + 76;
+
+  const logoTopY = headerTop - 8;
+  const headerSeparatorY = logoTopY + logoH + 16;
+  const firstPageTitleY = headerSeparatorY + 40;
+  const firstPageStartY = firstPageTitleY + 48;
+  const continuedPageStartY = headerSeparatorY + 28;
+
   const tableCols = {
     concept: 150,
     measure: 70,
     description: 205,
     amount: 82,
   };
+
   const tableWidth =
     tableCols.concept +
     tableCols.measure +
@@ -136,39 +197,29 @@ export async function generateBudgetPdf({
     const left = marginX;
     const right = pageWidth - marginX;
 
-    doc.setFont("helvetica", "bold");
-    doc.setFontSize(24);
-    setTextColor(doc, COLORS.text);
-    doc.text(pdfCompanyCopyCa.brand, left, top + 8);
-
-    doc.setDrawColor(COLORS.accent.r, COLORS.accent.g, COLORS.accent.b);
-    doc.setLineWidth(2);
-    doc.line(left, top + 18, left + 135, top + 18);
-
-    doc.setFont("helvetica", "normal");
-    doc.setFontSize(10);
-    setTextColor(doc, COLORS.muted);
-    doc.text(pdfCompanyCopyCa.subtitle.toUpperCase(), left, top + 36);
+    doc.addImage(logoDataUrl, "PNG", left, logoTopY, logoW, logoH);
 
     const quote = safeTrim(client.quoteNumber);
     if (quote.length > 0) {
       const label = labels.quoteNumber(quote);
+
       doc.setFont("helvetica", "normal");
       doc.setFontSize(9.5);
       setTextColor(doc, COLORS.muted);
+
       const w = doc.getTextWidth(label);
       doc.text(label, right - w, top + 12);
     }
 
     doc.setDrawColor(COLORS.line.r, COLORS.line.g, COLORS.line.b);
     doc.setLineWidth(1);
-    doc.line(marginX, top + 54, pageWidth - marginX, top + 54);
+    doc.line(marginX, headerSeparatorY, pageWidth - marginX, headerSeparatorY);
 
     if (variant === "first") {
       doc.setFont("helvetica", "bold");
-      doc.setFontSize(17);
+      doc.setFontSize(14);
       setTextColor(doc, COLORS.text);
-      doc.text(labels.documentTitle, marginX, top + 86);
+      doc.text(labels.documentTitle, marginX, firstPageTitleY);
     }
   }
 
@@ -224,13 +275,15 @@ export async function generateBudgetPdf({
       doc.setFontSize(10);
       setTextColor(doc, COLORS.text);
 
-      for (const l of addressLines) {
-        const wrapped = doc.splitTextToSize(l, width) as string[];
-        for (const wl of wrapped) {
-          doc.text(wl, marginX, y);
+      for (const line of addressLines) {
+        const wrapped = doc.splitTextToSize(line, width) as string[];
+
+        for (const wrappedLine of wrapped) {
+          doc.text(wrappedLine, marginX, y);
           y += 13;
         }
       }
+
       y += 4;
     }
 
@@ -285,8 +338,7 @@ export async function generateBudgetPdf({
     const amountX = marginX + tableWidth - padding;
 
     const concept = item.title?.trim() || labels.fallbackConcept;
-    const description =
-      item.description?.trim() || labels.fallbackDescription;
+    const description = item.description?.trim() || labels.fallbackDescription;
     const measurement = formatMeasurement(item);
     const amount = formatEUR(item.total);
 
@@ -314,38 +366,38 @@ export async function generateBudgetPdf({
     doc.setDrawColor(COLORS.softLine.r, COLORS.softLine.g, COLORS.softLine.b);
     doc.line(marginX, y + rowH, marginX + tableWidth, y + rowH);
 
-    // Concept
     doc.setFont("helvetica", "bold");
     doc.setFontSize(10);
     setTextColor(doc, COLORS.text);
+
     let conceptY = y + 14;
     for (const line of conceptLines) {
       doc.text(line, conceptX, conceptY);
       conceptY += lineH;
     }
 
-    // Measurement (single line, subtle)
     doc.setFont("helvetica", "normal");
     doc.setFontSize(9.5);
     setTextColor(doc, COLORS.muted);
+
     const measureW = tableCols.measure - padding * 2;
     const measureText =
       measurement.length > 0
         ? (doc.splitTextToSize(measurement, measureW) as string[])[0]
         : "—";
+
     doc.text(measureText ?? "—", measureX, y + 14);
 
-    // Description
     doc.setFont("helvetica", "normal");
     doc.setFontSize(9.5);
     setTextColor(doc, COLORS.text);
+
     let descY = y + 14;
     for (const line of descLines) {
       doc.text(line, descX, descY);
       descY += lineH;
     }
 
-    // Amount
     doc.setFont("helvetica", "bold");
     doc.setFontSize(10);
     setTextColor(doc, COLORS.text);
@@ -355,8 +407,6 @@ export async function generateBudgetPdf({
   }
 
   function drawTotalsBox(subtotal: number) {
-    const totalAmount = subtotal;
-
     const rowH = 34;
     ensureSpace(rowH + 18);
 
@@ -366,8 +416,9 @@ export async function generateBudgetPdf({
     doc.setFont("helvetica", "bold");
     doc.setFontSize(12.5);
     setTextColor(doc, COLORS.text);
+
     doc.text(labels.total, left, y + 28);
-    doc.text(formatEUR(totalAmount), right, y + 28, { align: "right" });
+    doc.text(formatEUR(subtotal), right, y + 28, { align: "right" });
 
     y += rowH + 16;
   }
@@ -392,6 +443,7 @@ export async function generateBudgetPdf({
     doc.setDrawColor(COLORS.accent.r, COLORS.accent.g, COLORS.accent.b);
     doc.setLineWidth(1);
     doc.line(marginX, y + 10, marginX + 120, y + 10);
+
     y += 32;
 
     const { first: ivaSentence, rest: validityRest } = splitFirstSentence(
@@ -402,12 +454,15 @@ export async function generateBudgetPdf({
       doc.setFont("helvetica", "bold");
       doc.setFontSize(10.8);
       setTextColor(doc, COLORS.text);
+
       const ivaLines = doc.splitTextToSize(ivaSentence, bodyW) as string[];
       ensureSpace(ivaLines.length * 14 + 14);
+
       for (const line of ivaLines) {
         doc.text(line, marginX, y);
         y += 14;
       }
+
       y += 10;
     }
 
@@ -424,19 +479,22 @@ export async function generateBudgetPdf({
     doc.setFontSize(10);
     setTextColor(doc, COLORS.muted);
 
-    for (const p of paragraphs) {
-      const wrapped = doc.splitTextToSize(p, bodyW) as string[];
+    for (const paragraph of paragraphs) {
+      const wrapped = doc.splitTextToSize(paragraph, bodyW) as string[];
       ensureSpace(wrapped.length * 13 + 18);
+
       for (const line of wrapped) {
         doc.text(line, marginX, y);
         y += 13;
       }
+
       y += 12;
     }
   }
 
   drawPageChrome("first");
   y = firstPageStartY;
+
   drawClientIntroBlock();
   drawTableHeader();
 
@@ -446,9 +504,9 @@ export async function generateBudgetPdf({
 
   drawTotalsBox(total);
 
-  // The final section always starts on a new page to avoid splitting legal text.
   addPageBase("rest");
   y += 4;
+
   drawFinalTextSection({
     heading: labels.finalSection.heading,
     materials: finalSectionCopy.materials,
@@ -458,6 +516,7 @@ export async function generateBudgetPdf({
   });
 
   const totalPages = doc.getNumberOfPages();
+
   for (let i = 1; i <= totalPages; i += 1) {
     doc.setPage(i);
     drawFooter(i, totalPages);

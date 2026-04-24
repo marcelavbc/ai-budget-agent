@@ -1,10 +1,9 @@
 .root {
   display: inline-flex;
-  flex-direction: column;
-  align-items: flex-start;
+  align-items: center;
   text-decoration: none;
   color: inherit;
-  gap: 0.35rem;
+  line-height: 0;
 }
 
 .root:focus-visible {
@@ -13,71 +12,33 @@
   border-radius: 10px;
 }
 
-.title {
-  font-weight: 800;
-  letter-spacing: -0.035em;
-  line-height: 1;
-  text-transform: uppercase;
+.image {
+  width: auto;
+  object-fit: contain;
 }
 
-.rule {
-  height: 2px;
-  width: 92px;
-  background: var(--brand-accent);
+.sizeSmall .image {
+  height: 40px;
+  max-width: min(200px, 42vw);
 }
 
-.subtitle {
-  font-size: 11px;
-  font-weight: 650;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-  color: #6b7280;
-  line-height: 1.1;
+.sizeMedium .image {
+  height: 48px;
+  max-width: min(240px, 45vw);
 }
 
-.sizeSmall .title {
-  font-size: 15px;
-}
-
-.sizeSmall .rule {
-  width: 76px;
-}
-
-.sizeSmall .subtitle {
-  font-size: 10px;
-}
-
-.sizeMedium .title {
-  font-size: 18px;
-}
-
-.sizeMedium .rule {
-  width: 92px;
-}
-
-.sizeMedium .subtitle {
-  font-size: 11px;
-}
-
-.sizeLarge .title {
-  font-size: 28px;
-}
-
-.sizeLarge .rule {
-  width: 132px;
-}
-
-.sizeLarge .subtitle {
-  font-size: 12px;
+.sizeLarge .image {
+  height: 64px;
+  max-width: min(320px, 55vw);
 }
 
 @media (max-width: 520px) {
-  .sizeLarge .title {
-    font-size: 24px;
+  .sizeSmall .image {
+    height: 34px;
+    max-width: min(160px, 48vw);
   }
 
-  .sizeLarge .rule {
-    width: 118px;
+  .sizeLarge .image {
+    height: 56px;
   }
 }
-

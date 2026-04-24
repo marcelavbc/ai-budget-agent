@@ -1,5 +1,10 @@
+import Image from "next/image";
 import Link from "next/link";
 import styles from "./Logo.module.css";
+
+const LOGO_SRC = "/logo-sanmarti.png";
+const LOGO_W = 1536;
+const LOGO_H = 1024;
 
 export type LogoSize = "small" | "medium" | "large";
 
@@ -23,10 +28,15 @@ export function Logo({
       aria-label="Ir a l'inici"
       className={`${styles.root} ${sizeClass} ${className}`}
     >
-      <span className={styles.title}>SANMARTÍ</span>
-      <span className={styles.rule} aria-hidden="true" />
-      <span className={styles.subtitle}>PINTURA DECORATIVA</span>
+      <Image
+        src={LOGO_SRC}
+        alt="Sanmartí Pintura Decorativa"
+        width={LOGO_W}
+        height={LOGO_H}
+        className={styles.image}
+        priority
+        sizes="(max-width: 520px) 150px, 200px"
+      />
     </Link>
   );
 }
-
