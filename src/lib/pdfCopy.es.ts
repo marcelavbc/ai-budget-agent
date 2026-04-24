@@ -17,7 +17,7 @@ export const pdfLabelsEs = {
   page: (pageNumber: number, totalPages: number) =>
     `Página ${pageNumber} / ${totalPages}`,
   finalSection: {
-    heading: "Condiciones e información adicional",
+    heading: "Condiciones del presupuesto",
     materialsLabel: "Materiales",
     paymentLabel: "Forma de pago",
     validityLabel: "Validez del presupuesto",

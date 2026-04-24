@@ -24,7 +24,7 @@ export const pdfLabelsCa = {
   page: (pageNumber: number, totalPages: number) =>
     `Pàgina ${pageNumber} / ${totalPages}`,
   finalSection: {
-    heading: "Condicions i informació addicional",
+    heading: "Condicions del pressupost",
     materialsLabel: "Materials",
     paymentLabel: "Forma de pagament",
     validityLabel: "Validesa del pressupost",

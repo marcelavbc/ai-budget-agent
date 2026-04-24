@@ -42,6 +42,16 @@ function compactLines(values: Array<string | undefined | null>): string[] {
   return values.map((v) => safeTrim(v)).filter((v) => v.length > 0);
 }
 
+function splitFirstSentence(text: string): { first: string; rest: string } {
+  const t = safeTrim(text);
+  if (!t) return { first: "", rest: "" };
+  const idx = t.indexOf(".");
+  if (idx === -1) return { first: t, rest: "" };
+  const first = t.slice(0, idx + 1).trim();
+  const rest = t.slice(idx + 1).trim();
+  return { first, rest };
+}
+
 function formatDateDdMmYyyy(value: string): string {
   const v = value.trim();
   const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(v);
@@ -372,71 +382,6 @@ export async function generateBudgetPdf({
     const width = pageWidth - marginX * 2;
     const bodyW = width;
 
-    function drawSubsection(label: string, paragraph: string) {
-      ensureSpace(84);
-
-      doc.setFont("helvetica", "bold");
-      doc.setFontSize(10.2);
-      setTextColor(doc, COLORS.text);
-      doc.text(label, marginX, y);
-      y += 16;
-
-      doc.setFont("helvetica", "normal");
-      doc.setFontSize(10);
-      setTextColor(doc, COLORS.muted);
-      const wrapped = doc.splitTextToSize(paragraph, bodyW) as string[];
-      ensureSpace(wrapped.length * 13 + 26);
-      for (const line of wrapped) {
-        doc.text(line, marginX, y);
-        y += 13;
-      }
-
-      y += 18;
-    }
-
-    function drawNumberedConditions(label: string, conditions: string[]) {
-      ensureSpace(120);
-
-      doc.setFont("helvetica", "bold");
-      doc.setFontSize(10.2);
-      setTextColor(doc, COLORS.text);
-      doc.text(label, marginX, y);
-      y += 18;
-
-      const numW = 18;
-      const textX = marginX + numW;
-      const textW = bodyW - numW;
-      const lineH = 12.8;
-
-      doc.setFont("helvetica", "normal");
-      doc.setFontSize(9.6);
-      setTextColor(doc, COLORS.muted);
-
-      for (let i = 0; i < conditions.length; i += 1) {
-        const c = conditions[i];
-        const n = `${i + 1}.`;
-        const wrapped = doc.splitTextToSize(c, textW) as string[];
-
-        ensureSpace(Math.max(44, wrapped.length * lineH + 18));
-
-        doc.setFont("helvetica", "bold");
-        doc.setFontSize(9.6);
-        setTextColor(doc, COLORS.muted);
-        doc.text(n, marginX, y);
-
-        doc.setFont("helvetica", "normal");
-        doc.setFontSize(9.6);
-        setTextColor(doc, COLORS.muted);
-        for (const line of wrapped) {
-          doc.text(line, textX, y);
-          y += lineH;
-        }
-        y += 10;
-      }
-
-      y += 10;
-    }
-
     ensureSpace(80);
 
     doc.setFont("helvetica", "bold");
@@ -449,21 +394,45 @@ export async function generateBudgetPdf({
     doc.line(marginX, y + 10, marginX + 120, y + 10);
     y += 32;
 
-    drawSubsection(labels.finalSection.materialsLabel, input.materials);
-    drawSubsection(labels.finalSection.paymentLabel, input.payment);
-    drawSubsection(labels.finalSection.validityLabel, input.validity);
-
-    // Visual separator before the numbered legal section.
-    ensureSpace(20);
-    doc.setDrawColor(COLORS.softLine.r, COLORS.softLine.g, COLORS.softLine.b);
-    doc.setLineWidth(1);
-    doc.line(marginX, y - 6, pageWidth - marginX, y - 6);
-    y += 10;
-
-    drawNumberedConditions(
-      labels.finalSection.generalConditionsLabel,
-      input.generalConditions
+    const { first: ivaSentence, rest: validityRest } = splitFirstSentence(
+      input.validity
     );
+
+    if (ivaSentence) {
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(10.8);
+      setTextColor(doc, COLORS.text);
+      const ivaLines = doc.splitTextToSize(ivaSentence, bodyW) as string[];
+      ensureSpace(ivaLines.length * 14 + 14);
+      for (const line of ivaLines) {
+        doc.text(line, marginX, y);
+        y += 14;
+      }
+      y += 10;
+    }
+
+    const paragraphs = [
+      `${safeTrim(input.materials)} ${safeTrim(input.payment)}`.trim(),
+      `${safeTrim(validityRest)} ${safeTrim(input.generalConditions[0])}`.trim(),
+      `${safeTrim(input.generalConditions[1])} ${safeTrim(
+        input.generalConditions[2]
+      )}`.trim(),
+      safeTrim(input.generalConditions[3]),
+    ].filter((p) => p.length > 0);
+
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(10);
+    setTextColor(doc, COLORS.muted);
+
+    for (const p of paragraphs) {
+      const wrapped = doc.splitTextToSize(p, bodyW) as string[];
+      ensureSpace(wrapped.length * 13 + 18);
+      for (const line of wrapped) {
+        doc.text(line, marginX, y);
+        y += 13;
+      }
+      y += 12;
+    }
   }
 
   drawPageChrome("first");
