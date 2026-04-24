@@ -6,6 +6,12 @@ export const metadata: Metadata = {
   title: "Pressupost de pintura",
   description:
     "Genera pressupostos de pintura ràpidament a partir d’una descripció breu.",
+  icons: {
+    icon: [
+      { url: "/icon.png", type: "image/png" },
+      { url: "/icon.svg", type: "image/svg+xml" },
+    ],
+  },
 };
 
 export default function RootLayout({

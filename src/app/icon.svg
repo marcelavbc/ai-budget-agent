@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" role="img" aria-label="SANMARTI">
+  <defs>
+    <style>
+      .bg{fill:#ffffff}
+      .ink{fill:#1a1a1a}
+      .accent{fill:#c8a96e}
+      @media (prefers-color-scheme: dark){
+        .bg{fill:#0b0b0b}
+        .ink{fill:#ffffff}
+      }
+    </style>
+  </defs>
+  <rect class="bg" x="0" y="0" width="128" height="128" rx="28"/>
+  <rect class="accent" x="28" y="90" width="72" height="6" rx="3"/>
+  <path class="ink" d="M64 26c-17.4 0-29.2 7.7-29.2 20.3 0 10.7 8.7 15.5 23.9 18.7 12.1 2.5 16.6 4.5 16.6 8.7 0 4.8-5.2 7.9-13.6 7.9-8.9 0-16.6-3.2-22.9-8.6l-10.2 12c8.1 7.1 19 11.2 33.1 11.2 18.8 0 31-8.4 31-22 0-11.2-8.1-16.6-24.8-20.1-11.4-2.4-15.7-4-15.7-8 0-4.3 4.7-7 12.2-7 7.2 0 14.3 2.6 20.4 7l9.1-12.6C84.8 29.4 75.1 26 64 26z"/>
+</svg>
+

@@ -6,6 +6,11 @@
   justify-content: flex-end;
 }
 
+.rootIcons {
+  gap: 0.25rem;
+  flex-wrap: nowrap;
+}
+
 .error {
   width: 100%;
   margin: 0.35rem 0 0;
@@ -47,6 +52,52 @@
   opacity: 0.7;
   cursor: not-allowed;
   transform: none;
+}
+
+.iconBtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  padding: 0;
+  border: none;
+  background: transparent;
+  color: #6b7280;
+  border-radius: 10px;
+  cursor: pointer;
+  text-decoration: none;
+  transition: color 0.15s ease, background 0.15s ease;
+  font-size: 16px;
+  line-height: 1;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .iconBtn:hover {
+    color: #1a1a1a;
+    background: rgba(26, 26, 26, 0.06);
+  }
+}
+
+.iconBtn:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+.iconBtn:focus-visible {
+  outline: 2px solid rgba(59, 130, 246, 0.35);
+  outline-offset: 2px;
+}
+
+.iconBtnDanger {
+  color: #6b7280;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .iconBtnDanger:hover {
+    color: #dc2626;
+    background: rgba(220, 38, 38, 0.08);
+  }
 }
 
 .primary {
