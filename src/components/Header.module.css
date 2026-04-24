@@ -169,7 +169,7 @@
   padding: 16px 24px;
   font-size: 18px;
   font-weight: 500;
-  border-bottom: 1px solid #f0ede8;
+  border-bottom: 1px solid var(--border-soft);
   transition:
     background 120ms ease,
     color 120ms ease;

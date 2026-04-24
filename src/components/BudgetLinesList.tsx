@@ -170,8 +170,8 @@ export function BudgetLinesList({
         <div className={styles.warnings}>
           <p className={styles.warningsTitle}>Avís</p>
           <ul className={styles.warningsList}>
-            {warnings.map((msg) => (
-              <li key={msg}>{msg}</li>
+            {warnings.map((msg, index) => (
+              <li key={`warning-${index}-${msg}`}>{msg}</li>
             ))}
           </ul>
         </div>

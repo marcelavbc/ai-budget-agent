@@ -4,7 +4,6 @@ import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { FileDown, Pencil, Trash2, ChevronDown } from "lucide-react";
-import { generateBudgetPdf } from "@/lib/generateBudgetPdf";
 import { ConfirmDialog } from "@/components/ConfirmDialog";
 import styles from "./BudgetListItemActions.module.css";
 import {
@@ -89,6 +88,7 @@ export function BudgetListItemActions({
 
       const finalItems = await translateItemsIfNeeded(itemsForPdf, lang);
 
+      const { generateBudgetPdf } = await import("@/lib/generateBudgetPdf");
       const blob = await generateBudgetPdf({
         client: clientForPdf,
         items: finalItems,

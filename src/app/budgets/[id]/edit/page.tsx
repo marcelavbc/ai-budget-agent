@@ -6,6 +6,8 @@ import {
 } from "@/lib/budgets";
 import { notFound } from "next/navigation";
 
+import styles from "./page.module.css";
+
 export default async function BudgetEditPage({
   params,
 }: {
@@ -21,7 +23,7 @@ export default async function BudgetEditPage({
   ]);
 
   return (
-    <main style={{ maxWidth: 860, margin: "0 auto", padding: "2rem 1.25rem" }}>
+    <main className={styles.main}>
       <BudgetEditView budget={budget} client={client} lines={lines} />
     </main>
   );

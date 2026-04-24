@@ -73,15 +73,15 @@ export interface BudgetClientItem {
   unitPrice?: number;
 }
 
-/** Capçalera del pressupost (client + referència); preparat per exportar a PDF més endavant. */
+/** Budget header (client + reference); used for UI and PDF export. */
 export interface BudgetClientDetails {
   nameOrCompany: string;
   email: string;
   address: string;
   quoteNumber: string;
-  /** ISO YYYY-MM-DD (compatible amb input type="date") */
+  /** ISO YYYY-MM-DD (compatible with input type="date"). */
   date: string;
-  /** Termini o text lliure (p. ex. dies hàbils). */
+  /** Lead time or free-text estimate (e.g. business days). */
   estimatedTime: string;
 }
 
