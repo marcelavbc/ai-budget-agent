@@ -7,11 +7,13 @@ import {
   pdfFinalSectionCopyCa,
   pdfLabelsCa,
 } from "@/lib/pdfCopy.ca";
+import { pdfFinalSectionCopyEs, pdfLabelsEs } from "@/lib/pdfCopy.es";
 
 export interface GenerateBudgetPdfInput {
   client: BudgetClientDetails;
   items: BudgetClientItem[];
   total: number;
+  lang?: "ca" | "es";
 }
 
 type RGB = { r: number; g: number; b: number };
@@ -72,10 +74,14 @@ export async function generateBudgetPdf({
   client,
   items,
   total,
+  lang = "ca",
 }: GenerateBudgetPdfInput): Promise<Blob> {
   const doc = new jsPDF({ unit: "pt", format: "a4" });
   const pageWidth = doc.internal.pageSize.getWidth();
   const pageHeight = doc.internal.pageSize.getHeight();
+
+  const labels = lang === "es" ? pdfLabelsEs : pdfLabelsCa;
+  const finalSectionCopy = lang === "es" ? pdfFinalSectionCopyEs : pdfFinalSectionCopyCa;
 
   const marginX = 48;
   const footerH = 54;
@@ -136,7 +142,7 @@ export async function generateBudgetPdf({
 
     const quote = safeTrim(client.quoteNumber);
     if (quote.length > 0) {
-      const label = pdfLabelsCa.quoteNumber(quote);
+      const label = labels.quoteNumber(quote);
       doc.setFont("helvetica", "normal");
       doc.setFontSize(9.5);
       setTextColor(doc, COLORS.muted);
@@ -152,7 +158,7 @@ export async function generateBudgetPdf({
       doc.setFont("helvetica", "bold");
       doc.setFontSize(17);
       setTextColor(doc, COLORS.text);
-      doc.text(pdfLabelsCa.documentTitle, marginX, top + 86);
+      doc.text(labels.documentTitle, marginX, top + 86);
     }
   }
 
@@ -174,7 +180,7 @@ export async function generateBudgetPdf({
       bottomY
     );
 
-    const pageLabel = pdfLabelsCa.page(pageNumber, totalPages);
+    const pageLabel = labels.page(pageNumber, totalPages);
     const labelWidth = doc.getTextWidth(pageLabel);
     doc.text(pageLabel, pageWidth - marginX - labelWidth, bottomY);
   }
@@ -192,7 +198,7 @@ export async function generateBudgetPdf({
     doc.setFont("helvetica", "normal");
     doc.setFontSize(9);
     setTextColor(doc, COLORS.muted);
-    doc.text(pdfLabelsCa.client, marginX, y);
+    doc.text(labels.client, marginX, y);
     y += 14;
 
     if (name.length > 0) {
@@ -222,7 +228,7 @@ export async function generateBudgetPdf({
       doc.setFont("helvetica", "normal");
       doc.setFontSize(10);
       setTextColor(doc, COLORS.muted);
-      doc.text(pdfLabelsCa.date(formatDateDdMmYyyy(date)), marginX, y);
+      doc.text(labels.date(formatDateDdMmYyyy(date)), marginX, y);
       y += 10;
     }
 
@@ -251,10 +257,10 @@ export async function generateBudgetPdf({
     const xMeasure = marginX + tableCols.concept + pad;
     const xDesc = marginX + tableCols.concept + tableCols.measure + pad;
 
-    doc.text(pdfLabelsCa.table.concept, xConcept, y + 16);
-    doc.text(pdfLabelsCa.table.measure, xMeasure, y + 16);
-    doc.text(pdfLabelsCa.table.description, xDesc, y + 16);
-    doc.text(pdfLabelsCa.table.amount, marginX + tableWidth - pad, y + 16, {
+    doc.text(labels.table.concept, xConcept, y + 16);
+    doc.text(labels.table.measure, xMeasure, y + 16);
+    doc.text(labels.table.description, xDesc, y + 16);
+    doc.text(labels.table.amount, marginX + tableWidth - pad, y + 16, {
       align: "right",
     });
 
@@ -268,9 +274,9 @@ export async function generateBudgetPdf({
     const descX = marginX + tableCols.concept + tableCols.measure + padding;
     const amountX = marginX + tableWidth - padding;
 
-    const concept = item.title?.trim() || pdfLabelsCa.fallbackConcept;
+    const concept = item.title?.trim() || labels.fallbackConcept;
     const description =
-      item.description?.trim() || pdfLabelsCa.fallbackDescription;
+      item.description?.trim() || labels.fallbackDescription;
     const measurement = formatMeasurement(item);
     const amount = formatEUR(item.total);
 
@@ -350,7 +356,7 @@ export async function generateBudgetPdf({
     doc.setFont("helvetica", "bold");
     doc.setFontSize(12.5);
     setTextColor(doc, COLORS.text);
-    doc.text(pdfLabelsCa.total, left, y + 28);
+    doc.text(labels.total, left, y + 28);
     doc.text(formatEUR(totalAmount), right, y + 28, { align: "right" });
 
     y += rowH + 16;
@@ -443,9 +449,9 @@ export async function generateBudgetPdf({
     doc.line(marginX, y + 10, marginX + 120, y + 10);
     y += 32;
 
-    drawSubsection(pdfLabelsCa.finalSection.materialsLabel, input.materials);
-    drawSubsection(pdfLabelsCa.finalSection.paymentLabel, input.payment);
-    drawSubsection(pdfLabelsCa.finalSection.validityLabel, input.validity);
+    drawSubsection(labels.finalSection.materialsLabel, input.materials);
+    drawSubsection(labels.finalSection.paymentLabel, input.payment);
+    drawSubsection(labels.finalSection.validityLabel, input.validity);
 
     // Visual separator before the numbered legal section.
     ensureSpace(20);
@@ -455,7 +461,7 @@ export async function generateBudgetPdf({
     y += 10;
 
     drawNumberedConditions(
-      pdfLabelsCa.finalSection.generalConditionsLabel,
+      labels.finalSection.generalConditionsLabel,
       input.generalConditions
     );
   }
@@ -475,11 +481,11 @@ export async function generateBudgetPdf({
   addPageBase("rest");
   y += 4;
   drawFinalTextSection({
-    heading: pdfLabelsCa.finalSection.heading,
-    materials: pdfFinalSectionCopyCa.materials,
-    payment: pdfFinalSectionCopyCa.payment,
-    validity: pdfFinalSectionCopyCa.validity,
-    generalConditions: pdfFinalSectionCopyCa.generalConditions,
+    heading: labels.finalSection.heading,
+    materials: finalSectionCopy.materials,
+    payment: finalSectionCopy.payment,
+    validity: finalSectionCopy.validity,
+    generalConditions: finalSectionCopy.generalConditions,
   });
 
   const totalPages = doc.getNumberOfPages();

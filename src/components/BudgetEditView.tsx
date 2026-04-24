@@ -3,7 +3,12 @@
 import { useMemo, useRef, useState, type SetStateAction } from "react";
 import { useRouter } from "next/navigation";
 import type { BudgetClientDetails, BudgetClientItem } from "@/types/budget";
-import type { BudgetRow, ClientRow, BudgetLineRow, BudgetStatus } from "@/lib/budgets";
+import type {
+  BudgetRow,
+  ClientRow,
+  BudgetLineRow,
+  BudgetStatus,
+} from "@/lib/budgets";
 import { buildAutoQuoteNumber } from "@/lib/generateQuoteNumber";
 import { BudgetDraftView } from "@/components/BudgetDraftView";
 import { BudgetAIInput } from "@/components/BudgetAIInput";
@@ -76,7 +81,8 @@ export function BudgetEditView({
     [lines]
   );
 
-  const [clientDetails, setClientDetails] = useState<BudgetClientDetails>(initialClient);
+  const [clientDetails, setClientDetails] =
+    useState<BudgetClientDetails>(initialClient);
   const [items, setItems] = useState<BudgetClientItem[]>(initialItems);
 
   // In edit mode, avoid auto-overwriting quote numbers unless the user explicitly resets.
@@ -150,7 +156,7 @@ export function BudgetEditView({
         <BudgetAIInput
           loading={loading}
           formError={formError}
-          submitLabel="Afegir amb IA"
+          submitLabel="Afegir"
           placeholder="Escriu el que vols afegir… (p. ex. Pintar passadís 8 m² + reparar esquerdes)"
           onSubmit={async (description) => {
             const lines = await submit(description);
@@ -168,4 +174,3 @@ export function BudgetEditView({
     />
   );
 }
-

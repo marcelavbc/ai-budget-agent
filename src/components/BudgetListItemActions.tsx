@@ -17,16 +17,42 @@ import type { BudgetClientDetails, BudgetClientItem } from "@/types/budget";
 export function BudgetListItemActions({ budgetId }: { budgetId: string }) {
   const [generating, setGenerating] = useState(false);
   const [pdfError, setPdfError] = useState<string | null>(null);
+  const [pdfMenuOpen, setPdfMenuOpen] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [confirmOpen, setConfirmOpen] = useState(false);
   const router = useRouter();
 
-  async function handleGeneratePdf(e: React.MouseEvent<HTMLButtonElement>) {
+  async function translateItemsIfNeeded(
+    items: BudgetClientItem[],
+    lang: "ca" | "es"
+  ): Promise<BudgetClientItem[]> {
+    if (lang === "ca") return items;
+    try {
+      const res = await fetch("/api/translate-budget-items", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ items, targetLang: "es" }),
+      });
+      if (!res.ok) return items;
+      const data = (await res.json()) as unknown;
+      if (typeof data !== "object" || data === null) return items;
+      const maybeItems = (data as { items?: unknown }).items;
+      return Array.isArray(maybeItems) ? (maybeItems as BudgetClientItem[]) : items;
+    } catch {
+      return items;
+    }
+  }
+
+  async function handleGeneratePdfLang(
+    e: React.MouseEvent<HTMLButtonElement>,
+    lang: "ca" | "es"
+  ) {
     e.preventDefault();
     e.stopPropagation();
     if (generating) return;
     setGenerating(true);
     setPdfError(null);
+    setPdfMenuOpen(false);
     try {
       const budget = await getBudgetById(budgetId);
       if (!budget) throw new Error("No s'ha trobat el pressupost.");
@@ -54,10 +80,13 @@ export function BudgetListItemActions({ budgetId }: { budgetId: string }) {
         estimatedTime: (budget.estimated_time ?? "").trim(),
       };
 
+      const finalItems = await translateItemsIfNeeded(itemsForPdf, lang);
+
       const blob = await generateBudgetPdf({
         client: clientForPdf,
-        items: itemsForPdf,
+        items: finalItems,
         total: budget.total ?? budget.subtotal ?? 0,
+        lang,
       });
 
       const url = URL.createObjectURL(blob);
@@ -101,15 +130,51 @@ export function BudgetListItemActions({ budgetId }: { budgetId: string }) {
       >
         Editar
       </Link>
-      <button
-        type="button"
-        onClick={handleGeneratePdf}
-        disabled={generating}
-        className={`${styles.btn} ${styles.primary}`}
-        aria-busy={generating || undefined}
+      <div
+        className={styles.dropdown}
+        onClick={(e) => e.stopPropagation()}
+        onKeyDown={(e) => {
+          if (e.key === "Escape") setPdfMenuOpen(false);
+        }}
       >
-        {generating ? "PDF…" : "PDF"}
-      </button>
+        <button
+          type="button"
+          disabled={generating}
+          className={`${styles.btn} ${styles.primary}`}
+          aria-busy={generating || undefined}
+          aria-haspopup="menu"
+          aria-expanded={pdfMenuOpen}
+          onClick={(e) => {
+            e.preventDefault();
+            setPdfMenuOpen((v) => !v);
+          }}
+        >
+          {generating ? "PDF…" : "PDF ▾"}
+        </button>
+
+        {pdfMenuOpen ? (
+          <div className={styles.dropdownMenu} role="menu">
+            <button
+              type="button"
+              className={styles.menuItem}
+              role="menuitem"
+              disabled={generating}
+              onClick={(e) => handleGeneratePdfLang(e, "ca")}
+            >
+              PDF <span className={styles.menuHint}>Català</span>
+            </button>
+            <button
+              type="button"
+              className={styles.menuItem}
+              role="menuitem"
+              disabled={generating}
+              onClick={(e) => handleGeneratePdfLang(e, "es")}
+            >
+              PDF <span className={styles.menuHint}>Castellano</span>
+            </button>
+          </div>
+        ) : null}
+      </div>
 
       <button
         type="button"

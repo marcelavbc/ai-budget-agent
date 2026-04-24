@@ -1,4 +1,4 @@
-import { supabase } from "@/lib/supabaseClient";
+import { getSupabaseClient } from "@/lib/supabaseClient";
 import type { BudgetClientDetails, BudgetClientItem } from "@/types/budget";
 import type { Tables, TablesInsert } from "@/types/supabase";
 import {
@@ -52,6 +52,7 @@ export async function createClient({
   phone = null,
   address = null,
 }: CreateClientInput): Promise<{ id: string }> {
+  const supabase = getSupabaseClient();
   const normalizedName = name.trim();
   const normalizedEmail = (email ?? "").trim();
   const normalizedPhone = (phone ?? "").trim();
@@ -79,6 +80,7 @@ export async function updateClientById(
   id: string,
   patch: Partial<Pick<ClientRow, "name" | "email" | "phone" | "address">>
 ): Promise<void> {
+  const supabase = getSupabaseClient();
   const normalized = {
     name: typeof patch.name === "string" ? patch.name.trim() : patch.name,
     email: typeof patch.email === "string" ? patch.email.trim() : patch.email,
@@ -92,6 +94,7 @@ export async function updateClientById(
 }
 
 export async function getClientById(id: string | null): Promise<ClientRow> {
+  const supabase = getSupabaseClient();
   const normalizedId = (id ?? "").trim();
   if (!normalizedId || normalizedId.toLowerCase() === "null") {
     return {
@@ -143,6 +146,7 @@ export async function createBudget({
   subtotal,
   taxRate = 0,
 }: CreateBudgetInput): Promise<CreateBudgetResult> {
+  const supabase = getSupabaseClient();
   const { tax_amount, total } = calcTotalsFromSubtotal(subtotal, taxRate);
   const derivedTitle = deriveBudgetTitle(client);
 
@@ -179,6 +183,7 @@ export async function createBudget({
 }
 
 export async function getBudgetById(id: string): Promise<BudgetRow | null> {
+  const supabase = getSupabaseClient();
   const { data, error } = await supabase
     .from("budgets")
     .select(
@@ -209,6 +214,7 @@ export async function updateBudgetById(
     >
   >
 ): Promise<void> {
+  const supabase = getSupabaseClient();
   const normalized = {
     client_id: patch.client_id,
     title: typeof patch.title === "string" ? patch.title.trim() : patch.title,
@@ -240,6 +246,7 @@ export async function updateBudgetById(
 }
 
 export async function getBudgets(): Promise<BudgetListRow[]> {
+  const supabase = getSupabaseClient();
   const { data, error } = await supabase
     .from("budgets")
     .select("id,title,job_address,status,document_date,quote_number,total,created_at")
@@ -260,6 +267,7 @@ export type RecentBudgetActivityRow = {
 export async function getRecentBudgetActivity(
   limit = 5
 ): Promise<RecentBudgetActivityRow[]> {
+  const supabase = getSupabaseClient();
   const { data, error } = await supabase
     .from("budgets")
     .select("id,status,total,created_at, client:clients(name)")
@@ -271,11 +279,13 @@ export async function getRecentBudgetActivity(
 }
 
 export async function deleteBudgetLines(budgetId: string): Promise<void> {
+  const supabase = getSupabaseClient();
   const { error } = await supabase.from("budget_lines").delete().eq("budget_id", budgetId);
   if (error) throw new Error(error.message);
 }
 
 export async function deleteBudgetById(budgetId: string): Promise<void> {
+  const supabase = getSupabaseClient();
   const { error } = await supabase.from("budgets").delete().eq("id", budgetId);
   if (error) throw new Error(error.message);
 }
@@ -289,6 +299,7 @@ export async function replaceBudgetLines(
   budgetId: string,
   items: BudgetClientItem[]
 ): Promise<void> {
+  const supabase = getSupabaseClient();
   const rows: TablesInsert<"budget_lines">[] = toBudgetLineRows(budgetId, items);
 
   await deleteBudgetLines(budgetId);
@@ -356,6 +367,7 @@ export async function createBudgetLines({
   budgetId,
   items,
 }: CreateBudgetLinesInput): Promise<void> {
+  const supabase = getSupabaseClient();
   const rows: TablesInsert<"budget_lines">[] = toBudgetLineRows(budgetId, items);
 
   const { error } = await supabase.from("budget_lines").insert(rows);
@@ -367,6 +379,7 @@ export async function createBudgetLines({
 export async function getBudgetLinesByBudgetId(
   budgetId: string
 ): Promise<BudgetLineRow[]> {
+  const supabase = getSupabaseClient();
   const { data, error } = await supabase
     .from("budget_lines")
     .select(

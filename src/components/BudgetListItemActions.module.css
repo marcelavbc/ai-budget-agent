@@ -54,6 +54,56 @@
   color: var(--bg);
 }
 
+.dropdown {
+  position: relative;
+  display: inline-flex;
+}
+
+.dropdownMenu {
+  position: absolute;
+  right: 0;
+  top: calc(100% + 8px);
+  min-width: 190px;
+  padding: 0.35rem;
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.12);
+  z-index: 20;
+}
+
+.menuItem {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  border: 1px solid transparent;
+  background: transparent;
+  color: var(--text);
+  border-radius: 10px;
+  padding: 0.55rem 0.7rem;
+  font-size: 0.86rem;
+  font-family: inherit;
+  font-weight: 650;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background 0.15s ease, border-color 0.15s ease;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .menuItem:hover {
+    background: rgba(26, 26, 26, 0.05);
+    border-color: rgba(26, 26, 26, 0.08);
+  }
+}
+
+.menuHint {
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: #6b7280;
+}
+
 .danger {
   color: var(--text-delete);
   background: var(--surface);
