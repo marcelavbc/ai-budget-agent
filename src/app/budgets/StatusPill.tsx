@@ -33,9 +33,11 @@ function pillClass(value: BudgetStatus): string {
 export function StatusPill({
   budgetId,
   initialStatus,
+  onStatusChange,
 }: {
   budgetId: string;
   initialStatus: string | null;
+  onStatusChange?: (next: BudgetStatus) => void;
 }) {
   const [status, setStatus] = useState<BudgetStatus>(normalizeStatus(initialStatus));
   const [saving, setSaving] = useState(false);
@@ -45,11 +47,13 @@ export function StatusPill({
     const prev = status;
     const next = nextStatus(prev);
     setStatus(next);
+    onStatusChange?.(next);
     setSaving(true);
     try {
       await updateBudgetById(budgetId, { status: next });
     } catch {
       setStatus(prev);
+      onStatusChange?.(prev);
     } finally {
       setSaving(false);
     }

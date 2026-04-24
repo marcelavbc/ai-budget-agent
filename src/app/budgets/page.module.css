@@ -105,6 +105,234 @@
   display: none;
 }
 
+.filters {
+  margin: 0.25rem 0 0;
+}
+
+.filterRow {
+  display: flex;
+  gap: 0.8rem;
+  align-items: center;
+  padding: 0 0 12px;
+  border-bottom: 1px solid #e8e4dd;
+  margin-bottom: 24px;
+}
+
+.search {
+  position: relative;
+  flex: 1 1 auto;
+  min-width: 280px;
+  max-width: 280px;
+}
+
+.searchIcon {
+  position: absolute;
+  left: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 14px;
+  opacity: 0.65;
+  pointer-events: none;
+}
+
+.input {
+  height: 38px;
+  border-radius: 8px;
+  border: 1px solid #e8e4dd;
+  background: transparent;
+  padding: 0 12px;
+  font-size: 13px;
+  color: #1a1a1a;
+  outline: none;
+}
+
+.input:focus-visible {
+  border-color: #c8a96e;
+  box-shadow: 0 0 0 3px rgba(200, 169, 110, 0.15);
+}
+
+.searchInput {
+  width: 100%;
+  padding-left: 32px;
+}
+
+.dropdownWrap {
+  position: relative;
+  flex: 0 0 auto;
+}
+
+.dropdownBtn {
+  height: 38px;
+  border-radius: 8px;
+  border: 1px solid #e8e4dd;
+  background: transparent;
+  color: #1a1a1a;
+  padding: 0 10px 0 12px;
+  font-size: 13px;
+  font-family: inherit;
+  font-weight: 500;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  white-space: nowrap;
+}
+
+.dropdownBtnWide {
+  min-width: 190px;
+  justify-content: space-between;
+}
+
+.dropdownActive {
+  border-color: #c8a96e;
+}
+
+.dropdownLabel {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.chevron {
+  font-size: 12px;
+  opacity: 0.65;
+}
+
+.goldDot {
+  width: 6px;
+  height: 6px;
+  border-radius: 999px;
+  background: #c8a96e;
+  display: inline-block;
+}
+
+.menu {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  background: #ffffff;
+  border: 1px solid #e8e4dd;
+  border-radius: 10px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  padding: 8px;
+  min-width: 160px;
+  z-index: 50;
+  opacity: 0;
+  transform: translateY(-4px);
+  pointer-events: none;
+  transition:
+    opacity 100ms ease,
+    transform 100ms ease;
+}
+
+.menuWide {
+  min-width: 220px;
+}
+
+.menuOpen {
+  opacity: 1;
+  transform: translateY(0);
+  pointer-events: auto;
+}
+
+.menuRow {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 12px;
+  border-radius: 6px;
+  font-size: 14px;
+  color: #1a1a1a;
+  cursor: pointer;
+  user-select: none;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .menuRow:hover {
+    background: #f9f8f6;
+  }
+}
+
+.checkbox,
+.radio {
+  accent-color: #1a1a1a;
+}
+
+.menuDivider {
+  height: 1px;
+  background: #e8e4dd;
+  margin: 6px 4px;
+}
+
+.customDates {
+  padding: 6px 4px 2px;
+  display: grid;
+  gap: 10px;
+}
+
+.customField {
+  display: grid;
+  gap: 6px;
+}
+
+.customLabel {
+  font-size: 12px;
+  color: #6b7280;
+}
+
+.customInput {
+  width: 100%;
+  background: transparent;
+}
+
+.filterMeta {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  margin-left: auto;
+}
+
+.results {
+  font-size: 13px;
+  color: #9ca3af;
+  white-space: nowrap;
+}
+
+.resetLink {
+  background: transparent;
+  border: none;
+  padding: 0;
+  font-size: 13px;
+  font-family: inherit;
+  font-weight: 500;
+  color: #9ca3af;
+  cursor: pointer;
+  white-space: nowrap;
+  text-decoration: none;
+}
+
+.resetLink:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .resetLink:hover:not(:disabled) {
+    color: #1a1a1a;
+    text-decoration: underline;
+  }
+}
+
+.emptyResults {
+  margin-top: 1.25rem;
+  padding: 1.5rem 1.25rem;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  border-radius: 14px;
+  box-shadow: var(--shadow-soft);
+  text-align: center;
+}
+
 .table {
   width: 100%;
   border-collapse: collapse;
@@ -470,6 +698,38 @@
     margin-top: 0.65rem;
     gap: 0.45rem 0.75rem;
     font-size: 0.88rem;
+  }
+
+  .filterRow {
+    flex-wrap: wrap;
+    gap: 0.65rem;
+  }
+
+  .search {
+    min-width: 100%;
+    max-width: 100%;
+  }
+
+  .dropdownWrap {
+    flex: 1 1 calc(50% - 0.35rem);
+  }
+
+  .dropdownBtn {
+    width: 100%;
+    justify-content: space-between;
+  }
+
+  .filterMeta {
+    width: 100%;
+    justify-content: space-between;
+    margin-left: 0;
+    padding-top: 0.2rem;
+  }
+
+  .menu {
+    top: auto;
+    bottom: calc(100% + 8px);
+    right: 0;
   }
 }
 
