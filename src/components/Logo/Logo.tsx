@@ -35,7 +35,7 @@ export function Logo({
         height={LOGO_H}
         className={styles.image}
         priority
-        sizes="(max-width: 520px) 150px, 200px"
+        sizes="(max-width: 520px) 420px, 520px"
       />
     </Link>
   );

@@ -2,7 +2,6 @@
   position: sticky;
   top: 0;
   z-index: 50;
-  padding: 1.25rem 1.5rem;
   border-bottom: 1px solid var(--border-soft);
   background: var(--bg);
   box-shadow: 0 1px 0 rgba(0, 0, 0, 0.02);
@@ -36,7 +35,9 @@
   text-decoration: none;
   border-bottom: 1px solid transparent;
   padding-bottom: 0.1rem;
-  transition: border-color 0.15s, color 0.15s;
+  transition:
+    border-color 0.15s,
+    color 0.15s;
   white-space: nowrap;
 }
 
@@ -146,7 +147,7 @@
 
 @media (hover: hover) and (pointer: fine) {
   .mobileClose:hover {
-    background: var(--bg);
+    background: var(--bg-subtle);
   }
 }
 
@@ -169,7 +170,9 @@
   font-size: 18px;
   font-weight: 500;
   border-bottom: 1px solid #f0ede8;
-  transition: background 120ms ease, color 120ms ease;
+  transition:
+    background 120ms ease,
+    color 120ms ease;
 }
 
 .mobileLink:last-child {
@@ -177,7 +180,7 @@
 }
 
 .mobileLink:hover {
-  background: var(--bg);
+  background: var(--bg-subtle);
 }
 
 .mobileLinkActive {
@@ -186,11 +189,11 @@
 
 @media (max-width: 520px) {
   .header {
-    padding: 1rem 1.1rem;
+    padding: 0.65rem 1rem;
   }
 
   .inner {
-    align-items: baseline;
+    align-items: center;
   }
 
   .nav {

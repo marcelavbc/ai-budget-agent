@@ -265,7 +265,7 @@
 
 @media (hover: hover) and (pointer: fine) {
   .activityRow:hover {
-    background: var(--bg);
+    background: var(--bg-subtle);
   }
 }
 

@@ -181,7 +181,7 @@
   font-size: 0.9rem;
   font-family: inherit;
   color: var(--text);
-  background: var(--bg, #fff);
+  background: var(--bg-subtle);
   outline: none;
   transition: border-color 0.15s;
   height: 2.25rem;

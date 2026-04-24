@@ -3,7 +3,10 @@
   --brand-primary: #1a1a1a;
   --brand-accent: #c8a96e;
 
-  --bg: #f9f8f6;
+  /* Page canvas (white so assets like the logo read clearly) */
+  --bg: #ffffff;
+  /* Stripes, hovers, pills on white — former canvas tone */
+  --bg-subtle: #f9f8f6;
   --surface: #ffffff;
   --text: var(--brand-primary);
   --text-muted: #6b7280;
