@@ -85,9 +85,11 @@ export function BudgetDraftView({
   return (
     <section className={styles.root}>
       <div className={styles.topBar}>
-        <button type="button" className={styles.backBtn} onClick={onBack}>
-          ← Tornar a les línies
-        </button>
+        {mode !== "edit" ? (
+          <button type="button" className={styles.backBtn} onClick={onBack}>
+            ← Tornar a les línies
+          </button>
+        ) : null}
         <h2 className={styles.heading}>
           {mode === "edit" ? "Editar pressupost" : "Esborrany del pressupost"}
         </h2>

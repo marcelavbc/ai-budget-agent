@@ -1,7 +1,7 @@
 import { supabase } from "@/lib/supabaseClient";
 import type { BudgetClientDetails, BudgetClientItem } from "@/types/budget";
 
-export type BudgetStatus = "draft";
+export type BudgetStatus = "draft" | "sent" | "approved";
 
 export type BudgetRow = {
   id: string;

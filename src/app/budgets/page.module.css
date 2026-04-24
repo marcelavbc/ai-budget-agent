@@ -215,6 +215,15 @@
   text-transform: uppercase;
 }
 
+.pillButton {
+  cursor: pointer;
+}
+
+.pillButton:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
 .dot {
   width: 6px;
   height: 6px;
@@ -224,6 +233,14 @@
 
 .dotDraft {
   background: #a7a2a0;
+}
+
+.dotSent {
+  background: #7b8aa5;
+}
+
+.dotApproved {
+  background: #5f9d7b;
 }
 
 .k {

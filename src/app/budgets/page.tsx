@@ -2,6 +2,7 @@ import Link from "next/link";
 import { getBudgets } from "@/lib/budgets";
 import { formatEUR } from "@/lib/formatCurrency";
 import { BudgetListItemActions } from "@/components/BudgetListItemActions";
+import { StatusPill } from "./StatusPill";
 import styles from "./page.module.css";
 
 function formatDate(value: string | null) {
@@ -9,13 +10,6 @@ function formatDate(value: string | null) {
   if (!v) return null;
   // Supabase date usually comes as YYYY-MM-DD; keep it calm and readable.
   return v;
-}
-
-function formatStatus(value: string | null) {
-  const v = (value ?? "").trim().toLowerCase();
-  if (!v) return { label: "—", key: "unknown" as const };
-  if (v === "draft") return { label: "Esborrany", key: "draft" as const };
-  return { label: v, key: "other" as const };
 }
 
 export default async function BudgetsPage() {
@@ -63,9 +57,6 @@ export default async function BudgetsPage() {
               const address = (b.job_address ?? "").trim();
               const quote = (b.quote_number ?? "").trim();
               const docDate = formatDate(b.document_date);
-              const { label: statusLabel, key: statusKey } = formatStatus(
-                b.status
-              );
               const total = formatEUR(b.total ?? 0);
 
               return (
@@ -75,7 +66,7 @@ export default async function BudgetsPage() {
                       <div className={styles.cardTopLeft}>
                         <Link
                           className={styles.cardTitleLink}
-                          href={`/budgets/${b.id}`}
+                          href={`/budgets/${b.id}/edit`}
                         >
                           <h3 className={styles.cardTitle}>{title}</h3>
                         </Link>
@@ -88,15 +79,7 @@ export default async function BudgetsPage() {
                     </div>
 
                     <div className={styles.meta}>
-                      <span className={styles.pill}>
-                        <span
-                          className={`${styles.dot} ${
-                            statusKey === "draft" ? styles.dotDraft : ""
-                          }`}
-                          aria-hidden="true"
-                        />
-                        {statusLabel}
-                      </span>
+                      <StatusPill budgetId={b.id} initialStatus={b.status} />
 
                       {address ? (
                         <span>
