@@ -139,7 +139,9 @@ export default async function BudgetsPage() {
                         <td className={`${styles.td} ${styles.colDate}`}>
                           {docDate}
                         </td>
-                        <td className={`${styles.td} ${styles.colAmount}`}>
+                        <td
+                          className={`${styles.td} ${styles.colAmount} ${styles.amountValue}`}
+                        >
                           {total}
                         </td>
                         <td className={`${styles.td} ${styles.colStatus}`}>

@@ -15,7 +15,6 @@ export default function Header() {
   const navItems = useMemo(
     () => [
       { href: "/", label: "Tauler" },
-      { href: "/budgets/nou", label: "Nou pressupost" },
       { href: "/budgets", label: "Pressupostos" },
     ],
     []
