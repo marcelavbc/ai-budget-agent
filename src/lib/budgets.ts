@@ -5,7 +5,7 @@ export type BudgetStatus = "draft" | "sent" | "approved";
 
 export type BudgetRow = {
   id: string;
-  client_id: string;
+  client_id: string | null;
   title: string | null;
   job_address: string | null;
   quote_number: string | null;
@@ -114,13 +114,36 @@ export async function updateClientById(
   if (error) throw new Error(error.message);
 }
 
-export async function getClientById(id: string): Promise<ClientRow> {
+export async function getClientById(id: string | null): Promise<ClientRow> {
+  const normalizedId = (id ?? "").trim();
+  if (!normalizedId || normalizedId.toLowerCase() === "null") {
+    return {
+      id: normalizedId || "unknown",
+      name: null,
+      email: null,
+      phone: null,
+      address: null,
+    };
+  }
+
   const { data, error } = await supabase
     .from("clients")
     .select("id,name,email,phone,address")
-    .eq("id", id)
+    .eq("id", normalizedId)
     .single();
-  if (error) throw new Error(error.message);
+  if (error) {
+    const code = (error as unknown as { code?: string }).code;
+    if (code === "PGRST116" || code === "22P02") {
+      return {
+        id: normalizedId,
+        name: null,
+        email: null,
+        phone: null,
+        address: null,
+      };
+    }
+    throw new Error(error.message);
+  }
   return data as ClientRow;
 }
 
@@ -191,6 +214,7 @@ export async function updateBudgetById(
   patch: Partial<
     Pick<
       BudgetRow,
+      | "client_id"
       | "title"
       | "job_address"
       | "quote_number"
@@ -205,6 +229,7 @@ export async function updateBudgetById(
   >
 ): Promise<void> {
   const normalized = {
+    client_id: patch.client_id,
     title: typeof patch.title === "string" ? patch.title.trim() : patch.title,
     job_address:
       typeof patch.job_address === "string"
@@ -241,6 +266,27 @@ export async function getBudgets(): Promise<BudgetListRow[]> {
 
   if (error) throw new Error(error.message);
   return (data ?? []) as BudgetListRow[];
+}
+
+export type RecentBudgetActivityRow = {
+  id: string;
+  status: string | null;
+  total: number | null;
+  created_at: string | null;
+  client: { name: string | null } | { name: string | null }[] | null;
+};
+
+export async function getRecentBudgetActivity(
+  limit = 5
+): Promise<RecentBudgetActivityRow[]> {
+  const { data, error } = await supabase
+    .from("budgets")
+    .select("id,status,total,created_at, client:clients(name)")
+    .order("created_at", { ascending: false })
+    .limit(limit);
+
+  if (error) throw new Error(error.message);
+  return (data ?? []) as RecentBudgetActivityRow[];
 }
 
 export async function deleteBudgetLines(budgetId: string): Promise<void> {
@@ -281,13 +327,14 @@ export async function replaceBudgetLines(
 
 export async function updateBudgetWithLines(args: {
   budgetId: string;
-  clientId: string;
+  clientId: string | null;
   client: BudgetClientDetails;
   items: BudgetClientItem[];
   taxRate?: number;
   status?: BudgetStatus;
 }): Promise<void> {
   const { budgetId, clientId, client, items, taxRate = 0, status = "draft" } = args;
+  const normalizedClientId = (clientId ?? "").trim();
 
   const subtotal = items.reduce((sum, item) => sum + item.total, 0);
   const tax_amount = Math.round(subtotal * (taxRate / 100) * 100) / 100;
@@ -301,13 +348,28 @@ export async function updateBudgetWithLines(args: {
     return null;
   })();
 
-  await updateClientById(clientId, {
-    name: client.nameOrCompany,
-    email: client.email,
-    address: client.address,
-  });
+  const ensuredClientId =
+    normalizedClientId && normalizedClientId.toLowerCase() !== "null"
+      ? normalizedClientId
+      : (
+          await createClient({
+            name: client.nameOrCompany,
+            email: client.email,
+            address: client.address,
+          })
+        ).id;
+
+  // If the client already existed, keep it up to date.
+  if (ensuredClientId === normalizedClientId) {
+    await updateClientById(ensuredClientId, {
+      name: client.nameOrCompany,
+      email: client.email,
+      address: client.address,
+    });
+  }
 
   await updateBudgetById(budgetId, {
+    client_id: ensuredClientId,
     title: derivedTitle,
     job_address: client.address.trim().length > 0 ? client.address : null,
     quote_number: client.quoteNumber.trim().length > 0 ? client.quoteNumber : null,

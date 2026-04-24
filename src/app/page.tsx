@@ -1,144 +1,181 @@
-"use client";
-
-import { useRef, useState, type SetStateAction } from "react";
-import { buildAutoQuoteNumber } from "@/lib/generateQuoteNumber";
-import { useGenerateBudgetDraft } from "@/hooks/useGenerateBudgetDraft";
-import { useBudgetLines } from "@/hooks/useBudgetLines";
-import { BudgetForm } from "@/components/BudgetForm";
-import { BudgetLinesList } from "@/components/BudgetLinesList";
-import { BudgetDraftView } from "@/components/BudgetDraftView";
-import { generateBudgetDraft } from "@/lib/generateBudgetDraft";
+import Link from "next/link";
 import {
-  defaultBudgetClientDetails,
-  type BudgetClientDetails,
-  type BudgetClientItem,
-} from "@/types/budget";
+  getBudgets,
+  getRecentBudgetActivity,
+  type BudgetStatus,
+} from "@/lib/budgets";
+import { formatEUR } from "@/lib/formatCurrency";
 
 import styles from "./page.module.css";
 
-export default function Home() {
-  const { submit, loading, formError, lastResponse } = useGenerateBudgetDraft();
-  const {
-    items,
-    hasPending,
-    adjustedTotal,
-    pricePerSqm,
-    setPricePerSqm,
-    addLines,
-    removeLine,
-    updateLine,
-    moveLineToTarget,
-    ungroupGroup,
-  } = useBudgetLines();
+function normalizeStatus(value: string | null | undefined): BudgetStatus {
+  const v = (value ?? "").trim().toLowerCase();
+  if (v === "sent") return "sent";
+  if (v === "approved") return "approved";
+  return "draft";
+}
 
-  const [view, setView] = useState<"lines" | "draft">("lines");
-  const [draftItems, setDraftItems] = useState<BudgetClientItem[]>([]);
-  const [clientDetails, setClientDetails] = useState<BudgetClientDetails>(
-    defaultBudgetClientDetails,
-  );
-  const [quoteManuallyEdited, setQuoteManuallyEdited] = useState(false);
-  const quoteManuallyEditedRef = useRef(false);
+function statusLabel(value: BudgetStatus): string {
+  if (value === "draft") return "Esborrany";
+  if (value === "sent") return "Enviat";
+  return "Aprovat";
+}
 
-  function setClientWithAutoQuote(
-    action: SetStateAction<BudgetClientDetails>,
-  ) {
-    setClientDetails((prev) => {
-      const next =
-        typeof action === "function"
-          ? (action as (p: BudgetClientDetails) => BudgetClientDetails)(prev)
-          : action;
-      const nameOrDateChanged =
-        next.nameOrCompany !== prev.nameOrCompany || next.date !== prev.date;
-      if (!quoteManuallyEditedRef.current && nameOrDateChanged) {
-        return {
-          ...next,
-          quoteNumber: buildAutoQuoteNumber(next.nameOrCompany, next.date),
-        };
-      }
-      return next;
-    });
-  }
+function formatActivityDate(value: string | null): string {
+  const v = (value ?? "").trim();
+  if (!v) return "—";
+  const dt = new Date(v);
+  if (Number.isNaN(dt.getTime())) return "—";
+  return new Intl.DateTimeFormat("ca-ES", { dateStyle: "medium" }).format(dt);
+}
 
-  function handleQuoteNumberChange(value: string) {
-    setQuoteManuallyEdited(true);
-    quoteManuallyEditedRef.current = true;
-    setClientDetails((prev) => ({ ...prev, quoteNumber: value }));
-  }
+function badgeClass(value: BudgetStatus): string {
+  if (value === "sent") return styles.badgeSent;
+  if (value === "approved") return styles.badgeApproved;
+  return styles.badgeDraft;
+}
 
-  function handleResetQuoteAutomation() {
-    setQuoteManuallyEdited(false);
-    quoteManuallyEditedRef.current = false;
-    setClientDetails((prev) => ({
-      ...prev,
-      quoteNumber: buildAutoQuoteNumber(prev.nameOrCompany, prev.date),
-    }));
-  }
+export default async function HomePage() {
+  const [budgets, recent] = await Promise.all([
+    getBudgets(),
+    getRecentBudgetActivity(5),
+  ]);
 
-  async function handleSubmit(description: string): Promise<boolean> {
-    const lines = await submit(description);
-    if (lines) {
-      addLines(lines);
-      return true;
+  const totals = {
+    all: budgets.length,
+    draft: 0,
+    sent: 0,
+    approved: 0,
+    sentValue: 0,
+    approvedValue: 0,
+  };
+
+  for (const b of budgets) {
+    const status = normalizeStatus(b.status);
+    const total = b.total ?? 0;
+    if (status === "draft") totals.draft += 1;
+    if (status === "sent") {
+      totals.sent += 1;
+      totals.sentValue += total;
     }
-    return false;
-  }
-
-  function handleGenerateDraft() {
-    setDraftItems(generateBudgetDraft(items));
-    setView("draft");
+    if (status === "approved") {
+      totals.approved += 1;
+      totals.approvedValue += total;
+    }
   }
 
   return (
-    <div className={styles.wrap}>
+    <main className={styles.wrap}>
       <div className={styles.inner}>
         <header className={styles.header}>
-          <h1 className={styles.title}>Pressupost de pintura</h1>
-          <p className={styles.subtitle}>
-            Escriu una partida i afegeix-la al pressupost.
-          </p>
+          <div className={styles.headerLeft}>
+            <h1 className={styles.title}>Tauler</h1>
+            <p className={styles.subtitle}>
+              Una vista ràpida de l’activitat i l’estat dels pressupostos.
+            </p>
+          </div>
+
+          <div className={styles.headerRight}>
+            <Link className={styles.cta} href="/budgets/nou">
+              Nou pressupost
+            </Link>
+          </div>
         </header>
 
-        {view === "lines" ? (
-          <>
-            <BudgetForm
-              loading={loading}
-              formError={formError}
-              pricePerSqm={pricePerSqm}
-              onPriceChange={setPricePerSqm}
-              onSubmit={handleSubmit}
-            />
+        <section className={styles.grid} aria-label="Mètriques">
+          <div className={styles.card}>
+            <p className={styles.cardKicker}>Pressupostos creats</p>
+            <p className={styles.cardValue}>{totals.all}</p>
+            <p className={styles.cardHint}>Total (tots els temps)</p>
+          </div>
 
-            <BudgetLinesList
-              items={items}
-              hasPending={hasPending}
-              total={adjustedTotal}
-              warnings={lastResponse?.errors}
-              onRemoveLine={removeLine}
-              onUpdateLine={updateLine}
-              onGroupLines={moveLineToTarget}
-              onUngroupGroup={ungroupGroup}
-              onGenerateDraft={handleGenerateDraft}
-            />
-          </>
-        ) : (
-          <BudgetDraftView
-            items={draftItems}
-            clientDetails={clientDetails}
-            onClientDetailsChange={setClientWithAutoQuote}
-            onItemChange={(id, patch) => {
-              setDraftItems((prev) =>
-                prev.map((item) =>
-                  item.id === id ? { ...item, ...patch } : item,
-                ),
-              );
-            }}
-            quoteManuallyEdited={quoteManuallyEdited}
-            onQuoteNumberChange={handleQuoteNumberChange}
-            onResetQuoteAutomation={handleResetQuoteAutomation}
-            onBack={() => setView("lines")}
-          />
-        )}
+          <div className={styles.card}>
+            <p className={styles.cardKicker}>Per estat</p>
+            <div className={styles.badges}>
+              <span className={`${styles.badge} ${styles.badgeDraft}`}>
+                Esborrany <span className={styles.badgeCount}>{totals.draft}</span>
+              </span>
+              <span className={`${styles.badge} ${styles.badgeSent}`}>
+                Enviat <span className={styles.badgeCount}>{totals.sent}</span>
+              </span>
+              <span className={`${styles.badge} ${styles.badgeApproved}`}>
+                Aprovat{" "}
+                <span className={styles.badgeCount}>{totals.approved}</span>
+              </span>
+            </div>
+            <p className={styles.cardHint}>Recompte actual</p>
+          </div>
+
+          <div className={styles.card}>
+            <p className={styles.cardKicker}>Valor aprovat</p>
+            <p className={styles.cardValue}>{formatEUR(totals.approvedValue)}</p>
+            <p className={styles.cardHint}>Suma de pressupostos aprovats</p>
+          </div>
+
+          <div className={styles.card}>
+            <p className={styles.cardKicker}>Pendent d’aprovació</p>
+            <p className={styles.cardValue}>{formatEUR(totals.sentValue)}</p>
+            <p className={styles.cardHint}>Suma de pressupostos enviats</p>
+          </div>
+        </section>
+
+        <section className={styles.twoCol}>
+          <div className={styles.panel}>
+            <div className={styles.panelTop}>
+              <h2 className={styles.panelTitle}>Activitat recent</h2>
+              <Link className={styles.panelLink} href="/budgets">
+                Veure tots
+              </Link>
+            </div>
+
+            {recent.length === 0 ? (
+              <p className={styles.emptyText}>
+                Encara no hi ha pressupostos. Quan en creïs un, apareixerà aquí.
+              </p>
+            ) : (
+              <ul className={styles.activityList}>
+                {recent.map((r) => {
+                  const status = normalizeStatus(r.status);
+                  const clientName = (() => {
+                    const c = r.client;
+                    if (Array.isArray(c)) return (c[0]?.name ?? "").trim() || "Client";
+                    return (c?.name ?? "").trim() || "Client";
+                  })();
+                  const amount = formatEUR(r.total ?? 0);
+                  const date = formatActivityDate(r.created_at);
+
+                  return (
+                    <li key={r.id} className={styles.activityItem}>
+                      <div className={styles.activityMain}>
+                        <p className={styles.activityTitle}>{clientName}</p>
+                        <p className={styles.activityMeta}>{date}</p>
+                      </div>
+
+                      <div className={styles.activityRight}>
+                        <span className={styles.activityAmount}>{amount}</span>
+                        <span className={`${styles.badge} ${badgeClass(status)}`}>
+                          {statusLabel(status)}
+                        </span>
+                      </div>
+                    </li>
+                  );
+                })}
+              </ul>
+            )}
+          </div>
+
+          <div className={styles.panel}>
+            <div className={styles.panelTop}>
+              <h2 className={styles.panelTitle}>Factures</h2>
+              <span className={styles.soon}>Pròximament</span>
+            </div>
+            <p className={styles.emptyText}>
+              Aquesta secció servirà per veure factures, imports pendents i
+              conciliació. De moment, estem centrats en els pressupostos.
+            </p>
+          </div>
+        </section>
       </div>
-    </div>
+    </main>
   );
 }

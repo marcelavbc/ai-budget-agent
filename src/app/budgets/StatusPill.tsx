@@ -24,10 +24,10 @@ function statusLabel(value: BudgetStatus): string {
   return "Aprovat";
 }
 
-function dotClass(value: BudgetStatus): string {
-  if (value === "sent") return styles.dotSent;
-  if (value === "approved") return styles.dotApproved;
-  return styles.dotDraft;
+function pillClass(value: BudgetStatus): string {
+  if (value === "sent") return styles.pillSent;
+  if (value === "approved") return styles.pillApproved;
+  return styles.pillDraft;
 }
 
 export function StatusPill({
@@ -58,13 +58,12 @@ export function StatusPill({
   return (
     <button
       type="button"
-      className={`${styles.pill} ${styles.pillButton}`}
+      className={`${styles.pill} ${pillClass(status)} ${styles.pillButton}`}
       onClick={handleClick}
       disabled={saving}
       title="Clica per canviar l’estat"
       aria-label="Canviar estat del pressupost"
     >
-      <span className={`${styles.dot} ${dotClass(status)}`} aria-hidden="true" />
       {statusLabel(status)}
     </button>
   );

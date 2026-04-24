@@ -8,7 +8,10 @@ export default function Header() {
         <span className={styles.name}>Sanmartí Pintura Decorativa</span>
         <nav className={styles.nav} aria-label="Navegació">
           <Link className={styles.navLink} href="/">
-            Nou
+            Tauler
+          </Link>
+          <Link className={styles.navLink} href="/budgets/nou">
+            Nou pressupost
           </Link>
           <Link className={styles.navLink} href="/budgets">
             Pressupostos

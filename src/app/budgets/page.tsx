@@ -28,8 +28,8 @@ export default async function BudgetsPage() {
           </header>
 
           <div className={styles.actions}>
-            <Link className={styles.cta} href="/">
-              Crear pressupost
+            <Link className={styles.cta} href="/budgets/nou">
+              Nou pressupost
             </Link>
           </div>
         </div>
@@ -42,7 +42,7 @@ export default async function BudgetsPage() {
               tenir-ho tot ordenat i a mà.
             </p>
             <div className={styles.emptyCtas}>
-              <Link className={styles.cta} href="/">
+              <Link className={styles.cta} href="/budgets/nou">
                 Crear el primer pressupost
               </Link>
               <Link className={styles.linkQuiet} href="/">

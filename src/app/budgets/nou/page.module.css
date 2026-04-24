@@ -1,0 +1,31 @@
+.wrap {
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  padding: 3rem 1.25rem 4rem;
+}
+
+.inner {
+  width: 100%;
+  max-width: 640px;
+}
+
+.header {
+  margin-bottom: 1.5rem;
+}
+
+.title {
+  font-size: 1.5rem;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  color: var(--text);
+  margin: 0 0 0.5rem;
+}
+
+.subtitle {
+  font-size: 0.95rem;
+  color: var(--text-muted);
+  margin: 0;
+  line-height: 1.5;
+}
+
