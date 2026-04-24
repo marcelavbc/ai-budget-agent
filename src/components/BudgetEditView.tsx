@@ -6,7 +6,10 @@ import type { BudgetClientDetails, BudgetClientItem } from "@/types/budget";
 import type { BudgetRow, ClientRow, BudgetLineRow } from "@/lib/budgets";
 import { buildAutoQuoteNumber } from "@/lib/generateQuoteNumber";
 import { BudgetDraftView } from "@/components/BudgetDraftView";
+import { BudgetAIInput } from "@/components/BudgetAIInput";
 import { updateBudgetWithLines } from "@/lib/budgets";
+import { useGenerateBudgetDraft } from "@/hooks/useGenerateBudgetDraft";
+import { budgetLinesToClientItems } from "@/lib/budgetLineToClientItem";
 
 function round2(n: number) {
   return Math.round(n * 100) / 100;
@@ -22,6 +25,7 @@ export function BudgetEditView({
   lines: BudgetLineRow[];
 }) {
   const router = useRouter();
+  const { submit, loading, formError } = useGenerateBudgetDraft();
 
   const initialClient: BudgetClientDetails = useMemo(
     () => ({
@@ -97,25 +101,6 @@ export function BudgetEditView({
     }));
   }
 
-  function handleAddItem() {
-    const id =
-      typeof crypto !== "undefined" && "randomUUID" in crypto
-        ? crypto.randomUUID()
-        : String(Date.now());
-    setItems((prev) => [
-      ...prev,
-      {
-        id,
-        title: "Partida",
-        description: "",
-        quantity: 1,
-        unitLabel: "partida",
-        unitPrice: 0,
-        total: 0,
-      },
-    ]);
-  }
-
   async function handleSave({
     client,
     items,
@@ -146,7 +131,20 @@ export function BudgetEditView({
           prev.map((item) => (item.id === id ? { ...item, ...patch } : item))
         );
       }}
-      onAddItem={handleAddItem}
+      itemsFooter={
+        <BudgetAIInput
+          loading={loading}
+          formError={formError}
+          submitLabel="Afegir amb IA"
+          placeholder="Escriu el que vols afegir… (p. ex. Pintar passadís 8 m² + reparar esquerdes)"
+          onSubmit={async (description) => {
+            const lines = await submit(description);
+            if (!lines) return false;
+            setItems((prev) => [...prev, ...budgetLinesToClientItems(lines)]);
+            return true;
+          }}
+        />
+      }
       quoteManuallyEdited={quoteManuallyEdited}
       onQuoteNumberChange={handleQuoteNumberChange}
       onResetQuoteAutomation={handleResetQuoteAutomation}

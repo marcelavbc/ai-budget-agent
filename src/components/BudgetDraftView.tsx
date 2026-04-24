@@ -17,7 +17,7 @@ interface Props {
     React.SetStateAction<BudgetClientDetails>
   >;
   onItemChange: (id: string, patch: Partial<BudgetClientItem>) => void;
-  onAddItem?: () => void;
+  itemsFooter?: React.ReactNode;
   onSave?: (args: {
     client: BudgetClientDetails;
     items: BudgetClientItem[];
@@ -35,7 +35,7 @@ export function BudgetDraftView({
   clientDetails: client,
   onClientDetailsChange: setClient,
   onItemChange,
-  onAddItem,
+  itemsFooter,
   onSave,
   quoteManuallyEdited,
   onQuoteNumberChange,
@@ -193,12 +193,9 @@ export function BudgetDraftView({
         </div>
       </div>
 
-      {mode === "edit" && onAddItem ? (
+      {mode === "edit" ? (
         <div className={styles.itemsTopBar}>
           <h3 className={styles.itemsTitle}>Partides</h3>
-          <button type="button" className={styles.addItemBtn} onClick={onAddItem}>
-            + Afegir partida
-          </button>
         </div>
       ) : null}
 
@@ -289,6 +286,10 @@ export function BudgetDraftView({
           </li>
         ))}
       </ul>
+
+      {mode === "edit" && itemsFooter ? (
+        <div className={styles.itemsFooter}>{itemsFooter}</div>
+      ) : null}
 
       <div className={styles.footer}>
         <span className={styles.totalLabel}>Total pressupost</span>

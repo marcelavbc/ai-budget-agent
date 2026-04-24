@@ -1,7 +1,5 @@
 .root {
   margin-top: 2.5rem;
-  padding-top: 2rem;
-  border-top: 1px solid var(--border-soft);
   animation: fadeIn 0.3s ease forwards;
 }
 
@@ -206,6 +204,10 @@
   margin: 0;
 }
 
+.itemsFooter {
+  margin-top: 1rem;
+}
+
 .addItemBtn {
   border: 1px solid var(--border);
   background: var(--surface);
@@ -216,7 +218,9 @@
   font-family: inherit;
   font-weight: 600;
   cursor: pointer;
-  transition: transform 0.06s ease, opacity 0.15s ease;
+  transition:
+    transform 0.06s ease,
+    opacity 0.15s ease;
 }
 
 .addItemBtn:active {
@@ -362,7 +366,9 @@
   font-family: inherit;
   font-weight: 600;
   cursor: pointer;
-  transition: transform 0.06s ease, opacity 0.15s ease;
+  transition:
+    transform 0.06s ease,
+    opacity 0.15s ease;
 }
 
 .generatePdfBtn:active {
