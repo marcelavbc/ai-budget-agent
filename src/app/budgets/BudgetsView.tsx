@@ -157,11 +157,10 @@ export function BudgetsView({ budgets }: { budgets: BudgetListRow[] }) {
     });
   }, [items, query, selectedStatuses, dateFrom, dateTo]);
 
-  const hasFilters =
-    query.trim() !== "" ||
-    selectedStatuses.size > 0 ||
-    period !== "all" ||
-    (period === "custom" && (dateFrom.trim() !== "" || dateTo.trim() !== ""));
+  const customHasDates =
+    period === "custom" && (dateFrom.trim() !== "" || dateTo.trim() !== "");
+  const hasPeriodFilter = period !== "all" && (period !== "custom" || customHasDates);
+  const hasFilters = query.trim() !== "" || selectedStatuses.size > 0 || hasPeriodFilter;
 
   function reset() {
     setQuery("");
