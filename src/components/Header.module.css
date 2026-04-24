@@ -18,11 +18,8 @@
   flex-wrap: wrap;
 }
 
-.name {
-  font-size: 0.95rem;
-  font-weight: 500;
-  letter-spacing: -0.01em;
-  color: var(--text-muted);
+.logo {
+  flex: 0 0 auto;
 }
 
 .nav {

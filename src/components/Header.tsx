@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useMemo, useRef, useState } from "react";
 import styles from "./Header.module.css";
+import { Logo } from "@/components/Logo/Logo";
 
 export default function Header() {
   const pathname = usePathname();
@@ -95,7 +96,7 @@ export default function Header() {
   return (
     <header className={styles.header}>
       <div className={styles.inner}>
-        <span className={styles.name}>Sanmartí Pintura Decorativa</span>
+        <Logo size="small" className={styles.logo} />
 
         <nav className={styles.nav} aria-label="Navegació">
           {navItems.map((item) => {
