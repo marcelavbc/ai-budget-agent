@@ -15,6 +15,21 @@ function round2(n: number) {
   return Math.round(n * 100) / 100;
 }
 
+function normalizeBudgetStatus(value: string | null | undefined): BudgetStatus {
+  const v = (value ?? "").trim().toLowerCase();
+  if (v === "sent") return "sent";
+  if (v === "approved") return "approved";
+  return "draft";
+}
+
+function normalizeUnitLabel(
+  value: string | null | undefined
+): BudgetClientItem["unitLabel"] {
+  const v = (value ?? "").trim();
+  if (v === "m²" || v === "unitat" || v === "partida") return v;
+  return "partida";
+}
+
 export function BudgetEditView({
   budget,
   client,
@@ -54,7 +69,7 @@ export function BudgetEditView({
         title: (l.title ?? "").trim() || "Partida",
         description: (l.description ?? "").trim(),
         quantity: l.quantity ?? 1,
-        unitLabel: (l.unit ?? "partida") as BudgetClientItem["unitLabel"],
+        unitLabel: normalizeUnitLabel(l.unit),
         unitPrice: l.unit_price ?? 0,
         total: l.line_total ?? round2((l.quantity ?? 1) * (l.unit_price ?? 0)),
       })),
@@ -115,7 +130,7 @@ export function BudgetEditView({
       client,
       items,
       taxRate: budget.tax_rate ?? 0,
-      status: (budget.status ?? "draft") as BudgetStatus,
+      status: normalizeBudgetStatus(budget.status),
     });
     router.push(`/budgets/${budget.id}`);
   }

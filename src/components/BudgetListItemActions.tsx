@@ -16,6 +16,7 @@ import type { BudgetClientDetails, BudgetClientItem } from "@/types/budget";
 
 export function BudgetListItemActions({ budgetId }: { budgetId: string }) {
   const [generating, setGenerating] = useState(false);
+  const [pdfError, setPdfError] = useState<string | null>(null);
   const [deleting, setDeleting] = useState(false);
   const [confirmOpen, setConfirmOpen] = useState(false);
   const router = useRouter();
@@ -25,8 +26,10 @@ export function BudgetListItemActions({ budgetId }: { budgetId: string }) {
     e.stopPropagation();
     if (generating) return;
     setGenerating(true);
+    setPdfError(null);
     try {
       const budget = await getBudgetById(budgetId);
+      if (!budget) throw new Error("No s'ha trobat el pressupost.");
       const [client, lines] = await Promise.all([
         getClientById(budget.client_id),
         getBudgetLinesByBudgetId(budget.id),
@@ -60,6 +63,12 @@ export function BudgetListItemActions({ budgetId }: { budgetId: string }) {
       const url = URL.createObjectURL(blob);
       window.open(url, "_blank", "noopener,noreferrer");
       window.setTimeout(() => URL.revokeObjectURL(url), 30_000);
+    } catch (e) {
+      setPdfError(
+        e instanceof Error
+          ? e.message
+          : "No s'ha pogut generar el PDF. Torna-ho a provar."
+      );
     } finally {
       setGenerating(false);
     }
@@ -97,6 +106,7 @@ export function BudgetListItemActions({ budgetId }: { budgetId: string }) {
         onClick={handleGeneratePdf}
         disabled={generating}
         className={`${styles.btn} ${styles.primary}`}
+        aria-busy={generating || undefined}
       >
         {generating ? "PDF…" : "PDF"}
       </button>
@@ -122,6 +132,12 @@ export function BudgetListItemActions({ budgetId }: { budgetId: string }) {
         onClose={() => setConfirmOpen(false)}
         onConfirm={handleConfirmDelete}
       />
+
+      {pdfError ? (
+        <p className={styles.error} role="alert">
+          {pdfError}
+        </p>
+      ) : null}
     </div>
   );
 }

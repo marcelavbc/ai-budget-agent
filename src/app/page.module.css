@@ -65,10 +65,12 @@
     border-color 120ms ease;
 }
 
-.cta:hover {
-  background: var(--accent-hover);
-  transform: translateY(-1px);
-  border-color: var(--border-soft);
+@media (hover: hover) and (pointer: fine) {
+  .cta:hover {
+    background: var(--accent-hover);
+    transform: translateY(-1px);
+    border-color: var(--border-soft);
+  }
 }
 
 .grid {

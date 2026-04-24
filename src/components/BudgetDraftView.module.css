@@ -223,6 +223,17 @@
     opacity 0.15s ease;
 }
 
+@media (hover: hover) and (pointer: fine) {
+  .addItemBtn:hover {
+    opacity: 0.9;
+  }
+}
+
+.addItemBtn:focus-visible {
+  outline: 2px solid rgba(59, 130, 246, 0.35);
+  outline-offset: 2px;
+}
+
 .addItemBtn:active {
   transform: translateY(1px);
 }
@@ -369,6 +380,17 @@
   transition:
     transform 0.06s ease,
     opacity 0.15s ease;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .generatePdfBtn:hover {
+    opacity: 0.9;
+  }
+}
+
+.generatePdfBtn:focus-visible {
+  outline: 2px solid rgba(59, 130, 246, 0.35);
+  outline-offset: 2px;
 }
 
 .generatePdfBtn:active {

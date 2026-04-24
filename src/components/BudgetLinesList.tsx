@@ -91,7 +91,17 @@ export function BudgetLinesList({
       );
   }
 
-  if (items.length === 0) return null;
+  if (items.length === 0) {
+    return (
+      <section className={styles.empty} aria-live="polite">
+        <h2 className={styles.emptyTitle}>Encara no hi ha línies</h2>
+        <p className={styles.emptyText}>
+          Escriu una partida a dalt (p. ex. “Pintar menjador 18 m²”) i la veurem
+          aquí amb el total estimat.
+        </p>
+      </section>
+    );
+  }
 
   return (
     <section className={styles.result} aria-live="polite">

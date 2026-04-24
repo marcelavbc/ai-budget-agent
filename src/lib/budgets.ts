@@ -1,54 +1,31 @@
 import { supabase } from "@/lib/supabaseClient";
 import type { BudgetClientDetails, BudgetClientItem } from "@/types/budget";
+import type { Tables, TablesInsert } from "@/types/supabase";
+import {
+  calcTotals,
+  calcTotalsFromSubtotal,
+  deriveBudgetTitle,
+  normalizeOptionalString,
+  toBudgetLineRows,
+} from "@/lib/budgets/helpers";
 
 export type BudgetStatus = "draft" | "sent" | "approved";
 
-export type BudgetRow = {
-  id: string;
-  client_id: string | null;
-  title: string | null;
-  job_address: string | null;
-  quote_number: string | null;
-  document_date: string | null;
-  estimated_time: string | null;
-  status: string | null;
-  notes: string | null;
-  subtotal: number | null;
-  tax_rate: number | null;
-  tax_amount: number | null;
-  total: number | null;
-};
+export type BudgetRow = Tables<"budgets">;
+export type BudgetLineRow = Tables<"budget_lines">;
+export type ClientRow = Tables<"clients">;
 
-export type BudgetLineRow = {
-  id: string;
-  budget_id: string;
-  title: string | null;
-  description: string | null;
-  quantity: number | null;
-  unit: string | null;
-  unit_price: number | null;
-  line_total: number | null;
-  sort_order: number | null;
-};
-
-export type BudgetListRow = {
-  id: string;
-  title: string | null;
-  job_address: string | null;
-  quote_number: string | null;
-  document_date: string | null;
-  status: string | null;
-  total: number | null;
-  created_at: string | null;
-};
-
-export type ClientRow = {
-  id: string;
-  name: string | null;
-  email: string | null;
-  phone: string | null;
-  address: string | null;
-};
+export type BudgetListRow = Pick<
+  BudgetRow,
+  | "id"
+  | "title"
+  | "job_address"
+  | "status"
+  | "document_date"
+  | "quote_number"
+  | "total"
+  | "created_at"
+>;
 
 export interface CreateBudgetInput {
   client: BudgetClientDetails;
@@ -76,7 +53,7 @@ export async function createClient({
   address = null,
 }: CreateClientInput): Promise<{ id: string }> {
   const normalizedName = name.trim();
-  const normalizedEmail = email.trim();
+  const normalizedEmail = (email ?? "").trim();
   const normalizedPhone = (phone ?? "").trim();
   const normalizedAddress = (address ?? "").trim();
 
@@ -85,9 +62,9 @@ export async function createClient({
     .insert([
       {
         name: normalizedName,
-        email: normalizedEmail.length > 0 ? normalizedEmail : null,
-        phone: normalizedPhone.length > 0 ? normalizedPhone : null,
-        address: normalizedAddress.length > 0 ? normalizedAddress : null,
+        email: normalizeOptionalString(normalizedEmail),
+        phone: normalizeOptionalString(normalizedPhone),
+        address: normalizeOptionalString(normalizedAddress),
       },
     ])
     .select("id")
@@ -123,14 +100,15 @@ export async function getClientById(id: string | null): Promise<ClientRow> {
       email: null,
       phone: null,
       address: null,
+      created_at: null,
     };
   }
 
   const { data, error } = await supabase
     .from("clients")
-    .select("id,name,email,phone,address")
+    .select("id,name,email,phone,address,created_at")
     .eq("id", normalizedId)
-    .single();
+    .maybeSingle();
   if (error) {
     const code = (error as unknown as { code?: string }).code;
     if (code === "PGRST116" || code === "22P02") {
@@ -140,11 +118,22 @@ export async function getClientById(id: string | null): Promise<ClientRow> {
         email: null,
         phone: null,
         address: null,
+        created_at: null,
       };
     }
     throw new Error(error.message);
   }
-  return data as ClientRow;
+  if (!data) {
+    return {
+      id: normalizedId,
+      name: null,
+      email: null,
+      phone: null,
+      address: null,
+      created_at: null,
+    };
+  }
+  return data;
 }
 
 export async function createBudget({
@@ -154,16 +143,8 @@ export async function createBudget({
   subtotal,
   taxRate = 0,
 }: CreateBudgetInput): Promise<CreateBudgetResult> {
-  const tax_amount = Math.round(subtotal * (taxRate / 100) * 100) / 100;
-  const total = Math.round((subtotal + tax_amount) * 100) / 100;
-
-  const derivedTitle = (() => {
-    const name = client.nameOrCompany.trim();
-    const addr = client.address.trim();
-    if (name.length > 0) return `Pressupost - ${name}`;
-    if (addr.length > 0) return `Pressupost - ${addr}`;
-    return null;
-  })();
+  const { tax_amount, total } = calcTotalsFromSubtotal(subtotal, taxRate);
+  const derivedTitle = deriveBudgetTitle(client);
 
   const { data, error } = await supabase
     .from("budgets")
@@ -171,11 +152,11 @@ export async function createBudget({
       {
         client_id: clientId,
         title: derivedTitle,
-        job_address: client.address.trim().length > 0 ? client.address : null,
-        quote_number: client.quoteNumber.trim().length > 0 ? client.quoteNumber : null,
-        document_date: client.date.trim().length > 0 ? client.date : null,
+        job_address: normalizeOptionalString(client.address),
+        quote_number: normalizeOptionalString(client.quoteNumber),
+        document_date: normalizeOptionalString(client.date),
         estimated_time:
-          client.estimatedTime.trim().length > 0 ? client.estimatedTime : null,
+          normalizeOptionalString(client.estimatedTime),
         status,
         notes: null,
         subtotal,
@@ -197,16 +178,16 @@ export async function createBudget({
   return { id: String(data.id) };
 }
 
-export async function getBudgetById(id: string): Promise<BudgetRow> {
+export async function getBudgetById(id: string): Promise<BudgetRow | null> {
   const { data, error } = await supabase
     .from("budgets")
     .select(
-      "id,client_id,title,job_address,quote_number,document_date,estimated_time,status,notes,subtotal,tax_rate,tax_amount,total"
+      "id,client_id,title,job_address,status,issue_date,document_date,notes,subtotal,tax_rate,tax_amount,total,created_at,updated_at,quote_number,estimated_time"
     )
     .eq("id", id)
-    .single();
+    .maybeSingle();
   if (error) throw new Error(error.message);
-  return data as BudgetRow;
+  return data;
 }
 
 export async function updateBudgetById(
@@ -265,7 +246,7 @@ export async function getBudgets(): Promise<BudgetListRow[]> {
     .order("created_at", { ascending: false });
 
   if (error) throw new Error(error.message);
-  return (data ?? []) as BudgetListRow[];
+  return data ?? [];
 }
 
 export type RecentBudgetActivityRow = {
@@ -308,17 +289,7 @@ export async function replaceBudgetLines(
   budgetId: string,
   items: BudgetClientItem[]
 ): Promise<void> {
-  const rows = items.map((item, idx) => ({
-    budget_id: budgetId,
-    title: item.title.trim().length > 0 ? item.title.trim() : null,
-    description: item.description.trim().length > 0 ? item.description.trim() : null,
-    quantity: item.quantity ?? 1,
-    unit:
-      (item.unitLabel ?? "").trim().length > 0 ? (item.unitLabel ?? "").trim() : null,
-    unit_price: item.unitPrice ?? null,
-    line_total: item.total,
-    sort_order: idx,
-  }));
+  const rows: TablesInsert<"budget_lines">[] = toBudgetLineRows(budgetId, items);
 
   await deleteBudgetLines(budgetId);
   const { error } = await supabase.from("budget_lines").insert(rows);
@@ -336,17 +307,8 @@ export async function updateBudgetWithLines(args: {
   const { budgetId, clientId, client, items, taxRate = 0, status = "draft" } = args;
   const normalizedClientId = (clientId ?? "").trim();
 
-  const subtotal = items.reduce((sum, item) => sum + item.total, 0);
-  const tax_amount = Math.round(subtotal * (taxRate / 100) * 100) / 100;
-  const total = Math.round((subtotal + tax_amount) * 100) / 100;
-
-  const derivedTitle = (() => {
-    const name = client.nameOrCompany.trim();
-    const addr = client.address.trim();
-    if (name.length > 0) return `Pressupost - ${name}`;
-    if (addr.length > 0) return `Pressupost - ${addr}`;
-    return null;
-  })();
+  const { subtotal, tax_amount, total } = calcTotals(items, taxRate);
+  const derivedTitle = deriveBudgetTitle(client);
 
   const ensuredClientId =
     normalizedClientId && normalizedClientId.toLowerCase() !== "null"
@@ -371,10 +333,10 @@ export async function updateBudgetWithLines(args: {
   await updateBudgetById(budgetId, {
     client_id: ensuredClientId,
     title: derivedTitle,
-    job_address: client.address.trim().length > 0 ? client.address : null,
-    quote_number: client.quoteNumber.trim().length > 0 ? client.quoteNumber : null,
-    document_date: client.date.trim().length > 0 ? client.date : null,
-    estimated_time: client.estimatedTime.trim().length > 0 ? client.estimatedTime : null,
+    job_address: normalizeOptionalString(client.address),
+    quote_number: normalizeOptionalString(client.quoteNumber),
+    document_date: normalizeOptionalString(client.date),
+    estimated_time: normalizeOptionalString(client.estimatedTime),
     status,
     subtotal,
     tax_rate: taxRate,
@@ -394,17 +356,7 @@ export async function createBudgetLines({
   budgetId,
   items,
 }: CreateBudgetLinesInput): Promise<void> {
-  const rows = items.map((item, idx) => ({
-    budget_id: budgetId,
-    title: item.title.trim().length > 0 ? item.title.trim() : null,
-    description: item.description.trim().length > 0 ? item.description.trim() : null,
-    quantity: item.quantity ?? 1,
-    unit:
-      (item.unitLabel ?? "").trim().length > 0 ? (item.unitLabel ?? "").trim() : null,
-    unit_price: item.unitPrice ?? null,
-    line_total: item.total,
-    sort_order: idx,
-  }));
+  const rows: TablesInsert<"budget_lines">[] = toBudgetLineRows(budgetId, items);
 
   const { error } = await supabase.from("budget_lines").insert(rows);
   if (error) {
@@ -418,13 +370,13 @@ export async function getBudgetLinesByBudgetId(
   const { data, error } = await supabase
     .from("budget_lines")
     .select(
-      "id,budget_id,title,description,quantity,unit,unit_price,line_total,sort_order"
+      "id,budget_id,title,description,quantity,unit,unit_price,line_total,sort_order,created_at"
     )
     .eq("budget_id", budgetId)
     .order("sort_order", { ascending: true });
 
   if (error) throw new Error(error.message);
-  return (data ?? []) as BudgetLineRow[];
+  return data ?? [];
 }
 
 export interface SaveBudgetWithLinesInput {

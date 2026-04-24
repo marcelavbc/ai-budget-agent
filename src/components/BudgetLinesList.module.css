@@ -6,6 +6,27 @@
   animation: fadeIn 0.35s ease forwards;
 }
 
+.empty {
+  margin-top: 2.5rem;
+  padding-top: 2rem;
+  border-top: 1px solid var(--border-soft);
+}
+
+.emptyTitle {
+  margin: 0 0 0.35rem;
+  font-size: 1.05rem;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  color: var(--text);
+}
+
+.emptyText {
+  margin: 0;
+  color: var(--text-muted);
+  line-height: 1.55;
+  font-size: 0.95rem;
+}
+
 @keyframes fadeIn {
   from {
     opacity: 0;
@@ -55,8 +76,8 @@
   margin: 0 0 0.75rem;
   padding: 0.5rem 0.75rem;
   border-radius: 6px;
-  background: #fff0f0;
-  color: #c0392b;
+  background: rgba(122, 106, 90, 0.12);
+  color: var(--error);
   font-size: 0.85rem;
 }
 

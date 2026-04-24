@@ -71,6 +71,17 @@
   min-height: 2.4rem;
 }
 
+@media (hover: hover) and (pointer: fine) {
+  .btn:hover {
+    opacity: 0.9;
+  }
+}
+
+.btn:focus-visible {
+  outline: 2px solid rgba(59, 130, 246, 0.35);
+  outline-offset: 2px;
+}
+
 .btn:active {
   transform: translateY(1px);
 }
