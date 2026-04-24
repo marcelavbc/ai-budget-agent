@@ -22,6 +22,7 @@ export function BudgetForm({
       loading={loading}
       formError={formError}
       onSubmit={onSubmit}
+      placeholder="Escriu una partida i afegeix-la al pressupost…"
       showPricePerSqm
       pricePerSqm={pricePerSqm}
       onPriceChange={onPriceChange}

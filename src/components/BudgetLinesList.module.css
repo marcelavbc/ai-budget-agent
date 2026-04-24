@@ -2,6 +2,7 @@
   margin-top: 2.5rem;
   padding-top: 2rem;
   border-top: 1px solid var(--border-soft);
+  padding-bottom: 92px;
   opacity: 0;
   animation: fadeIn 0.35s ease forwards;
 }
@@ -38,14 +39,16 @@
 
 .totalBlock {
   margin-bottom: 2rem;
+  border-left: 2px solid var(--brand-accent);
+  padding-left: 14px;
 }
 
 .totalLabel {
   display: block;
-  font-size: 0.78rem;
+  font-size: 13px;
   font-weight: 500;
   text-transform: uppercase;
-  letter-spacing: 0.08em;
+  letter-spacing: 0.05em;
   color: var(--text-muted);
   margin-bottom: 0.45rem;
 }
@@ -245,24 +248,39 @@
 .generateBlock {
   margin-top: 2rem;
   display: flex;
-  justify-content: flex-end;
+  justify-content: center;
+  position: sticky;
+  bottom: 16px;
+  padding-top: 12px;
+  z-index: 5;
+  background: linear-gradient(
+    180deg,
+    rgba(249, 248, 246, 0) 0%,
+    rgba(249, 248, 246, 0.92) 35%,
+    rgba(249, 248, 246, 1) 100%
+  );
 }
 
 .generateBtn {
-  border: none;
+  width: 100%;
+  max-width: 560px;
+  height: 48px;
+  border: 1.5px solid transparent;
   background: var(--text);
-  color: var(--bg, #fff);
-  font-size: 0.9rem;
-  font-weight: 500;
+  color: #ffffff;
+  font-size: 16px;
+  font-weight: 600;
   font-family: inherit;
-  border-radius: 7px;
-  padding: 0.6rem 1.25rem;
+  border-radius: 12px;
+  padding: 0 1.25rem;
   cursor: pointer;
-  transition: opacity 0.15s;
+  transition:
+    border-color 200ms ease,
+    background 200ms ease;
 }
 
 @media (hover: hover) and (pointer: fine) {
   .generateBtn:hover {
-    opacity: 0.75;
+    border-color: var(--brand-accent);
   }
 }

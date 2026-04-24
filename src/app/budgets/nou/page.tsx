@@ -91,9 +91,6 @@ export default function NewBudgetPage() {
       <div className={styles.inner}>
         <header className={styles.header}>
           <h1 className={styles.title}>Nou pressupost</h1>
-          <p className={styles.subtitle}>
-            Escriu una partida i afegeix-la al pressupost.
-          </p>
         </header>
 
         {view === "lines" ? (

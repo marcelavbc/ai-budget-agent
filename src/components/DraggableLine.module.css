@@ -2,16 +2,14 @@
   display: flex;
   align-items: flex-start;
   gap: 0.6rem;
-  padding: 0.75rem 0;
-  border-bottom: 1px solid var(--border-soft);
+  padding: 16px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow-soft);
   transition:
     background 0.15s,
     box-shadow 0.15s;
-  border-radius: 6px;
-}
-
-.lineItem:last-child {
-  border-bottom: none;
+  border-radius: 12px;
 }
 
 .dragging {
@@ -24,17 +22,13 @@
 .dropCompatible {
   background: #f0faf0;
   box-shadow: inset 0 0 0 2px #a8d5a8;
-  border-radius: 6px;
-  padding-left: 0.5rem;
-  padding-right: 0.5rem;
+  border-radius: 12px;
 }
 
 .dropIncompatible {
   background: #fff5f5;
   box-shadow: inset 0 0 0 2px #f5b8b8;
-  border-radius: 6px;
-  padding-left: 0.5rem;
-  padding-right: 0.5rem;
+  border-radius: 12px;
 }
 
 /* ── edit mode ── */
@@ -180,13 +174,13 @@
 .lineTitle {
   margin: 0 0 0.2rem;
   font-size: 0.96rem;
-  font-weight: 500;
+  font-weight: 600;
   color: var(--text);
 }
 
 .lineMeta {
   margin: 0;
-  font-size: 0.88rem;
+  font-size: 13px;
   line-height: 1.5;
   color: var(--text-muted);
 }
@@ -218,26 +212,44 @@
   border: none;
   background: transparent;
   color: var(--text-muted);
-  font-size: 0.875rem;
+  font-size: 16px;
   cursor: pointer;
-  padding: 0.2rem;
-  transition: color 0.15s;
+  padding: 0;
+  width: 32px;
+  height: 32px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 10px;
+  transition:
+    color 0.15s,
+    background 0.15s;
 }
 
 .editButton:hover {
   color: var(--text);
+  background: var(--bg);
 }
 
 .removeButton {
   border: none;
   background: transparent;
-  color: var(--text-delete);
-  font-size: 0.875rem;
+  color: var(--text-muted);
+  font-size: 16px;
   cursor: pointer;
-  padding: 0.2rem;
-  transition: color 0.15s;
+  padding: 0;
+  width: 32px;
+  height: 32px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 10px;
+  transition:
+    color 0.15s,
+    background 0.15s;
 }
 
 .removeButton:hover {
-  color: var(--text);
+  color: #dc2626;
+  background: var(--bg);
 }

@@ -74,12 +74,6 @@ export default async function HomePage() {
               Una vista ràpida de l’activitat i l’estat dels pressupostos.
             </p>
           </div>
-
-          <div className={styles.headerRight}>
-            <Link className={styles.cta} href="/budgets/nou">
-              Nou pressupost
-            </Link>
-          </div>
         </header>
 
         <section className={styles.grid} aria-label="Mètriques">
@@ -93,7 +87,8 @@ export default async function HomePage() {
             <p className={styles.cardKicker}>Per estat</p>
             <div className={styles.badges}>
               <span className={`${styles.badge} ${styles.badgeDraft}`}>
-                Esborrany <span className={styles.badgeCount}>{totals.draft}</span>
+                Esborrany{" "}
+                <span className={styles.badgeCount}>{totals.draft}</span>
               </span>
               <span className={`${styles.badge} ${styles.badgeSent}`}>
                 Enviat <span className={styles.badgeCount}>{totals.sent}</span>
@@ -108,7 +103,13 @@ export default async function HomePage() {
 
           <div className={styles.card}>
             <p className={styles.cardKicker}>Valor aprovat</p>
-            <p className={styles.cardValue}>{formatEUR(totals.approvedValue)}</p>
+            <p
+              className={`${styles.cardValue} ${
+                totals.approvedValue > 0 ? styles.cardValueAccent : ""
+              }`}
+            >
+              {formatEUR(totals.approvedValue)}
+            </p>
             <p className={styles.cardHint}>Suma de pressupostos aprovats</p>
           </div>
 
@@ -121,7 +122,7 @@ export default async function HomePage() {
 
         <section className={styles.twoCol}>
           <div className={styles.panel}>
-            <div className={styles.panelTop}>
+            <div className={`${styles.panelTop} ${styles.panelTopAccent}`}>
               <h2 className={styles.panelTitle}>Activitat recent</h2>
               <Link className={styles.panelLink} href="/budgets">
                 Veure tots
@@ -138,7 +139,8 @@ export default async function HomePage() {
                   const status = normalizeStatus(r.status);
                   const clientName = (() => {
                     const c = r.client;
-                    if (Array.isArray(c)) return (c[0]?.name ?? "").trim() || "Client";
+                    if (Array.isArray(c))
+                      return (c[0]?.name ?? "").trim() || "Client";
                     return (c?.name ?? "").trim() || "Client";
                   })();
                   const amount = formatEUR(r.total ?? 0);
@@ -146,17 +148,29 @@ export default async function HomePage() {
 
                   return (
                     <li key={r.id} className={styles.activityItem}>
-                      <div className={styles.activityMain}>
-                        <p className={styles.activityTitle}>{clientName}</p>
-                        <p className={styles.activityMeta}>{date}</p>
-                      </div>
+                      <Link
+                        className={styles.activityRow}
+                        href={`/budgets/${r.id}`}
+                      >
+                        <div className={styles.activityMain}>
+                          <p className={styles.activityTitle}>{clientName}</p>
+                          <p className={styles.activityMeta}>{date}</p>
+                        </div>
 
-                      <div className={styles.activityRight}>
-                        <span className={styles.activityAmount}>{amount}</span>
-                        <span className={`${styles.badge} ${badgeClass(status)}`}>
-                          {statusLabel(status)}
-                        </span>
-                      </div>
+                        <div className={styles.activityRight}>
+                          <span className={styles.activityAmount}>
+                            {amount}
+                          </span>
+                          <span
+                            className={`${styles.badge} ${badgeClass(status)}`}
+                          >
+                            {statusLabel(status)}
+                          </span>
+                          <span className={styles.chevron} aria-hidden="true">
+                            →
+                          </span>
+                        </div>
+                      </Link>
                     </li>
                   );
                 })}
@@ -164,7 +178,7 @@ export default async function HomePage() {
             )}
           </div>
 
-          <div className={styles.panel}>
+          <div className={`${styles.panel} ${styles.panelPlaceholder}`}>
             <div className={styles.panelTop}>
               <h2 className={styles.panelTitle}>Factures</h2>
               <span className={styles.soon}>Pròximament</span>

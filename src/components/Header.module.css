@@ -1,6 +1,11 @@
 .header {
+  position: sticky;
+  top: 0;
+  z-index: 50;
   padding: 1.25rem 1.5rem;
   border-bottom: 1px solid var(--border-soft);
+  background: var(--bg);
+  box-shadow: 0 1px 0 rgba(0, 0, 0, 0.02);
 }
 
 .inner {
@@ -53,18 +58,15 @@
 .menuButton {
   display: none;
   align-items: center;
-  gap: 0.55rem;
-  border: 1px solid var(--border);
-  background: var(--surface);
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  border: none;
+  background: transparent;
   color: var(--text);
-  border-radius: 10px;
-  padding: 0.5rem 0.7rem;
-  font-size: 0.9rem;
-  font-family: inherit;
-  font-weight: 600;
   cursor: pointer;
-  transition: transform 0.06s ease, opacity 0.15s ease;
-  min-height: 2.4rem;
+  transition: opacity 0.15s ease;
 }
 
 @media (hover: hover) and (pointer: fine) {
@@ -74,124 +76,115 @@
 }
 
 .menuButton:active {
-  transform: translateY(1px);
+  opacity: 0.85;
 }
 
 .menuButton:focus-visible {
   outline: 2px solid rgba(59, 130, 246, 0.35);
   outline-offset: 2px;
+  border-radius: 10px;
 }
 
 .menuIcon {
-  width: 18px;
-  height: 12px;
+  width: 20px;
+  height: 14px;
   display: inline-block;
   background:
     linear-gradient(var(--text) 0 0) left top / 100% 2px,
     linear-gradient(var(--text) 0 0) left center / 100% 2px,
     linear-gradient(var(--text) 0 0) left bottom / 100% 2px;
   background-repeat: no-repeat;
-  opacity: 0.75;
+  opacity: 1;
 }
 
 .mobileOverlay {
   position: fixed;
   inset: 0;
-  background: rgba(10, 10, 10, 0.38);
-  display: flex;
-  align-items: flex-start;
-  justify-content: center;
-  padding: 0.9rem 1.1rem;
+  background: rgba(0, 0, 0, 0.3);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 200ms ease;
   z-index: 60;
 }
 
+.mobileOverlayOpen {
+  opacity: 1;
+  pointer-events: auto;
+}
+
 .mobilePanel {
-  width: 100%;
-  max-width: 520px;
+  position: fixed;
+  top: 0;
+  right: 0;
+  height: 100%;
+  width: min(360px, 86vw);
   background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: 14px;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.12);
-  padding: 0.95rem;
-  animation: pop 0.16s ease forwards;
+  border-left: 1px solid var(--border);
+  box-shadow: -10px 0 30px rgba(0, 0, 0, 0.12);
+  padding: 14px 0;
+  transform: translateX(100%);
+  transition: transform 200ms ease;
+  z-index: 61;
 }
 
-@keyframes pop {
-  from {
-    transform: translateY(6px);
-    opacity: 0;
-  }
-  to {
-    transform: translateY(0);
-    opacity: 1;
-  }
-}
-
-.mobileTop {
-  display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: 0.75rem;
-  padding-bottom: 0.65rem;
-  border-bottom: 1px solid var(--border-soft);
-}
-
-.mobileTitle {
-  font-size: 0.78rem;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
-  color: var(--text-muted);
+.mobilePanelOpen {
+  transform: translateX(0);
 }
 
 .mobileClose {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  width: 44px;
+  height: 44px;
   border: none;
+  border-radius: 10px;
   background: transparent;
-  color: var(--text-muted);
-  font-size: 0.9rem;
-  font-family: inherit;
-  font-weight: 600;
+  color: var(--text);
+  font-size: 20px;
+  line-height: 1;
   cursor: pointer;
-  padding: 0.35rem 0.2rem;
-  transition: color 0.15s;
+  transition: background 120ms ease;
 }
 
 @media (hover: hover) and (pointer: fine) {
   .mobileClose:hover {
-    color: var(--text);
+    background: var(--bg);
   }
 }
 
 .mobileClose:focus-visible {
   outline: 2px solid rgba(59, 130, 246, 0.35);
   outline-offset: 2px;
-  border-radius: 8px;
 }
 
 .mobileLinks {
   display: flex;
   flex-direction: column;
-  gap: 0.35rem;
-  padding-top: 0.75rem;
+  padding-top: 44px;
 }
 
 .mobileLink {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
+  display: block;
   text-decoration: none;
   color: var(--text);
-  border: 1px solid var(--border-soft);
-  background: #fcfcfc;
-  border-radius: 12px;
-  padding: 0.75rem 0.85rem;
-  font-weight: 600;
-  letter-spacing: -0.01em;
+  padding: 16px 24px;
+  font-size: 18px;
+  font-weight: 500;
+  border-bottom: 1px solid #f0ede8;
+  transition: background 120ms ease, color 120ms ease;
+}
+
+.mobileLink:last-child {
+  border-bottom: none;
+}
+
+.mobileLink:hover {
+  background: var(--bg);
 }
 
 .mobileLinkActive {
-  border-color: var(--border);
-  background: #f7f7f7;
+  color: var(--brand-accent);
 }
 
 @media (max-width: 520px) {
@@ -209,9 +202,5 @@
 
   .menuButton {
     display: inline-flex;
-  }
-
-  .menuLabel {
-    display: none;
   }
 }

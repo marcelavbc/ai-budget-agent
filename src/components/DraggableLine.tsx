@@ -176,7 +176,7 @@ export function DraggableLine({
               onClick={startEdit}
               aria-label={`Editar ${line.label}`}
             >
-              Editar
+              <span aria-hidden="true">✏️</span>
             </button>
             <button
               type="button"
@@ -184,7 +184,7 @@ export function DraggableLine({
               onClick={onRemove}
               aria-label={`Eliminar ${line.label}`}
             >
-              Eliminar
+              <span aria-hidden="true">🗑️</span>
             </button>
           </div>
         </>

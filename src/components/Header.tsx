@@ -8,6 +8,7 @@ import styles from "./Header.module.css";
 export default function Header() {
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
+  const [mounted, setMounted] = useState(false);
   const panelRef = useRef<HTMLDivElement | null>(null);
 
   const navItems = useMemo(
@@ -19,12 +20,36 @@ export default function Header() {
     []
   );
 
+  const activeHref = useMemo(() => {
+    const items = [...navItems].sort((a, b) => b.href.length - a.href.length);
+    for (const item of items) {
+      if (item.href === "/") {
+        if (pathname === "/") return item.href;
+        continue;
+      }
+      if (pathname === item.href || pathname.startsWith(item.href + "/")) {
+        return item.href;
+      }
+    }
+    return null;
+  }, [navItems, pathname]);
+
   const menuId = "mobile-nav";
 
   useEffect(() => {
     // Close menu on route change.
     setOpen(false);
   }, [pathname]);
+
+  useEffect(() => {
+    if (open) {
+      setMounted(true);
+      return;
+    }
+    if (!mounted) return;
+    const t = window.setTimeout(() => setMounted(false), 200);
+    return () => window.clearTimeout(t);
+  }, [open, mounted]);
 
   useEffect(() => {
     if (!open) return;
@@ -74,10 +99,7 @@ export default function Header() {
 
         <nav className={styles.nav} aria-label="Navegació">
           {navItems.map((item) => {
-            const active =
-              item.href === "/"
-                ? pathname === "/"
-                : pathname === item.href || pathname.startsWith(item.href + "/");
+            const active = activeHref === item.href;
             return (
               <Link
                 key={item.href}
@@ -101,41 +123,38 @@ export default function Header() {
           onClick={() => setOpen((v) => !v)}
         >
           <span className={styles.menuIcon} aria-hidden="true" />
-          <span className={styles.menuLabel}>Menú</span>
         </button>
       </div>
 
-      {open ? (
+      {mounted ? (
         <div
-          className={styles.mobileOverlay}
+          className={`${styles.mobileOverlay} ${
+            open ? styles.mobileOverlayOpen : ""
+          }`}
           onMouseDown={(e) => {
             if (e.target === e.currentTarget) setOpen(false);
           }}
         >
           <div
             id={menuId}
-            className={styles.mobilePanel}
+            className={`${styles.mobilePanel} ${
+              open ? styles.mobilePanelOpen : ""
+            }`}
             ref={panelRef}
             tabIndex={-1}
           >
-            <div className={styles.mobileTop}>
-              <span className={styles.mobileTitle}>Navegació</span>
-              <button
-                type="button"
-                className={styles.mobileClose}
-                onClick={() => setOpen(false)}
-              >
-                Tancar
-              </button>
-            </div>
+            <button
+              type="button"
+              className={styles.mobileClose}
+              onClick={() => setOpen(false)}
+              aria-label="Tancar"
+            >
+              <span aria-hidden="true">✕</span>
+            </button>
 
             <div className={styles.mobileLinks} aria-label="Navegació">
               {navItems.map((item) => {
-                const active =
-                  item.href === "/"
-                    ? pathname === "/"
-                    : pathname === item.href ||
-                      pathname.startsWith(item.href + "/");
+                const active = activeHref === item.href;
                 return (
                   <Link
                     key={item.href}

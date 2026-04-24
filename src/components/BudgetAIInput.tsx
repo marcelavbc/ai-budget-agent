@@ -61,10 +61,6 @@ export function BudgetAIInput({
 
   return (
     <form className={styles.form} onSubmit={handleSubmit} noValidate>
-      <label className={styles.label} htmlFor="job-description">
-        Descripció del treball
-      </label>
-
       <textarea
         id="job-description"
         className={styles.textarea}
@@ -73,9 +69,11 @@ export function BudgetAIInput({
         disabled={loading}
         onChange={(e) => setDescription(e.target.value)}
         placeholder={placeholder}
+        aria-label="Descripció del treball"
         autoComplete="off"
         spellCheck
         onKeyDown={handleKeyDown}
+        rows={4}
       />
 
       <div className={styles.actions}>

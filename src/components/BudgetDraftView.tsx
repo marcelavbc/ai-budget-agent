@@ -90,9 +90,11 @@ export function BudgetDraftView({
             ← Tornar a les línies
           </button>
         ) : null}
-        <h2 className={styles.heading}>
-          {mode === "edit" ? "Editar pressupost" : "Esborrany del pressupost"}
-        </h2>
+        {mode === "edit" ? (
+          <h2 className={styles.heading}>Editar pressupost</h2>
+        ) : (
+          <span className={styles.draftBadge}>ESBORRANY DEL PRESSUPOST</span>
+        )}
       </div>
 
       <div className={styles.clientSection}>
@@ -151,7 +153,7 @@ export function BudgetDraftView({
               onChange={(e) =>
                 setClientField("estimatedTime", e.target.value)
               }
-              placeholder="El temps estimat serà d’uns 7 a 9 dies hàbils."
+              placeholder="Ex: 5-7 dies hàbils"
             />
           </label>
           <div className={styles.fieldRow}>
@@ -216,7 +218,29 @@ export function BudgetDraftView({
               ) : (
                 <span className={styles.cardTitle}>{item.title}</span>
               )}
-              <span className={styles.cardTotal}>{formatEUR(item.total)}</span>
+              <div className={styles.cardHeaderRight}>
+                <span className={styles.cardTotal}>{formatEUR(item.total)}</span>
+                <div className={styles.cardIconActions} aria-hidden="true">
+                  <button
+                    type="button"
+                    className={styles.iconBtn}
+                    tabIndex={-1}
+                    disabled
+                    aria-label="Editar"
+                  >
+                    ✏️
+                  </button>
+                  <button
+                    type="button"
+                    className={styles.iconBtnDanger}
+                    tabIndex={-1}
+                    disabled
+                    aria-label="Eliminar"
+                  >
+                    🗑️
+                  </button>
+                </div>
+              </div>
             </div>
 
             {mode === "edit" ? (
