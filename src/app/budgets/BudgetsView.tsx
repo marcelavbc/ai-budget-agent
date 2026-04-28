@@ -4,8 +4,14 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { Search } from "lucide-react";
 import { Brush } from "lucide-react";
-import type { BudgetListRow, BudgetStatus } from "@/lib/budgets";
+import type { BudgetListRow } from "@/types/budgetsDb";
 import { formatEUR } from "@/lib/formatCurrency";
+import {
+  budgetStatusOrAllLabel,
+  normalizeBudgetStatusOrAll,
+  type BudgetStatus,
+} from "@/lib/budgetStatus";
+import { addMonths, startOfMonth, startOfYear, toYMD } from "@/lib/dateUtils";
 import { BudgetListItemActions } from "@/components/BudgetListItemActions";
 import { StatusPill } from "./StatusPill";
 import styles from "./page.module.css";
@@ -28,46 +34,10 @@ function toComparableDate(value: string | null): string | null {
   return `${m[1]}-${m[2]}-${m[3]}`;
 }
 
-function normalizeStatus(
-  value: string | null | undefined
-): BudgetStatus | "all" {
-  const v = (value ?? "").trim().toLowerCase();
-  if (v === "draft") return "draft";
-  if (v === "sent") return "sent";
-  if (v === "approved") return "approved";
-  return "all";
-}
-
-function statusLabel(value: BudgetStatus | "all") {
-  if (value === "all") return "Tots";
-  if (value === "draft") return "Esborrany";
-  if (value === "sent") return "Enviat";
-  return "Aprovat";
-}
+const normalizeStatus = normalizeBudgetStatusOrAll;
+const statusLabel = budgetStatusOrAllLabel;
 
 type PeriodKey = "thisMonth" | "last3Months" | "thisYear" | "all" | "custom";
-
-function pad2(n: number) {
-  return String(n).padStart(2, "0");
-}
-
-function toYMD(d: Date) {
-  return `${d.getFullYear()}-${pad2(d.getMonth() + 1)}-${pad2(d.getDate())}`;
-}
-
-function addMonths(date: Date, months: number) {
-  const d = new Date(date);
-  d.setMonth(d.getMonth() + months);
-  return d;
-}
-
-function startOfMonth(date: Date) {
-  return new Date(date.getFullYear(), date.getMonth(), 1);
-}
-
-function startOfYear(date: Date) {
-  return new Date(date.getFullYear(), 0, 1);
-}
 
 function periodLabel(key: PeriodKey) {
   if (key === "thisMonth") return "Aquest mes";

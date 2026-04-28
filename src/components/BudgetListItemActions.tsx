@@ -6,13 +6,10 @@ import { useRouter } from "next/navigation";
 import { FileDown, Pencil, Trash2, ChevronDown } from "lucide-react";
 import { ConfirmDialog } from "@/components/ConfirmDialog";
 import styles from "./BudgetListItemActions.module.css";
-import {
-  deleteBudgetWithLines,
-  getBudgetById,
-  getBudgetLinesByBudgetId,
-  getClientById,
-} from "@/lib/budgets";
+import { usePdfExport } from "@/hooks/usePdfExport";
 import type { BudgetClientDetails, BudgetClientItem } from "@/types/budget";
+import type { BudgetLineRow, BudgetRow, ClientRow } from "@/types/budgetsDb";
+import { deleteBudgetWithLines, getBudgetExportData } from "@/lib/budgetsClient";
 
 export function BudgetListItemActions({
   budgetId,
@@ -21,33 +18,11 @@ export function BudgetListItemActions({
   budgetId: string;
   variant?: "full" | "icons";
 }) {
-  const [generating, setGenerating] = useState(false);
-  const [pdfError, setPdfError] = useState<string | null>(null);
+  const { exportPdf, generating, pdfError, setPdfError } = usePdfExport();
   const [pdfMenuOpen, setPdfMenuOpen] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [confirmOpen, setConfirmOpen] = useState(false);
   const router = useRouter();
-
-  async function translateItemsIfNeeded(
-    items: BudgetClientItem[],
-    lang: "ca" | "es"
-  ): Promise<BudgetClientItem[]> {
-    if (lang === "ca") return items;
-    try {
-      const res = await fetch("/api/translate-budget-items", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ items, targetLang: "es" }),
-      });
-      if (!res.ok) return items;
-      const data = (await res.json()) as unknown;
-      if (typeof data !== "object" || data === null) return items;
-      const maybeItems = (data as { items?: unknown }).items;
-      return Array.isArray(maybeItems) ? (maybeItems as BudgetClientItem[]) : items;
-    } catch {
-      return items;
-    }
-  }
 
   async function handleGeneratePdfLang(
     e: React.MouseEvent<HTMLButtonElement>,
@@ -55,17 +30,18 @@ export function BudgetListItemActions({
   ) {
     e.preventDefault();
     e.stopPropagation();
-    if (generating) return;
-    setGenerating(true);
-    setPdfError(null);
     setPdfMenuOpen(false);
     try {
-      const budget = await getBudgetById(budgetId);
-      if (!budget) throw new Error("No s'ha trobat el pressupost.");
-      const [client, lines] = await Promise.all([
-        getClientById(budget.client_id),
-        getBudgetLinesByBudgetId(budget.id),
-      ]);
+      const data = (await getBudgetExportData(budgetId)) as unknown;
+      if (typeof data !== "object" || data === null) {
+        throw new Error("No s'ha pogut generar el PDF. Torna-ho a provar.");
+      }
+      const budget = (data as { budget?: unknown }).budget as BudgetRow | undefined;
+      const client = (data as { client?: unknown }).client as ClientRow | undefined;
+      const lines = (data as { lines?: unknown }).lines as BudgetLineRow[] | undefined;
+      if (!budget || !client || !Array.isArray(lines)) {
+        throw new Error("No s'ha pogut generar el PDF. Torna-ho a provar.");
+      }
 
       const itemsForPdf: BudgetClientItem[] = lines.map((l) => ({
         id: l.id,
@@ -86,27 +62,18 @@ export function BudgetListItemActions({
         estimatedTime: (budget.estimated_time ?? "").trim(),
       };
 
-      const finalItems = await translateItemsIfNeeded(itemsForPdf, lang);
-
-      const { generateBudgetPdf } = await import("@/lib/generateBudgetPdf");
-      const blob = await generateBudgetPdf({
+      await exportPdf({
         client: clientForPdf,
-        items: finalItems,
+        items: itemsForPdf,
         total: budget.total ?? budget.subtotal ?? 0,
         lang,
       });
-
-      const url = URL.createObjectURL(blob);
-      window.open(url, "_blank", "noopener,noreferrer");
-      window.setTimeout(() => URL.revokeObjectURL(url), 30_000);
-    } catch (e) {
+    } catch (err) {
       setPdfError(
-        e instanceof Error
-          ? e.message
+        err instanceof Error
+          ? err.message
           : "No s'ha pogut generar el PDF. Torna-ho a provar."
       );
-    } finally {
-      setGenerating(false);
     }
   }
 

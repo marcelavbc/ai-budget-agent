@@ -1,9 +1,9 @@
 "use client";
 
-import { useRef, useState, type SetStateAction } from "react";
-import { buildAutoQuoteNumber } from "@/lib/generateQuoteNumber";
+import { useState } from "react";
 import { useGenerateBudgetDraft } from "@/hooks/useGenerateBudgetDraft";
 import { useBudgetLines } from "@/hooks/useBudgetLines";
+import { useQuoteNumber } from "@/hooks/useQuoteNumber";
 import { BudgetForm } from "@/components/BudgetForm";
 import { BudgetLinesList } from "@/components/BudgetLinesList";
 import { BudgetDraftView } from "@/components/BudgetDraftView";
@@ -36,41 +36,12 @@ export default function NewBudgetPage() {
   const [clientDetails, setClientDetails] = useState<BudgetClientDetails>(
     defaultBudgetClientDetails,
   );
-  const [quoteManuallyEdited, setQuoteManuallyEdited] = useState(false);
-  const quoteManuallyEditedRef = useRef(false);
-
-  function setClientWithAutoQuote(action: SetStateAction<BudgetClientDetails>) {
-    setClientDetails((prev) => {
-      const next =
-        typeof action === "function"
-          ? (action as (p: BudgetClientDetails) => BudgetClientDetails)(prev)
-          : action;
-      const nameOrDateChanged =
-        next.nameOrCompany !== prev.nameOrCompany || next.date !== prev.date;
-      if (!quoteManuallyEditedRef.current && nameOrDateChanged) {
-        return {
-          ...next,
-          quoteNumber: buildAutoQuoteNumber(next.nameOrCompany, next.date),
-        };
-      }
-      return next;
-    });
-  }
-
-  function handleQuoteNumberChange(value: string) {
-    setQuoteManuallyEdited(true);
-    quoteManuallyEditedRef.current = true;
-    setClientDetails((prev) => ({ ...prev, quoteNumber: value }));
-  }
-
-  function handleResetQuoteAutomation() {
-    setQuoteManuallyEdited(false);
-    quoteManuallyEditedRef.current = false;
-    setClientDetails((prev) => ({
-      ...prev,
-      quoteNumber: buildAutoQuoteNumber(prev.nameOrCompany, prev.date),
-    }));
-  }
+  const {
+    quoteManuallyEdited,
+    setClientWithAutoQuote,
+    onQuoteNumberChange,
+    resetAutomation,
+  } = useQuoteNumber({ setClientDetails, initialManuallyEdited: false });
 
   async function handleSubmit(description: string): Promise<boolean> {
     const lines = await submit(description);
@@ -129,8 +100,8 @@ export default function NewBudgetPage() {
               setDraftItems((prev) => prev.filter((item) => item.id !== id));
             }}
             quoteManuallyEdited={quoteManuallyEdited}
-            onQuoteNumberChange={handleQuoteNumberChange}
-            onResetQuoteAutomation={handleResetQuoteAutomation}
+            onQuoteNumberChange={onQuoteNumberChange}
+            onResetQuoteAutomation={resetAutomation}
             onBack={() => setView("lines")}
           />
         )}

@@ -5,9 +5,10 @@ import { useRouter } from "next/navigation";
 import { ChevronDown, FileDown, Trash2 } from "lucide-react";
 import type { BudgetClientDetails, BudgetClientItem } from "@/types/budget";
 import { formatEUR } from "@/lib/formatCurrency";
-import { isValidEmail } from "@/lib/isValidEmail";
 import { isBudgetDraftComplete } from "@/lib/budgetDraft";
-import { saveBudgetWithLines } from "@/lib/budgets";
+import { saveBudgetWithLines } from "@/lib/budgetsClient";
+import { usePdfExport } from "@/hooks/usePdfExport";
+import { BudgetClientForm } from "@/components/BudgetClientForm";
 import styles from "./BudgetDraftView.module.css";
 
 interface Props {
@@ -47,9 +48,8 @@ export function BudgetDraftView({
 }: Props) {
   const [isSaving, setIsSaving] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
-  const [generating, setGenerating] = useState(false);
   const [pdfMenuOpen, setPdfMenuOpen] = useState(false);
-  const [pdfError, setPdfError] = useState<string | null>(null);
+  const { exportPdf, generating, pdfError } = usePdfExport();
   const pdfDropdownRef = useRef<HTMLDivElement>(null);
   const router = useRouter();
 
@@ -64,54 +64,10 @@ export function BudgetDraftView({
   }, [pdfMenuOpen]);
 
   async function handleGeneratePdfLang(lang: "ca" | "es") {
-    if (generating) return;
-    setGenerating(true);
-    setPdfError(null);
     setPdfMenuOpen(false);
-    try {
-      let finalItems: BudgetClientItem[] = items;
-      if (lang === "es") {
-        try {
-          const res = await fetch("/api/translate-budget-items", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ items, targetLang: "es" }),
-          });
-          if (res.ok) {
-            const data = (await res.json()) as unknown;
-            if (typeof data === "object" && data !== null) {
-              const maybeItems = (data as { items?: unknown }).items;
-              if (Array.isArray(maybeItems))
-                finalItems = maybeItems as BudgetClientItem[];
-            }
-          }
-        } catch {
-          // fall back to untranslated items
-        }
-      }
-      const { generateBudgetPdf } = await import("@/lib/generateBudgetPdf");
-      const blob = await generateBudgetPdf({
-        client,
-        items: finalItems,
-        total: subtotal,
-        lang,
-      });
-      const url = URL.createObjectURL(blob);
-      window.open(url, "_blank", "noopener,noreferrer");
-      window.setTimeout(() => URL.revokeObjectURL(url), 30_000);
-    } catch (e) {
-      setPdfError(
-        e instanceof Error
-          ? e.message
-          : "No s'ha pogut generar el PDF. Torna-ho a provar.",
-      );
-    } finally {
-      setGenerating(false);
-    }
+    await exportPdf({ client, items, total: subtotal, lang });
   }
   const subtotal = items.reduce((sum, item) => sum + item.total, 0);
-  const emailInvalid =
-    client.email.trim().length > 0 && !isValidEmail(client.email);
   const draftComplete = isBudgetDraftComplete({ client, items });
 
   function handleDescriptionChange(id: string, value: string) {
@@ -144,13 +100,6 @@ export function BudgetDraftView({
     }
   }
 
-  function setClientField<K extends keyof BudgetClientDetails>(
-    key: K,
-    value: BudgetClientDetails[K]
-  ) {
-    setClient((prev) => ({ ...prev, [key]: value }));
-  }
-
   return (
     <section className={styles.root}>
       <div className={styles.topBar}>
@@ -166,101 +115,13 @@ export function BudgetDraftView({
         )}
       </div>
 
-      <div className={styles.clientSection}>
-        <h3 className={styles.clientSectionTitle}>
-          Dades del client i del pressupost
-        </h3>
-        <div className={styles.fields}>
-          <label className={styles.field}>
-            <span className={styles.fieldLabel}>Nom o empresa</span>
-            <input
-              className={styles.fieldInput}
-              type="text"
-              value={client.nameOrCompany}
-              onChange={(e) => setClientField("nameOrCompany", e.target.value)}
-              autoComplete="organization"
-              placeholder="Ex: Maria Vila / Pintures Puig"
-            />
-          </label>
-          <label className={styles.field}>
-            <span className={styles.fieldLabel}>Correu electrònic</span>
-            <input
-              className={`${styles.fieldInput} ${emailInvalid ? styles.fieldInputInvalid : ""}`}
-              type="email"
-              inputMode="email"
-              value={client.email}
-              onChange={(e) => setClientField("email", e.target.value)}
-              autoComplete="email"
-              placeholder="nom@exemple.cat"
-              aria-invalid={emailInvalid}
-            />
-            {emailInvalid ? (
-              <span className={styles.fieldError} role="alert">
-                Revisa el format del correu (cal una adreça vàlida).
-              </span>
-            ) : null}
-          </label>
-          <label className={styles.field}>
-            <span className={styles.fieldLabel}>Adreça</span>
-            <textarea
-              className={styles.fieldTextarea}
-              rows={2}
-              value={client.address}
-              onChange={(e) => setClientField("address", e.target.value)}
-              autoComplete="street-address"
-              placeholder="Carrer, número, pis, codi postal, població"
-            />
-          </label>
-          <label className={styles.field}>
-            <span className={styles.fieldLabel}>Temps estimat</span>
-            <textarea
-              className={styles.fieldTextarea}
-              rows={2}
-              value={client.estimatedTime}
-              onChange={(e) => setClientField("estimatedTime", e.target.value)}
-              placeholder="Ex: 5-7 dies hàbils"
-            />
-          </label>
-          <div className={styles.fieldRow}>
-            <div className={styles.quoteField}>
-              <label className={styles.field}>
-                <span className={styles.fieldLabel}>Núm. de pressupost</span>
-                <input
-                  className={styles.fieldInput}
-                  type="text"
-                  value={client.quoteNumber}
-                  onChange={(e) => onQuoteNumberChange(e.target.value)}
-                  inputMode="text"
-                  autoComplete="off"
-                  aria-describedby="quote-hint"
-                />
-              </label>
-              <p id="quote-hint" className={styles.fieldHint}>
-                Es genera automàticament amb les inicials del nom o empresa i la
-                data (p. ex. MV-20260415). Pots corregir-lo si cal.
-              </p>
-              {quoteManuallyEdited ? (
-                <button
-                  type="button"
-                  className={styles.linkLike}
-                  onClick={onResetQuoteAutomation}
-                >
-                  Tornar a generar automàticament
-                </button>
-              ) : null}
-            </div>
-            <label className={styles.field}>
-              <span className={styles.fieldLabel}>Data</span>
-              <input
-                className={styles.fieldInput}
-                type="date"
-                value={client.date}
-                onChange={(e) => setClientField("date", e.target.value)}
-              />
-            </label>
-          </div>
-        </div>
-      </div>
+      <BudgetClientForm
+        client={client}
+        onChange={setClient}
+        quoteManuallyEdited={quoteManuallyEdited}
+        onQuoteNumberChange={onQuoteNumberChange}
+        onResetQuoteAutomation={onResetQuoteAutomation}
+      />
 
       {mode === "edit" ? (
         <div className={styles.itemsTopBar}>

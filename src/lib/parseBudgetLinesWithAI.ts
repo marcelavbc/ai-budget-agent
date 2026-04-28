@@ -1,21 +1,6 @@
 import type { AIParsedBudgetLines } from "@/types/aiBudget";
-import type { GroqMessage, GroqResponse } from "@/types/groq";
-
-function isRecord(value: unknown): value is Record<string, unknown> {
-  return typeof value === "object" && value !== null;
-}
-
-function getGroqContent(data: unknown): string | null {
-  if (!isRecord(data)) return null;
-  const choices = data.choices;
-  if (!Array.isArray(choices) || choices.length === 0) return null;
-  const first = choices[0];
-  if (!isRecord(first)) return null;
-  const message = first.message;
-  if (!isRecord(message)) return null;
-  const content = message.content;
-  return typeof content === "string" ? content : null;
-}
+import type { GroqMessage } from "@/types/groq";
+import { callGroq, isRecord } from "@/lib/ai/groq";
 
 const ALLOWED_TYPES = new Set([
   "walls_and_ceilings",
@@ -62,12 +47,6 @@ function isAIParsedBudgetLines(value: unknown): value is AIParsedBudgetLines {
 export async function parseBudgetLinesWithAI(
   description: string
 ): Promise<AIParsedBudgetLines> {
-  const apiKey = process.env.GROQ_API_KEY;
-
-  if (!apiKey) {
-    throw new Error("Missing GROQ_API_KEY");
-  }
-
   const messages: GroqMessage[] = [
     {
       role: "system",
@@ -157,33 +136,7 @@ export async function parseBudgetLinesWithAI(
     },
   ];
 
-  const response = await fetch(
-    "https://api.groq.com/openai/v1/chat/completions",
-    {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${apiKey}`,
-      },
-      body: JSON.stringify({
-        model: "llama-3.3-70b-versatile",
-        temperature: 0,
-        messages,
-        response_format: { type: "json_object" },
-      }),
-    }
-  );
-
-  if (!response.ok) {
-    throw new Error("Groq request failed");
-  }
-
-  const data = (await response.json()) as GroqResponse;
-  const content = getGroqContent(data);
-
-  if (!content) {
-    throw new Error("Empty Groq response");
-  }
+  const content = await callGroq(messages, { responseFormat: "json_object" });
 
   let parsed: unknown;
   try {

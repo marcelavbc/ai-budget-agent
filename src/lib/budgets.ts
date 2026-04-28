@@ -1,6 +1,8 @@
+import "server-only";
+
 import { getSupabaseClient } from "@/lib/supabaseClient";
 import type { BudgetClientDetails, BudgetClientItem } from "@/types/budget";
-import type { Tables, TablesInsert } from "@/types/supabase";
+import type { TablesInsert } from "@/types/supabase";
 import {
   calcTotals,
   calcTotalsFromSubtotal,
@@ -8,24 +10,14 @@ import {
   normalizeOptionalString,
   toBudgetLineRows,
 } from "@/lib/budgets/helpers";
-
-export type BudgetStatus = "draft" | "sent" | "approved";
-
-export type BudgetRow = Tables<"budgets">;
-export type BudgetLineRow = Tables<"budget_lines">;
-export type ClientRow = Tables<"clients">;
-
-export type BudgetListRow = Pick<
+import type { BudgetStatus } from "@/lib/budgetStatus";
+import type {
+  BudgetLineRow,
+  BudgetListRow,
   BudgetRow,
-  | "id"
-  | "title"
-  | "job_address"
-  | "status"
-  | "document_date"
-  | "quote_number"
-  | "total"
-  | "created_at"
->;
+  ClientRow,
+  RecentBudgetActivityRow,
+} from "@/types/budgetsDb";
 
 export interface CreateBudgetInput {
   client: BudgetClientDetails;
@@ -255,14 +247,6 @@ export async function getBudgets(): Promise<BudgetListRow[]> {
   if (error) throw new Error(error.message);
   return data ?? [];
 }
-
-export type RecentBudgetActivityRow = {
-  id: string;
-  status: string | null;
-  total: number | null;
-  created_at: string | null;
-  client: { name: string | null } | { name: string | null }[] | null;
-};
 
 export async function getRecentBudgetActivity(
   limit = 5

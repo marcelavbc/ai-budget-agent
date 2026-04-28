@@ -1,30 +1,19 @@
 "use client";
 
-import { useMemo, useRef, useState, type SetStateAction } from "react";
+import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import type { BudgetClientDetails, BudgetClientItem } from "@/types/budget";
-import type {
-  BudgetRow,
-  ClientRow,
-  BudgetLineRow,
-  BudgetStatus,
-} from "@/lib/budgets";
-import { buildAutoQuoteNumber } from "@/lib/generateQuoteNumber";
+import type { BudgetLineRow, BudgetRow, ClientRow } from "@/types/budgetsDb";
+import { normalizeBudgetStatus } from "@/lib/budgetStatus";
 import { BudgetDraftView } from "@/components/BudgetDraftView";
 import { BudgetAIInput } from "@/components/BudgetAIInput";
-import { updateBudgetWithLines } from "@/lib/budgets";
+import { updateBudgetWithLines } from "@/lib/budgetsClient";
 import { useGenerateBudgetDraft } from "@/hooks/useGenerateBudgetDraft";
 import { budgetLinesToClientItems } from "@/lib/budgetLineToClientItem";
+import { useQuoteNumber } from "@/hooks/useQuoteNumber";
 
 function round2(n: number) {
   return Math.round(n * 100) / 100;
-}
-
-function normalizeBudgetStatus(value: string | null | undefined): BudgetStatus {
-  const v = (value ?? "").trim().toLowerCase();
-  if (v === "sent") return "sent";
-  if (v === "approved") return "approved";
-  return "draft";
 }
 
 function normalizeUnitLabel(
@@ -86,41 +75,12 @@ export function BudgetEditView({
   const [items, setItems] = useState<BudgetClientItem[]>(initialItems);
 
   // In edit mode, avoid auto-overwriting quote numbers unless the user explicitly resets.
-  const [quoteManuallyEdited, setQuoteManuallyEdited] = useState(true);
-  const quoteManuallyEditedRef = useRef(true);
-
-  function setClientWithAutoQuote(action: SetStateAction<BudgetClientDetails>) {
-    setClientDetails((prev) => {
-      const next =
-        typeof action === "function"
-          ? (action as (p: BudgetClientDetails) => BudgetClientDetails)(prev)
-          : action;
-      const nameOrDateChanged =
-        next.nameOrCompany !== prev.nameOrCompany || next.date !== prev.date;
-      if (!quoteManuallyEditedRef.current && nameOrDateChanged) {
-        return {
-          ...next,
-          quoteNumber: buildAutoQuoteNumber(next.nameOrCompany, next.date),
-        };
-      }
-      return next;
-    });
-  }
-
-  function handleQuoteNumberChange(value: string) {
-    setQuoteManuallyEdited(true);
-    quoteManuallyEditedRef.current = true;
-    setClientDetails((prev) => ({ ...prev, quoteNumber: value }));
-  }
-
-  function handleResetQuoteAutomation() {
-    setQuoteManuallyEdited(false);
-    quoteManuallyEditedRef.current = false;
-    setClientDetails((prev) => ({
-      ...prev,
-      quoteNumber: buildAutoQuoteNumber(prev.nameOrCompany, prev.date),
-    }));
-  }
+  const {
+    quoteManuallyEdited,
+    setClientWithAutoQuote,
+    onQuoteNumberChange,
+    resetAutomation,
+  } = useQuoteNumber({ setClientDetails, initialManuallyEdited: true });
 
   async function handleSave({
     client,
@@ -170,8 +130,8 @@ export function BudgetEditView({
         />
       }
       quoteManuallyEdited={quoteManuallyEdited}
-      onQuoteNumberChange={handleQuoteNumberChange}
-      onResetQuoteAutomation={handleResetQuoteAutomation}
+      onQuoteNumberChange={onQuoteNumberChange}
+      onResetQuoteAutomation={resetAutomation}
       onBack={() => router.push(`/budgets/${budget.id}`)}
       onSave={handleSave}
     />

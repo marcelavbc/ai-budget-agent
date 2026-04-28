@@ -1,25 +1,9 @@
 import Link from "next/link";
-import {
-  getBudgets,
-  getRecentBudgetActivity,
-  type BudgetStatus,
-} from "@/lib/budgets";
+import { getBudgets, getRecentBudgetActivity } from "@/lib/budgets";
 import { formatEUR } from "@/lib/formatCurrency";
+import { budgetStatusLabel, normalizeBudgetStatus } from "@/lib/budgetStatus";
 
 import styles from "./page.module.css";
-
-function normalizeStatus(value: string | null | undefined): BudgetStatus {
-  const v = (value ?? "").trim().toLowerCase();
-  if (v === "sent") return "sent";
-  if (v === "approved") return "approved";
-  return "draft";
-}
-
-function statusLabel(value: BudgetStatus): string {
-  if (value === "draft") return "Esborrany";
-  if (value === "sent") return "Enviat";
-  return "Aprovat";
-}
 
 function formatActivityDate(value: string | null): string {
   const v = (value ?? "").trim();
@@ -29,7 +13,7 @@ function formatActivityDate(value: string | null): string {
   return new Intl.DateTimeFormat("ca-ES", { dateStyle: "medium" }).format(dt);
 }
 
-function badgeClass(value: BudgetStatus): string {
+function badgeClass(value: ReturnType<typeof normalizeBudgetStatus>): string {
   if (value === "sent") return styles.badgeSent;
   if (value === "approved") return styles.badgeApproved;
   return styles.badgeDraft;
@@ -51,7 +35,7 @@ export default async function HomePage() {
   };
 
   for (const b of budgets) {
-    const status = normalizeStatus(b.status);
+    const status = normalizeBudgetStatus(b.status);
     const total = b.total ?? 0;
     if (status === "draft") totals.draft += 1;
     if (status === "sent") {
@@ -136,7 +120,7 @@ export default async function HomePage() {
             ) : (
               <ul className={styles.activityList}>
                 {recent.map((r) => {
-                  const status = normalizeStatus(r.status);
+                  const status = normalizeBudgetStatus(r.status);
                   const clientName = (() => {
                     const c = r.client;
                     if (Array.isArray(c))
@@ -164,7 +148,7 @@ export default async function HomePage() {
                           <span
                             className={`${styles.badge} ${badgeClass(status)}`}
                           >
-                            {statusLabel(status)}
+                            {budgetStatusLabel(status)}
                           </span>
                           <span className={styles.chevron} aria-hidden="true">
                             →
