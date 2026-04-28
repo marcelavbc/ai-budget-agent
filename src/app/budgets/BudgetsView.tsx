@@ -26,7 +26,9 @@ function toComparableDate(value: string | null): string | null {
   return `${m[1]}-${m[2]}-${m[3]}`;
 }
 
-function normalizeStatus(value: string | null | undefined): BudgetStatus | "all" {
+function normalizeStatus(
+  value: string | null | undefined
+): BudgetStatus | "all" {
   const v = (value ?? "").trim().toLowerCase();
   if (v === "draft") return "draft";
   if (v === "sent") return "sent";
@@ -159,8 +161,10 @@ export function BudgetsView({ budgets }: { budgets: BudgetListRow[] }) {
 
   const customHasDates =
     period === "custom" && (dateFrom.trim() !== "" || dateTo.trim() !== "");
-  const hasPeriodFilter = period !== "all" && (period !== "custom" || customHasDates);
-  const hasFilters = query.trim() !== "" || selectedStatuses.size > 0 || hasPeriodFilter;
+  const hasPeriodFilter =
+    period !== "all" && (period !== "custom" || customHasDates);
+  const hasFilters =
+    query.trim() !== "" || selectedStatuses.size > 0 || hasPeriodFilter;
 
   function reset() {
     setQuery("");
@@ -213,12 +217,16 @@ export function BudgetsView({ budgets }: { budgets: BudgetListRow[] }) {
             <button
               type="button"
               className={`${styles.dropdownBtn} ${statusIsActive ? styles.dropdownActive : ""}`}
-              onClick={() => setOpenMenu((v) => (v === "status" ? null : "status"))}
+              onClick={() =>
+                setOpenMenu((v) => (v === "status" ? null : "status"))
+              }
               aria-haspopup="menu"
               aria-expanded={openMenu === "status"}
             >
               <span className={styles.dropdownLabel}>Estat</span>
-              {statusIsActive ? <span className={styles.goldDot} aria-hidden="true" /> : null}
+              {statusIsActive ? (
+                <span className={styles.goldDot} aria-hidden="true" />
+              ) : null}
               <span className={styles.chevron} aria-hidden="true">
                 ▾
               </span>
@@ -250,11 +258,15 @@ export function BudgetsView({ budgets }: { budgets: BudgetListRow[] }) {
             <button
               type="button"
               className={`${styles.dropdownBtn} ${styles.dropdownBtnWide} ${periodIsActive ? styles.dropdownActive : ""}`}
-              onClick={() => setOpenMenu((v) => (v === "period" ? null : "period"))}
+              onClick={() =>
+                setOpenMenu((v) => (v === "period" ? null : "period"))
+              }
               aria-haspopup="menu"
               aria-expanded={openMenu === "period"}
             >
-              <span className={styles.dropdownLabel}>{periodLabel(period)}</span>
+              <span className={styles.dropdownLabel}>
+                {periodLabel(period)}
+              </span>
               <span className={styles.chevron} aria-hidden="true">
                 ▾
               </span>
@@ -265,23 +277,23 @@ export function BudgetsView({ budgets }: { budgets: BudgetListRow[] }) {
               role="menu"
               aria-label="Seleccionar període"
             >
-              {(
-                ["thisMonth", "last3Months", "thisYear", "all"] as const
-              ).map((k) => {
-                const checked = period === k;
-                return (
-                  <label key={k} className={styles.menuRow}>
-                    <input
-                      className={styles.radio}
-                      type="radio"
-                      name="period"
-                      checked={checked}
-                      onChange={() => setPeriod(k)}
-                    />
-                    <span>{periodLabel(k)}</span>
-                  </label>
-                );
-              })}
+              {(["thisMonth", "last3Months", "thisYear", "all"] as const).map(
+                (k) => {
+                  const checked = period === k;
+                  return (
+                    <label key={k} className={styles.menuRow}>
+                      <input
+                        className={styles.radio}
+                        type="radio"
+                        name="period"
+                        checked={checked}
+                        onChange={() => setPeriod(k)}
+                      />
+                      <span>{periodLabel(k)}</span>
+                    </label>
+                  );
+                }
+              )}
 
               <div className={styles.menuDivider} role="separator" />
 
@@ -337,8 +349,12 @@ export function BudgetsView({ budgets }: { budgets: BudgetListRow[] }) {
 
       {filtered.length === 0 ? (
         <section className={styles.emptyResults} aria-live="polite">
-          <h2 className={styles.emptyTitle}>Cap resultat amb aquests filtres.</h2>
-          <p className={styles.emptyText}>Prova a canviar la cerca, l’estat o la data.</p>
+          <h2 className={styles.emptyTitle}>
+            Cap resultat amb aquests filtres.
+          </h2>
+          <p className={styles.emptyText}>
+            Prova a canviar la cerca, l’estat o la data.
+          </p>
           <div className={styles.emptyCtas}>
             <button type="button" className={styles.actionBtn} onClick={reset}>
               Netejar filtres
@@ -351,7 +367,6 @@ export function BudgetsView({ budgets }: { budgets: BudgetListRow[] }) {
           <ul className={`${styles.list} ${styles.listMobile}`}>
             {filtered.map((b) => {
               const title = (b.title ?? "").trim() || "Pressupost sense títol";
-              const address = (b.job_address ?? "").trim();
               const quote = (b.quote_number ?? "").trim();
               const docDate = formatDate(b.document_date);
               const total = formatEUR(b.total ?? 0);
@@ -361,44 +376,42 @@ export function BudgetsView({ budgets }: { budgets: BudgetListRow[] }) {
                   <div className={styles.card}>
                     <div className={styles.cardTop}>
                       <div className={styles.cardTopLeft}>
-                        <Link className={styles.cardTitleLink} href={`/budgets/${b.id}/edit`}>
+                        <Link
+                          className={styles.cardTitleLink}
+                          href={`/budgets/${b.id}/edit`}
+                        >
                           <h3 className={styles.cardTitle}>{title}</h3>
                         </Link>
                       </div>
-
-                      <div className={styles.cardActions}>
-                        <span className={styles.total}>{total}</span>
-                        <BudgetListItemActions budgetId={b.id} />
-                      </div>
+                      <span className={styles.total}>{total}</span>
                     </div>
 
-                    <div className={styles.meta}>
-                      <StatusPill
-                        budgetId={b.id}
-                        initialStatus={b.status}
-                        onStatusChange={(next) => setBudgetStatus(b.id, next)}
-                      />
+                    <div className={styles.cardFooter}>
+                      <div className={styles.meta}>
+                        <StatusPill
+                          budgetId={b.id}
+                          initialStatus={b.status}
+                          onStatusChange={(next) => setBudgetStatus(b.id, next)}
+                        />
 
-                      {address ? (
-                        <span>
-                          <span className={styles.k}>Adreça</span>
-                          {address}
-                        </span>
-                      ) : null}
+                        {docDate ? (
+                          <span>
+                            <span className={styles.k}>Data</span>
+                            {docDate}
+                          </span>
+                        ) : null}
 
-                      {docDate ? (
-                        <span>
-                          <span className={styles.k}>Data</span>
-                          {docDate}
-                        </span>
-                      ) : null}
+                        {quote ? (
+                          <span>
+                            <span className={styles.k}>Núm.</span>
+                            {quote}
+                          </span>
+                        ) : null}
+                      </div>
 
-                      {quote ? (
-                        <span>
-                          <span className={styles.k}>Núm.</span>
-                          {quote}
-                        </span>
-                      ) : null}
+                      <div className={styles.cardActions}>
+                        <BudgetListItemActions budgetId={b.id} variant="icons" />
+                      </div>
                     </div>
                   </div>
                 </li>
@@ -416,7 +429,9 @@ export function BudgetsView({ budgets }: { budgets: BudgetListRow[] }) {
                   <th className={styles.th}>Data</th>
                   <th className={`${styles.th} ${styles.colAmount}`}>Import</th>
                   <th className={`${styles.th} ${styles.colStatus}`}>Estat</th>
-                  <th className={`${styles.th} ${styles.colActions}`}>Accions</th>
+                  <th className={`${styles.th} ${styles.colActions}`}>
+                    Accions
+                  </th>
                 </tr>
               </thead>
               <tbody>
@@ -428,10 +443,18 @@ export function BudgetsView({ budgets }: { budgets: BudgetListRow[] }) {
 
                   return (
                     <tr key={b.id} className={styles.tr}>
-                      <td className={`${styles.td} ${styles.colQuote}`}>{quote}</td>
-                      <td className={`${styles.td} ${styles.colClient}`}>{client}</td>
-                      <td className={`${styles.td} ${styles.colDate}`}>{docDate}</td>
-                      <td className={`${styles.td} ${styles.colAmount} ${styles.amountValue}`}>
+                      <td className={`${styles.td} ${styles.colQuote}`}>
+                        {quote}
+                      </td>
+                      <td className={`${styles.td} ${styles.colClient}`}>
+                        {client}
+                      </td>
+                      <td className={`${styles.td} ${styles.colDate}`}>
+                        {docDate}
+                      </td>
+                      <td
+                        className={`${styles.td} ${styles.colAmount} ${styles.amountValue}`}
+                      >
                         {total}
                       </td>
                       <td className={`${styles.td} ${styles.colStatus}`}>
@@ -443,7 +466,10 @@ export function BudgetsView({ budgets }: { budgets: BudgetListRow[] }) {
                       </td>
                       <td className={`${styles.td} ${styles.colActions}`}>
                         <div className={styles.rowActions}>
-                          <BudgetListItemActions budgetId={b.id} variant="icons" />
+                          <BudgetListItemActions
+                            budgetId={b.id}
+                            variant="icons"
+                          />
                         </div>
                       </td>
                     </tr>
@@ -457,4 +483,3 @@ export function BudgetsView({ budgets }: { budgets: BudgetListRow[] }) {
     </>
   );
 }
-
