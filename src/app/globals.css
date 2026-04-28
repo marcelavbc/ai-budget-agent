@@ -30,9 +30,9 @@
   --brand-primary: var(--color-black);
   --brand-accent: var(--color-gold-medium);
 
-  /* Primary actions: black, not decorative */
-  --accent: var(--color-black);
-  --accent-hover: color-mix(in srgb, var(--color-black) 88%, white);
+  /* Primary actions */
+  --accent: var(--color-green-dark);
+  --accent-hover: color-mix(in srgb, var(--color-green-dark) 88%, white);
 
   --text-on-inverse: #ffffff;
   --error: var(--color-terracotta);

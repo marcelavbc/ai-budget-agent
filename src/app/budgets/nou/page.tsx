@@ -125,6 +125,9 @@ export default function NewBudgetPage() {
                 prev.map((item) => (item.id === id ? { ...item, ...patch } : item)),
               );
             }}
+            onItemRemove={(id) => {
+              setDraftItems((prev) => prev.filter((item) => item.id !== id));
+            }}
             quoteManuallyEdited={quoteManuallyEdited}
             onQuoteNumberChange={handleQuoteNumberChange}
             onResetQuoteAutomation={handleResetQuoteAutomation}

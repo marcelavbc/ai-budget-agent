@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
+import { Search } from "lucide-react";
 import type { BudgetListRow, BudgetStatus } from "@/lib/budgets";
 import { formatEUR } from "@/lib/formatCurrency";
 import { BudgetListItemActions } from "@/components/BudgetListItemActions";
@@ -200,7 +201,7 @@ export function BudgetsView({ budgets }: { budgets: BudgetListRow[] }) {
         <div className={styles.filterRow} ref={menusRef}>
           <div className={styles.search}>
             <span className={styles.searchIcon} aria-hidden="true">
-              🔍
+              <Search size={14} />
             </span>
             <input
               className={`${styles.input} ${styles.searchInput}`}

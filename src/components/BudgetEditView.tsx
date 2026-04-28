@@ -152,6 +152,9 @@ export function BudgetEditView({
           prev.map((item) => (item.id === id ? { ...item, ...patch } : item))
         );
       }}
+      onItemRemove={(id) => {
+        setItems((prev) => prev.filter((item) => item.id !== id));
+      }}
       itemsFooter={
         <BudgetAIInput
           loading={loading}

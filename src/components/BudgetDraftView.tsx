@@ -1,7 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
+import { ChevronDown, FileDown, Trash2 } from "lucide-react";
 import type { BudgetClientDetails, BudgetClientItem } from "@/types/budget";
 import { formatEUR } from "@/lib/formatCurrency";
 import { isValidEmail } from "@/lib/isValidEmail";
@@ -17,6 +18,7 @@ interface Props {
     React.SetStateAction<BudgetClientDetails>
   >;
   onItemChange: (id: string, patch: Partial<BudgetClientItem>) => void;
+  onItemRemove?: (id: string) => void;
   itemsFooter?: React.ReactNode;
   onSave?: (args: {
     client: BudgetClientDetails;
@@ -35,6 +37,7 @@ export function BudgetDraftView({
   clientDetails: client,
   onClientDetailsChange: setClient,
   onItemChange,
+  onItemRemove,
   itemsFooter,
   onSave,
   quoteManuallyEdited,
@@ -44,9 +47,71 @@ export function BudgetDraftView({
 }: Props) {
   const [isSaving, setIsSaving] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
+  const [generating, setGenerating] = useState(false);
+  const [pdfMenuOpen, setPdfMenuOpen] = useState(false);
+  const [pdfError, setPdfError] = useState<string | null>(null);
+  const pdfDropdownRef = useRef<HTMLDivElement>(null);
   const router = useRouter();
+
+  useEffect(() => {
+    if (!pdfMenuOpen) return;
+    function onPointerDown(e: PointerEvent) {
+      if (pdfDropdownRef.current?.contains(e.target as Node)) return;
+      setPdfMenuOpen(false);
+    }
+    window.addEventListener("pointerdown", onPointerDown);
+    return () => window.removeEventListener("pointerdown", onPointerDown);
+  }, [pdfMenuOpen]);
+
+  async function handleGeneratePdfLang(lang: "ca" | "es") {
+    if (generating) return;
+    setGenerating(true);
+    setPdfError(null);
+    setPdfMenuOpen(false);
+    try {
+      let finalItems: BudgetClientItem[] = items;
+      if (lang === "es") {
+        try {
+          const res = await fetch("/api/translate-budget-items", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ items, targetLang: "es" }),
+          });
+          if (res.ok) {
+            const data = (await res.json()) as unknown;
+            if (typeof data === "object" && data !== null) {
+              const maybeItems = (data as { items?: unknown }).items;
+              if (Array.isArray(maybeItems))
+                finalItems = maybeItems as BudgetClientItem[];
+            }
+          }
+        } catch {
+          // fall back to untranslated items
+        }
+      }
+      const { generateBudgetPdf } = await import("@/lib/generateBudgetPdf");
+      const blob = await generateBudgetPdf({
+        client,
+        items: finalItems,
+        total: subtotal,
+        lang,
+      });
+      const url = URL.createObjectURL(blob);
+      window.open(url, "_blank", "noopener,noreferrer");
+      window.setTimeout(() => URL.revokeObjectURL(url), 30_000);
+    } catch (e) {
+      setPdfError(
+        e instanceof Error
+          ? e.message
+          : "No s'ha pogut generar el PDF. Torna-ho a provar.",
+      );
+    } finally {
+      setGenerating(false);
+    }
+  }
   const subtotal = items.reduce((sum, item) => sum + item.total, 0);
-  const emailInvalid = client.email.trim().length > 0 && !isValidEmail(client.email);
+  const emailInvalid =
+    client.email.trim().length > 0 && !isValidEmail(client.email);
   const draftComplete = isBudgetDraftComplete({ client, items });
 
   function handleDescriptionChange(id: string, value: string) {
@@ -61,7 +126,11 @@ export function BudgetDraftView({
       if (onSave) {
         await onSave({ client, items, subtotal });
       } else {
-        const { budgetId } = await saveBudgetWithLines({ client, items, subtotal });
+        const { budgetId } = await saveBudgetWithLines({
+          client,
+          items,
+          subtotal,
+        });
         router.push(`/budgets/${budgetId}`);
       }
     } catch (e) {
@@ -77,7 +146,7 @@ export function BudgetDraftView({
 
   function setClientField<K extends keyof BudgetClientDetails>(
     key: K,
-    value: BudgetClientDetails[K],
+    value: BudgetClientDetails[K]
   ) {
     setClient((prev) => ({ ...prev, [key]: value }));
   }
@@ -108,9 +177,7 @@ export function BudgetDraftView({
               className={styles.fieldInput}
               type="text"
               value={client.nameOrCompany}
-              onChange={(e) =>
-                setClientField("nameOrCompany", e.target.value)
-              }
+              onChange={(e) => setClientField("nameOrCompany", e.target.value)}
               autoComplete="organization"
               placeholder="Ex: Maria Vila / Pintures Puig"
             />
@@ -150,9 +217,7 @@ export function BudgetDraftView({
               className={styles.fieldTextarea}
               rows={2}
               value={client.estimatedTime}
-              onChange={(e) =>
-                setClientField("estimatedTime", e.target.value)
-              }
+              onChange={(e) => setClientField("estimatedTime", e.target.value)}
               placeholder="Ex: 5-7 dies hàbils"
             />
           </label>
@@ -212,34 +277,30 @@ export function BudgetDraftView({
                   className={styles.itemTitleInput}
                   type="text"
                   value={item.title}
-                  onChange={(e) => onItemChange(item.id, { title: e.target.value })}
+                  onChange={(e) =>
+                    onItemChange(item.id, { title: e.target.value })
+                  }
                   placeholder="Títol de la partida"
                 />
               ) : (
                 <span className={styles.cardTitle}>{item.title}</span>
               )}
               <div className={styles.cardHeaderRight}>
-                <span className={styles.cardTotal}>{formatEUR(item.total)}</span>
-                <div className={styles.cardIconActions} aria-hidden="true">
-                  <button
-                    type="button"
-                    className={styles.iconBtn}
-                    tabIndex={-1}
-                    disabled
-                    aria-label="Editar"
-                  >
-                    ✏️
-                  </button>
-                  <button
-                    type="button"
-                    className={styles.iconBtnDanger}
-                    tabIndex={-1}
-                    disabled
-                    aria-label="Eliminar"
-                  >
-                    🗑️
-                  </button>
-                </div>
+                <span className={styles.cardTotal}>
+                  {formatEUR(item.total)}
+                </span>
+                {onItemRemove ? (
+                  <div className={styles.cardIconActions}>
+                    <button
+                      type="button"
+                      className={styles.iconBtnDanger}
+                      onClick={() => onItemRemove(item.id)}
+                      aria-label={`Eliminar ${item.title}`}
+                    >
+                      <Trash2 size={16} />
+                    </button>
+                  </div>
+                ) : null}
               </div>
             </div>
 
@@ -258,7 +319,8 @@ export function BudgetDraftView({
                       const q = Number(e.target.value);
                       const quantity = Number.isFinite(q) ? q : 0;
                       const unitPrice = item.unitPrice ?? 0;
-                      const total = Math.round(quantity * unitPrice * 100) / 100;
+                      const total =
+                        Math.round(quantity * unitPrice * 100) / 100;
                       onItemChange(item.id, { quantity, total });
                     }}
                   />
@@ -271,7 +333,8 @@ export function BudgetDraftView({
                     value={item.unitLabel ?? "partida"}
                     onChange={(e) =>
                       onItemChange(item.id, {
-                        unitLabel: e.target.value as BudgetClientItem["unitLabel"],
+                        unitLabel: e.target
+                          .value as BudgetClientItem["unitLabel"],
                       })
                     }
                   >
@@ -294,7 +357,8 @@ export function BudgetDraftView({
                       const p = Number(e.target.value);
                       const unitPrice = Number.isFinite(p) ? p : 0;
                       const quantity = item.quantity ?? 1;
-                      const total = Math.round(quantity * unitPrice * 100) / 100;
+                      const total =
+                        Math.round(quantity * unitPrice * 100) / 100;
                       onItemChange(item.id, { unitPrice, total });
                     }}
                   />
@@ -325,18 +389,68 @@ export function BudgetDraftView({
             {saveError}
           </p>
         ) : null}
-        <button
-          type="button"
-          className={styles.generatePdfBtn}
-          onClick={handleSaveBudget}
-          disabled={!draftComplete || isSaving}
-        >
-          {isSaving
-            ? "Guardant pressupost…"
-            : mode === "edit"
-              ? "Guardar canvis"
-              : "Guardar pressupost"}
-        </button>
+        {pdfError ? (
+          <p className={styles.saveError} role="alert">
+            {pdfError}
+          </p>
+        ) : null}
+        <div className={styles.footerBtns}>
+          <div className={styles.pdfDropdown} ref={pdfDropdownRef}>
+            <button
+              type="button"
+              className={styles.pdfBtn}
+              disabled={generating}
+              aria-busy={generating || undefined}
+              aria-haspopup="menu"
+              aria-expanded={pdfMenuOpen}
+              onClick={() => setPdfMenuOpen((v) => !v)}
+            >
+              {generating ? (
+                "PDF…"
+              ) : (
+                <>
+                  <FileDown size={16} aria-hidden="true" />
+                  PDF
+                  <ChevronDown size={14} aria-hidden="true" />
+                </>
+              )}
+            </button>
+            {pdfMenuOpen ? (
+              <div className={styles.pdfMenu} role="menu">
+                <button
+                  type="button"
+                  className={styles.pdfMenuItem}
+                  role="menuitem"
+                  disabled={generating}
+                  onClick={() => handleGeneratePdfLang("ca")}
+                >
+                  Català <span className={styles.pdfMenuHint}>PDF</span>
+                </button>
+                <button
+                  type="button"
+                  className={styles.pdfMenuItem}
+                  role="menuitem"
+                  disabled={generating}
+                  onClick={() => handleGeneratePdfLang("es")}
+                >
+                  Castellano <span className={styles.pdfMenuHint}>PDF</span>
+                </button>
+              </div>
+            ) : null}
+          </div>
+          <button
+            type="button"
+            className={styles.saveBtn}
+            onClick={handleSaveBudget}
+            disabled={!draftComplete || isSaving}
+          >
+            {isSaving
+              ? "Guardant pressupost…"
+              : mode === "edit"
+                ? "Guardar canvis"
+                : "Guardar pressupost"}
+          </button>
+        </div>
       </div>
     </section>
   );

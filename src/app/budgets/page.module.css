@@ -130,9 +130,11 @@
   left: 10px;
   top: 50%;
   transform: translateY(-50%);
-  font-size: 14px;
+  display: flex;
+  align-items: center;
   opacity: 0.65;
   pointer-events: none;
+  color: var(--text-muted);
 }
 
 .input {

@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useDraggable, useDroppable } from "@dnd-kit/core";
 import { CSS } from "@dnd-kit/utilities";
+import { GripVertical, Pencil, Trash2 } from "lucide-react";
 import type { BudgetLine } from "@/types/budget";
 import { formatEUR } from "@/lib/formatCurrency";
 import { isPricePending } from "@/lib/isPricePending";
@@ -149,7 +150,7 @@ export function DraggableLine({
             tabIndex={-1}
             aria-label="Arrossega per agrupar"
           >
-            ⠿
+            <GripVertical size={16} aria-hidden="true" />
           </button>
 
           <div className={styles.lineMain}>
@@ -176,7 +177,7 @@ export function DraggableLine({
               onClick={startEdit}
               aria-label={`Editar ${line.label}`}
             >
-              <span aria-hidden="true">✏️</span>
+              <Pencil size={16} aria-hidden="true" />
             </button>
             <button
               type="button"
@@ -184,7 +185,7 @@ export function DraggableLine({
               onClick={onRemove}
               aria-label={`Eliminar ${line.label}`}
             >
-              <span aria-hidden="true">🗑️</span>
+              <Trash2 size={16} aria-hidden="true" />
             </button>
           </div>
         </>
