@@ -13,9 +13,9 @@
   width: 100%;
   max-width: 440px;
   background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: 14px;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.12);
+  border: 1px solid var(--border-soft);
+  border-radius: 12px;
+  box-shadow: var(--shadow-soft);
   padding: 1.1rem 1.1rem 1rem;
   animation: pop 0.16s ease forwards;
 }
@@ -78,7 +78,7 @@
 }
 
 .btn:focus-visible {
-  outline: 2px solid rgba(59, 130, 246, 0.35);
+  outline: 2px solid var(--focus-ring);
   outline-offset: 2px;
 }
 
@@ -93,14 +93,14 @@
 }
 
 .danger {
-  border-color: #e5d8d8;
-  color: #630000;
-  background: #fff;
+  border-color: color-mix(in srgb, var(--color-terracotta) 25%, var(--border));
+  color: var(--color-terracotta);
+  background: var(--surface);
 }
 
 .primaryDanger {
-  border-color: #2a2a2a;
-  background: #2a2a2a;
-  color: var(--bg);
+  border-color: var(--color-black);
+  background: var(--color-black);
+  color: var(--text-on-inverse);
 }
 

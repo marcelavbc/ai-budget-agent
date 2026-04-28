@@ -4,31 +4,31 @@
   gap: 0.6rem;
   padding: 16px;
   background: var(--surface);
-  border: 1px solid var(--border);
-  box-shadow: var(--shadow-soft);
-  transition:
-    background 0.15s,
-    box-shadow 0.15s;
-  border-radius: 12px;
+  border: 1px solid var(--border-soft);
+  box-shadow: none;
+  transition: background 0.15s, border-color 0.15s;
+  border-radius: 10px;
 }
 
 .dragging {
-  opacity: 0.4;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-  border-radius: 6px;
+  opacity: 0.45;
+  box-shadow: none;
+  border-radius: 10px;
   z-index: 10;
 }
 
 .dropCompatible {
-  background: #f0faf0;
-  box-shadow: inset 0 0 0 2px #a8d5a8;
-  border-radius: 12px;
+  background: color-mix(in srgb, var(--color-green-light) 14%, var(--surface));
+  box-shadow: inset 0 0 0 1px
+    color-mix(in srgb, var(--color-green-dark) 22%, var(--surface));
+  border-radius: 10px;
 }
 
 .dropIncompatible {
-  background: #fff5f5;
-  box-shadow: inset 0 0 0 2px #f5b8b8;
-  border-radius: 12px;
+  background: color-mix(in srgb, var(--color-terracotta) 7%, var(--surface));
+  box-shadow: inset 0 0 0 1px
+    color-mix(in srgb, var(--color-terracotta) 32%, var(--surface));
+  border-radius: 10px;
 }
 
 /* ── edit mode ── */
@@ -36,7 +36,7 @@
 .lineItemEditing {
   flex-direction: column;
   align-items: stretch;
-  background: var(--bg-subtle, #f9f9f9);
+  background: var(--bg-subtle);
   border-radius: 8px;
   padding: 0.85rem;
   border: 1px solid var(--border-soft);
@@ -106,7 +106,7 @@
 .saveButton {
   border: none;
   background: var(--text);
-  color: var(--bg, #fff);
+  color: var(--text-on-inverse);
   font-size: 0.85rem;
   font-weight: 500;
   font-family: inherit;
@@ -250,6 +250,6 @@
 }
 
 .removeButton:hover {
-  color: #dc2626;
+  color: var(--color-terracotta);
   background: var(--bg-subtle);
 }

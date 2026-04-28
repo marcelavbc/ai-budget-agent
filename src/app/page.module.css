@@ -40,7 +40,7 @@
 
 .subtitle {
   font-size: 0.95rem;
-  color: var(--text-muted);
+  color: var(--text-secondary);
   margin: 0;
   line-height: 1.5;
 }
@@ -51,14 +51,14 @@
   justify-content: center;
   height: 40px;
   padding: 0 16px;
-  border-radius: 12px;
-  border: 1px solid rgba(200, 169, 110, 0.55);
-  background: var(--brand-primary);
-  color: var(--brand-accent);
+  border-radius: 10px;
+  border: 1px solid var(--color-black);
+  background: var(--color-black);
+  color: var(--text-on-inverse);
   text-decoration: none;
   font-weight: 650;
   letter-spacing: -0.01em;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.14);
+  box-shadow: none;
   transition:
     transform 120ms ease,
     background 120ms ease,
@@ -69,7 +69,7 @@
   .cta:hover {
     background: var(--accent-hover);
     transform: translateY(-1px);
-    border-color: rgba(200, 169, 110, 0.8);
+    border-color: var(--color-gold-medium);
   }
 }
 
@@ -83,18 +83,15 @@
 .card {
   grid-column: span 3;
   background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: 12px;
+  border: 1px solid var(--border-soft);
+  border-radius: 10px;
   padding: 24px;
-  box-shadow: var(--shadow-soft);
-  transition:
-    border-color 140ms ease,
-    box-shadow 140ms ease;
+  box-shadow: none;
+  transition: border-color 140ms ease;
 }
 
 .card:hover {
-  border-color: #dedfd8;
-  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.07);
+  border-color: var(--border);
 }
 
 .cardKicker {
@@ -116,7 +113,7 @@
 }
 
 .cardValueAccent {
-  color: var(--brand-accent);
+  color: var(--total-figure);
 }
 
 .cardHint {
@@ -139,8 +136,8 @@
   border-radius: 999px;
   padding: 6px 10px;
   font-size: 0.85rem;
-  border: 1px solid var(--border);
-  background: #faf9f7;
+  border: 1px solid var(--border-soft);
+  background: var(--bg-subtle);
   color: var(--text);
   white-space: nowrap;
 }
@@ -152,19 +149,19 @@
 
 .badgeDraft {
   background: var(--state-draft-bg);
-  border-color: rgba(107, 114, 128, 0.22);
+  border-color: var(--border-soft);
   color: var(--state-draft);
 }
 
 .badgeSent {
   background: var(--state-sent-bg);
-  border-color: rgba(37, 99, 235, 0.22);
+  border-color: color-mix(in srgb, var(--color-green-light) 40%, var(--border));
   color: var(--state-sent);
 }
 
 .badgeApproved {
   background: var(--state-approved-bg);
-  border-color: rgba(22, 163, 74, 0.22);
+  border-color: color-mix(in srgb, var(--color-gold-medium) 35%, var(--border));
   color: var(--state-approved);
 }
 
@@ -177,10 +174,10 @@
 
 .panel {
   background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: 12px;
+  border: 1px solid var(--border-soft);
+  border-radius: 10px;
   padding: 24px;
-  box-shadow: var(--shadow-soft);
+  box-shadow: none;
 }
 
 .panelTop {
@@ -193,7 +190,7 @@
 }
 
 .panelTopAccent {
-  border-left: 2px solid var(--brand-accent);
+  border-left: 2px solid var(--color-gold-medium);
   padding-left: 14px;
   margin-left: -14px;
 }
@@ -221,8 +218,8 @@
 .soon {
   font-size: 0.85rem;
   color: var(--text-muted);
-  border: 1px dashed #e0dbd1;
-  background: #fbfaf8;
+  border: 1px dashed var(--border);
+  background: var(--bg-subtle);
   padding: 4px 8px;
   border-radius: 999px;
 }
@@ -304,14 +301,14 @@
 }
 
 .chevron {
-  color: var(--brand-accent);
+  color: var(--text-secondary);
   font-weight: 700;
   letter-spacing: -0.02em;
 }
 
 .panelPlaceholder {
   border-style: dashed;
-  background: #fbfaf8;
+  background: var(--bg-subtle);
   color: var(--text-muted);
 }
 

@@ -1,22 +1,22 @@
 .groupCard {
-  border: 1px solid var(--border);
-  border-radius: 12px;
+  border: 1px solid var(--border-soft);
+  border-radius: 10px;
   background: var(--surface);
-  box-shadow: var(--shadow-soft);
+  box-shadow: none;
   overflow: hidden;
-  transition:
-    box-shadow 0.15s,
-    border-color 0.15s;
+  transition: border-color 0.15s;
 }
 
 .dropCompatible {
-  border-color: #a8d5a8;
-  box-shadow: 0 0 0 2px #a8d5a8;
+  border-color: color-mix(in srgb, var(--color-green-dark) 28%, var(--border));
+  box-shadow: inset 0 0 0 1px
+    color-mix(in srgb, var(--color-green-light) 45%, var(--surface));
 }
 
 .dropIncompatible {
-  border-color: #f5b8b8;
-  box-shadow: 0 0 0 2px #f5b8b8;
+  border-color: color-mix(in srgb, var(--color-terracotta) 45%, var(--border));
+  box-shadow: inset 0 0 0 1px
+    color-mix(in srgb, var(--color-terracotta) 28%, var(--surface));
 }
 
 .groupHeader {
@@ -82,7 +82,7 @@
   margin: 0;
   padding: 0.45rem 0.9rem;
   font-size: 0.8rem;
-  color: #b94040;
-  background: #fff5f5;
-  border-top: 1px solid #f5b8b8;
+  color: var(--color-terracotta);
+  background: color-mix(in srgb, var(--color-terracotta) 6%, var(--surface));
+  border-top: 1px solid var(--border-soft);
 }

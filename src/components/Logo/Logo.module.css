@@ -7,7 +7,7 @@
 }
 
 .root:focus-visible {
-  outline: 2px solid rgba(59, 130, 246, 0.35);
+  outline: 2px solid var(--focus-ring);
   outline-offset: 3px;
   border-radius: 10px;
 }

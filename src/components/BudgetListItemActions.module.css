@@ -44,7 +44,7 @@
 
 @media (hover: hover) and (pointer: fine) {
   .btn:hover {
-    border-color: #dcdcdc;
+    border-color: var(--border);
   }
 }
 
@@ -63,7 +63,7 @@
   padding: 0;
   border: none;
   background: transparent;
-  color: #6b7280;
+  color: var(--text-muted);
   border-radius: 10px;
   cursor: pointer;
   text-decoration: none;
@@ -74,8 +74,8 @@
 
 @media (hover: hover) and (pointer: fine) {
   .iconBtn:hover {
-    color: #1a1a1a;
-    background: rgba(26, 26, 26, 0.06);
+    color: var(--text);
+    background: color-mix(in srgb, var(--color-black) 6%, var(--surface));
   }
 }
 
@@ -85,24 +85,24 @@
 }
 
 .iconBtn:focus-visible {
-  outline: 2px solid rgba(59, 130, 246, 0.35);
+  outline: 2px solid var(--focus-ring);
   outline-offset: 2px;
 }
 
 .iconBtnDanger {
-  color: #6b7280;
+  color: var(--text-muted);
 }
 
 @media (hover: hover) and (pointer: fine) {
   .iconBtnDanger:hover {
-    color: #dc2626;
-    background: rgba(220, 38, 38, 0.08);
+    color: var(--color-terracotta);
+    background: color-mix(in srgb, var(--color-terracotta) 8%, var(--surface));
   }
 }
 
 .primary {
   background: var(--text);
-  color: var(--bg);
+  color: var(--text-on-inverse);
 }
 
 .dropdown {
@@ -116,10 +116,10 @@
   top: calc(100% + 8px);
   min-width: 190px;
   padding: 0.35rem;
-  border-radius: 12px;
-  border: 1px solid var(--border);
+  border-radius: 10px;
+  border: 1px solid var(--border-soft);
   background: var(--surface);
-  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.12);
+  box-shadow: var(--shadow-soft);
   z-index: 20;
 }
 
@@ -144,15 +144,15 @@
 
 @media (hover: hover) and (pointer: fine) {
   .menuItem:hover {
-    background: rgba(26, 26, 26, 0.05);
-    border-color: rgba(26, 26, 26, 0.08);
+    background: var(--bg-subtle);
+    border-color: var(--border-soft);
   }
 }
 
 .menuHint {
   font-size: 0.82rem;
   font-weight: 600;
-  color: #6b7280;
+  color: var(--text-muted);
 }
 
 .danger {

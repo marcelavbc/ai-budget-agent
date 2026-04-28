@@ -1,6 +1,7 @@
 import { jsPDF } from "jspdf";
 import type { BudgetClientDetails, BudgetClientItem } from "@/types/budget";
 import { formatEUR } from "@/lib/formatCurrency";
+import { hexToRgb, theme } from "@/theme/colors";
 import {
   formatUnitCa,
   pdfCompanyCopyCa,
@@ -18,15 +19,17 @@ export interface GenerateBudgetPdfInput {
 
 type RGB = { r: number; g: number; b: number };
 
+const { colors: C } = theme;
+
 const COLORS = {
-  text: { r: 28, g: 28, b: 28 },
-  muted: { r: 110, g: 110, b: 110 },
-  line: { r: 224, g: 224, b: 224 },
-  softLine: { r: 236, g: 236, b: 236 },
-  softFill: { r: 250, g: 249, b: 247 },
-  softFill2: { r: 245, g: 245, b: 245 },
-  accent: { r: 200, g: 169, b: 110 },
-  accentSoft: { r: 248, g: 243, b: 234 },
+  text: hexToRgb(C.black),
+  muted: hexToRgb(C.blackSoft),
+  line: hexToRgb(C.beigeMedium),
+  softLine: hexToRgb(C.beigeLight),
+  softFill: hexToRgb(C.background),
+  softFill2: hexToRgb(C.beigeLight),
+  accent: hexToRgb(C.goldMedium),
+  accentSoft: hexToRgb(C.goldLight),
 };
 
 async function loadImageAsDataUrl(src: string): Promise<string> {

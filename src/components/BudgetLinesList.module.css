@@ -39,7 +39,7 @@
 
 .totalBlock {
   margin-bottom: 2rem;
-  border-left: 2px solid var(--brand-accent);
+  border-left: 2px solid var(--color-gold-medium);
   padding-left: 14px;
 }
 
@@ -57,7 +57,7 @@
   font-size: 2.25rem;
   font-weight: 600;
   letter-spacing: -0.035em;
-  color: var(--text);
+  color: var(--total-figure);
   line-height: 1.1;
 }
 
@@ -79,7 +79,7 @@
   margin: 0 0 0.75rem;
   padding: 0.5rem 0.75rem;
   border-radius: 6px;
-  background: rgba(122, 106, 90, 0.12);
+  background: color-mix(in srgb, var(--color-terracotta) 8%, var(--surface));
   color: var(--error);
   font-size: 0.85rem;
 }
@@ -140,7 +140,7 @@
 .lineItemEditing {
   flex-direction: column;
   align-items: stretch;
-  background: var(--bg-subtle, #f9f9f9);
+  background: var(--bg-subtle);
   border-radius: 8px;
   padding: 0.85rem;
   border: 1px solid var(--border-soft);
@@ -210,7 +210,7 @@
 .saveButton {
   border: none;
   background: var(--text);
-  color: var(--bg, #fff);
+  color: var(--text-on-inverse);
   font-size: 0.85rem;
   font-weight: 500;
   font-family: inherit;
@@ -255,9 +255,9 @@
   z-index: 5;
   background: linear-gradient(
     180deg,
-    rgba(249, 248, 246, 0) 0%,
-    rgba(249, 248, 246, 0.92) 35%,
-    rgba(249, 248, 246, 1) 100%
+    color-mix(in srgb, var(--color-background) 0%, transparent) 0%,
+    color-mix(in srgb, var(--color-background) 88%, var(--surface)) 40%,
+    var(--color-background) 100%
   );
 }
 
@@ -265,13 +265,13 @@
   width: 100%;
   max-width: 560px;
   height: 48px;
-  border: 1.5px solid transparent;
+  border: 1px solid var(--color-black);
   background: var(--text);
-  color: #ffffff;
+  color: var(--text-on-inverse);
   font-size: 16px;
   font-weight: 600;
   font-family: inherit;
-  border-radius: 12px;
+  border-radius: 10px;
   padding: 0 1.25rem;
   cursor: pointer;
   transition:
@@ -281,6 +281,6 @@
 
 @media (hover: hover) and (pointer: fine) {
   .generateBtn:hover {
-    border-color: var(--brand-accent);
+    border-color: var(--color-gold-medium);
   }
 }
