@@ -1,6 +1,18 @@
 import type { Metadata } from "next";
+import { Cormorant_Garamond, Inter } from "next/font/google";
 import "./globals.css";
 import Header from "@/components/Header";
+
+const bodyFont = Inter({
+  subsets: ["latin"],
+  variable: "--font-body",
+});
+
+const displayFont = Cormorant_Garamond({
+  subsets: ["latin"],
+  weight: ["400", "500", "600"],
+  variable: "--font-display",
+});
 
 export const metadata: Metadata = {
   title: "Pressupost de pintura",
@@ -21,7 +33,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="ca">
-      <body>
+      <body className={`${bodyFont.variable} ${displayFont.variable}`}>
         <Header />
         {children}
       </body>

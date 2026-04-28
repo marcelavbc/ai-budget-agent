@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { Search } from "lucide-react";
+import { Brush } from "lucide-react";
 import type { BudgetListRow, BudgetStatus } from "@/lib/budgets";
 import { formatEUR } from "@/lib/formatCurrency";
 import { BudgetListItemActions } from "@/components/BudgetListItemActions";
@@ -350,6 +351,7 @@ export function BudgetsView({ budgets }: { budgets: BudgetListRow[] }) {
 
       {filtered.length === 0 ? (
         <section className={styles.emptyResults} aria-live="polite">
+          <Brush className={styles.emptyIcon} aria-hidden="true" />
           <h2 className={styles.emptyTitle}>
             Cap resultat amb aquests filtres.
           </h2>
@@ -428,7 +430,9 @@ export function BudgetsView({ budgets }: { budgets: BudgetListRow[] }) {
                   <th className={styles.th}>Núm. pressupost</th>
                   <th className={styles.th}>Client</th>
                   <th className={styles.th}>Data</th>
-                  <th className={`${styles.th} ${styles.colAmount}`}>Import</th>
+                  <th className={`${styles.th} ${styles.colAmount} ${styles.thAmount}`}>
+                    Import
+                  </th>
                   <th className={`${styles.th} ${styles.colStatus}`}>Estat</th>
                   <th className={`${styles.th} ${styles.colActions}`}>
                     Accions

@@ -14,6 +14,13 @@ export const theme = {
     goldDark: "#A67C2E",
     black: "#111111",
     blackSoft: "#3A3A3A",
+
+    statusDraft: "#6B6B6B",
+    statusDraftBg: "#F2F2F0",
+    statusSent: "#3D6B52",
+    statusSentBg: "#EBF3EE",
+    statusApproved: "#8A6A1A",
+    statusApprovedBg: "#FBF4E4",
   },
 } as const;
 
