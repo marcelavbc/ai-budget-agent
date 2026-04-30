@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { buildBudgetDraftFromAI } from "@/lib/buildBudgetDraftFromAI";
-import type { BudgetRequest, BudgetLine } from "@/types/budget";
+import type { BudgetRequest } from "@/types/budget";
 
 export async function POST(request: Request) {
   try {
@@ -16,17 +16,8 @@ export async function POST(request: Request) {
 
     const lines = await buildBudgetDraftFromAI(description);
 
-    const total =
-      lines.length > 0
-        ? lines.reduce(
-            (sum: number, line: BudgetLine) => sum + line.subtotal,
-            0
-          )
-        : null;
-
     return NextResponse.json({
       lines,
-      total,
     });
   } catch {
     return NextResponse.json(

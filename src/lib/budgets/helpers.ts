@@ -18,11 +18,13 @@ function round2(n: number): number {
   return Math.round(n * 100) / 100;
 }
 
-export function calcTotals(items: BudgetClientItem[], taxRate: number) {
+export function calcBudgetHeaderAmounts(
+  items: BudgetClientItem[],
+  taxRate: number
+) {
   const subtotal = items.reduce((sum, item) => sum + item.total, 0);
   const tax_amount = round2(subtotal * (taxRate / 100));
-  const total = round2(subtotal + tax_amount);
-  return { subtotal, tax_amount, total };
+  return { subtotal, tax_amount };
 }
 
 export function calcTotalsFromSubtotal(subtotal: number, taxRate: number) {

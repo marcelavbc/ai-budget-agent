@@ -26,7 +26,6 @@ interface Props {
   onSave?: (args: {
     client: BudgetClientDetails;
     items: BudgetClientItem[];
-    subtotal: number;
   }) => Promise<void>;
   quoteManuallyEdited: boolean;
   onQuoteNumberChange: (value: string) => void;
@@ -77,9 +76,8 @@ export function BudgetDraftView({
 
   async function handleGeneratePdfLang(lang: "ca" | "es") {
     setPdfMenuOpen(false);
-    await exportPdf({ client, items, total: subtotal, lang });
+    await exportPdf({ client, items, lang });
   }
-  const subtotal = items.reduce((sum, item) => sum + item.total, 0);
   const draftComplete = isBudgetDraftComplete({ client, items });
 
   function handleDescriptionChange(id: string, value: string) {
@@ -92,12 +90,11 @@ export function BudgetDraftView({
     setIsSaving(true);
     try {
       if (onSave) {
-        await onSave({ client, items, subtotal });
+        await onSave({ client, items });
       } else {
         const { budgetId } = await saveBudgetWithLines({
           client,
           items,
-          subtotal,
         });
         router.push(`/budgets/${budgetId}`);
       }
@@ -255,8 +252,6 @@ export function BudgetDraftView({
       ) : null}
 
       <div className={styles.footer}>
-        <span className={styles.totalLabel}>Total pressupost</span>
-        <span className={styles.totalValue}>{formatEUR(subtotal)}</span>
         {saveError ? (
           <p className={styles.saveError} role="alert">
             {saveError}

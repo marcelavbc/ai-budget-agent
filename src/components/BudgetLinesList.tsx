@@ -14,7 +14,6 @@ import type {
 } from "@dnd-kit/core";
 import type { BudgetLine, BudgetListItem } from "@/types/budget";
 import { isBudgetGroup, canGroup, templateGroup } from "@/types/budget";
-import { formatEUR } from "@/lib/formatCurrency";
 import { DraggableLine } from "./DraggableLine";
 import { BudgetGroupCard } from "./BudgetGroupCard";
 import styles from "./BudgetLinesList.module.css";
@@ -22,7 +21,6 @@ import styles from "./BudgetLinesList.module.css";
 interface Props {
   items: BudgetListItem[];
   hasPending: boolean;
-  total: number | null;
   warnings?: string[];
   onRemoveLine: (id: string) => void;
   onUpdateLine: (
@@ -37,7 +35,6 @@ interface Props {
 export function BudgetLinesList({
   items,
   hasPending,
-  total,
   warnings,
   onRemoveLine,
   onUpdateLine,
@@ -97,7 +94,7 @@ export function BudgetLinesList({
         <h2 className={styles.emptyTitle}>Encara no hi ha línies</h2>
         <p className={styles.emptyText}>
           Escriu una partida a dalt (p. ex. “Pintar menjador 18 m²”) i la veurem
-          aquí amb el total estimat.
+          aquí amb el preu estimat de cada línia.
         </p>
       </section>
     );
@@ -105,20 +102,6 @@ export function BudgetLinesList({
 
   return (
     <section className={styles.result} aria-live="polite">
-      <div className={styles.totalBlock}>
-        <span className={styles.totalLabel}>Total estimat</span>
-
-        {hasPending ? (
-          <span className={styles.totalPending}>Pendent</span>
-        ) : total != null ? (
-          <span className={styles.totalValue}>{formatEUR(total)}</span>
-        ) : (
-          <p className={styles.totalUnavailable}>
-            No s&apos;ha pogut calcular un total amb les dades indicades.
-          </p>
-        )}
-      </div>
-
       <div className={styles.linesBlock}>
         <h2 className={styles.linesLabel}>Desglossament</h2>
 

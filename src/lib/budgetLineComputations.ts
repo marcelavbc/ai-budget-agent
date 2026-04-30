@@ -19,8 +19,3 @@ export function applyPricePerSqm(
 export function computeHasPending(lines: BudgetLine[]): boolean {
   return lines.some(isPricePending);
 }
-
-export function computeTotal(lines: BudgetLine[]): number | null {
-  if (lines.length === 0) return null;
-  return lines.reduce((sum, line) => sum + line.subtotal, 0);
-}

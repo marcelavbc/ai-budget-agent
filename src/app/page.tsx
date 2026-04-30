@@ -55,10 +55,13 @@ function formatFilterLabel(filter: DateFilter): string {
   return "Tots els temps";
 }
 
-export default async function HomePage(props: { searchParams?: SearchParams }) {
+export default async function HomePage(props: {
+  searchParams?: Promise<SearchParams>;
+}) {
+  const searchParams = await props.searchParams;
   const filter = parseDateFilter({
-    month: props.searchParams?.month,
-    year: props.searchParams?.year,
+    month: searchParams?.month,
+    year: searchParams?.year,
   });
 
   const [budgets, invoiceStats] = await Promise.all([
@@ -71,22 +74,13 @@ export default async function HomePage(props: { searchParams?: SearchParams }) {
     draft: 0,
     sent: 0,
     approved: 0,
-    sentValue: 0,
-    approvedValue: 0,
   };
 
   for (const b of budgets) {
     const status = normalizeBudgetStatus(b.status);
-    const total = b.total ?? 0;
     if (status === "draft") totals.draft += 1;
-    if (status === "sent") {
-      totals.sent += 1;
-      totals.sentValue += total;
-    }
-    if (status === "approved") {
-      totals.approved += 1;
-      totals.approvedValue += total;
-    }
+    if (status === "sent") totals.sent += 1;
+    if (status === "approved") totals.approved += 1;
   }
 
   return (
@@ -138,23 +132,15 @@ export default async function HomePage(props: { searchParams?: SearchParams }) {
               </div>
 
               <div className={styles.stat}>
-                <p className={styles.statKicker}>Valor aprovat</p>
-                <p
-                  className={`${styles.statValue} ${
-                    totals.approvedValue > 0 ? styles.statValueAccent : ""
-                  }`}
-                >
-                  {formatEUR(totals.approvedValue)}
-                </p>
-                <p className={styles.statHint}>Suma de pressupostos aprovats</p>
+                <p className={styles.statKicker}>Aprovats</p>
+                <p className={styles.statValue}>{totals.approved}</p>
+                <p className={styles.statHint}>Pressupostos aprovats</p>
               </div>
 
               <div className={styles.stat}>
-                <p className={styles.statKicker}>Pendent d&apos;aprovació</p>
-                <p className={styles.statValue}>
-                  {formatEUR(totals.sentValue)}
-                </p>
-                <p className={styles.statHint}>Suma de pressupostos enviats</p>
+                <p className={styles.statKicker}>Pendents d&apos;aprovació</p>
+                <p className={styles.statValue}>{totals.sent}</p>
+                <p className={styles.statHint}>Pressupostos enviats</p>
               </div>
             </div>
           </section>

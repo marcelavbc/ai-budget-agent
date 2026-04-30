@@ -96,7 +96,6 @@ export function BudgetListItemActions({
       await exportPdf({
         client: clientForPdf,
         items: itemsForPdf,
-        total: budget.total ?? budget.subtotal ?? 0,
         lang,
       });
     } catch (err) {

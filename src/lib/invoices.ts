@@ -190,10 +190,7 @@ export async function createInvoiceFromBudget(
     throw new Error("El pressupost no està aprovat.");
   }
 
-  const lineSum = sumLineSubtotals(lines);
-  const budgetSubtotal =
-    typeof budget.subtotal === "number" ? budget.subtotal : lineSum;
-  const subtotalBase = round2(budgetSubtotal || lineSum);
+  const subtotalBase = round2(sumLineSubtotals(lines));
 
   let header: Omit<
     TablesInsert<"invoices">,
@@ -213,14 +210,8 @@ export async function createInvoiceFromBudget(
   } else {
     const taxRate = typeof budget.tax_rate === "number" ? budget.tax_rate : 0;
     const derived = calcTotalsFromSubtotal(subtotalBase, taxRate);
-    const taxAmount =
-      typeof budget.tax_amount === "number"
-        ? round2(budget.tax_amount)
-        : derived.tax_amount;
-    const total =
-      typeof budget.total === "number"
-        ? round2(budget.total)
-        : round2(subtotalBase + taxAmount);
+    const taxAmount = derived.tax_amount;
+    const total = derived.total;
 
     header = {
       budget_id: budget.id,

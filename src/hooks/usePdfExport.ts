@@ -30,7 +30,6 @@ export function usePdfExport() {
     async (args: {
       client: BudgetClientDetails;
       items: BudgetClientItem[];
-      total: number;
       lang: "ca" | "es";
     }) => {
       if (generating) return;
@@ -42,7 +41,6 @@ export function usePdfExport() {
         const blob = await generateBudgetPdf({
           client: args.client,
           items: finalItems,
-          total: args.total,
           lang: args.lang,
         });
         const url = URL.createObjectURL(blob);

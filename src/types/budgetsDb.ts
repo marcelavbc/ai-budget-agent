@@ -12,14 +12,12 @@ export type BudgetListRow = Pick<
   | "status"
   | "document_date"
   | "quote_number"
-  | "total"
   | "created_at"
 >;
 
 export type RecentBudgetActivityRow = {
   id: string;
   status: string | null;
-  total: number | null;
   created_at: string | null;
   client: { name: string | null } | { name: string | null }[] | null;
 };

@@ -2,7 +2,6 @@ import { describe, it, expect } from "vitest";
 import {
   applyPricePerSqm,
   computeHasPending,
-  computeTotal,
 } from "../budgetLineComputations";
 import type { BudgetLine } from "@/types/budget";
 
@@ -84,18 +83,3 @@ describe("computeHasPending", () => {
   });
 });
 
-describe("computeTotal", () => {
-  it("returns null for empty array", () => {
-    expect(computeTotal([])).toBeNull();
-  });
-
-  it("sums subtotals of all lines", () => {
-    expect(
-      computeTotal([makeLine({ subtotal: 100 }), makeLine({ subtotal: 50 })])
-    ).toBe(150);
-  });
-
-  it("returns the subtotal of a single line", () => {
-    expect(computeTotal([makeLine({ subtotal: 75 })])).toBe(75);
-  });
-});

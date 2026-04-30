@@ -21,7 +21,6 @@ export default function NewBudgetPage() {
   const {
     items,
     hasPending,
-    adjustedTotal,
     pricePerSqm,
     setPricePerSqm,
     addLines,
@@ -77,7 +76,6 @@ export default function NewBudgetPage() {
             <BudgetLinesList
               items={items}
               hasPending={hasPending}
-              total={adjustedTotal}
               warnings={lastResponse?.errors}
               onRemoveLine={removeLine}
               onUpdateLine={updateLine}

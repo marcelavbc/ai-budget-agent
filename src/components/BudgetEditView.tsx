@@ -98,7 +98,6 @@ export function BudgetEditView({
   }: {
     client: BudgetClientDetails;
     items: BudgetClientItem[];
-    subtotal: number;
   }) {
     await updateBudgetWithLines({
       budgetId: budget.id,

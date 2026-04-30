@@ -13,7 +13,6 @@ import { pdfFinalSectionCopyEs, pdfLabelsEs } from "@/lib/pdfCopy.es";
 export interface GenerateBudgetPdfInput {
   client: BudgetClientDetails;
   items: BudgetClientItem[];
-  total: number;
   lang?: "ca" | "es";
 }
 
@@ -131,7 +130,6 @@ function formatMeasurement(item: BudgetClientItem): string {
 export async function generateBudgetPdf({
   client,
   items,
-  total,
   lang = "ca",
 }: GenerateBudgetPdfInput): Promise<Blob> {
   const doc = new jsPDF({ unit: "pt", format: "a4" });
@@ -409,23 +407,6 @@ export async function generateBudgetPdf({
     y += rowH;
   }
 
-  function drawTotalsBox(subtotal: number) {
-    const rowH = 34;
-    ensureSpace(rowH + 18);
-
-    const right = pageWidth - marginX;
-    const left = right - 260;
-
-    doc.setFont("helvetica", "bold");
-    doc.setFontSize(12.5);
-    setTextColor(doc, COLORS.text);
-
-    doc.text(labels.total, left, y + 28);
-    doc.text(formatEUR(subtotal), right, y + 28, { align: "right" });
-
-    y += rowH + 16;
-  }
-
   function drawFinalTextSection(input: {
     heading: string;
     materials: string;
@@ -504,8 +485,6 @@ export async function generateBudgetPdf({
   for (const item of items) {
     drawItemRow(item);
   }
-
-  drawTotalsBox(total);
 
   addPageBase("rest");
   y += 4;

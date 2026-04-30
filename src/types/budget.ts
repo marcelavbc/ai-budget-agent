@@ -30,7 +30,6 @@ export interface BudgetLine {
 
 export interface BudgetDraftResponse {
   lines: BudgetLine[];
-  total: number | null;
   errors?: string[];
 }
 

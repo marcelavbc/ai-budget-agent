@@ -5,7 +5,7 @@ import { dateFilterRange, matchesDateFilter, type DateFilter } from "@/lib/dateF
 import type { BudgetClientDetails, BudgetClientItem } from "@/types/budget";
 import type { TablesInsert } from "@/types/supabase";
 import {
-  calcTotals,
+  calcBudgetHeaderAmounts,
   calcTotalsFromSubtotal,
   deriveBudgetTitle,
   normalizeOptionalString,
@@ -140,7 +140,7 @@ export async function createBudget({
   taxRate = 0,
 }: CreateBudgetInput): Promise<CreateBudgetResult> {
   const supabase = getSupabaseClient();
-  const { tax_amount, total } = calcTotalsFromSubtotal(subtotal, taxRate);
+  const { tax_amount } = calcTotalsFromSubtotal(subtotal, taxRate);
   const derivedTitle = deriveBudgetTitle(client);
 
   const { data, error } = await supabase
@@ -159,7 +159,6 @@ export async function createBudget({
         subtotal,
         tax_rate: taxRate,
         tax_amount,
-        total,
       },
     ])
     .select("id")
@@ -180,7 +179,7 @@ export async function getBudgetById(id: string): Promise<BudgetRow | null> {
   const { data, error } = await supabase
     .from("budgets")
     .select(
-      "id,client_id,title,job_address,status,issue_date,document_date,notes,subtotal,tax_rate,tax_amount,total,created_at,updated_at,quote_number,estimated_time"
+      "id,client_id,title,job_address,status,issue_date,document_date,notes,subtotal,tax_rate,tax_amount,created_at,updated_at,quote_number,estimated_time"
     )
     .eq("id", id)
     .maybeSingle();
@@ -203,7 +202,6 @@ export async function updateBudgetById(
       | "subtotal"
       | "tax_rate"
       | "tax_amount"
-      | "total"
     >
   >
 ): Promise<void> {
@@ -231,7 +229,6 @@ export async function updateBudgetById(
     subtotal: patch.subtotal,
     tax_rate: patch.tax_rate,
     tax_amount: patch.tax_amount,
-    total: patch.total,
   };
 
   const { error } = await supabase.from("budgets").update(normalized).eq("id", id);
@@ -243,7 +240,7 @@ export async function getBudgets(filter?: DateFilter): Promise<BudgetListRow[]> 
   const range = dateFilterRange(filter ?? null);
   let q = supabase
     .from("budgets")
-    .select("id,title,job_address,status,document_date,quote_number,total,created_at")
+    .select("id,title,job_address,status,document_date,quote_number,created_at")
     .order("document_date", { ascending: false, nullsFirst: false })
     .order("created_at", { ascending: false });
 
@@ -265,7 +262,7 @@ export async function getRecentBudgetActivity(
   const supabase = getSupabaseClient();
   const { data, error } = await supabase
     .from("budgets")
-    .select("id,status,total,created_at, client:clients(name)")
+    .select("id,status,created_at, client:clients(name)")
     .order("created_at", { ascending: false })
     .limit(limit);
 
@@ -313,7 +310,7 @@ export async function updateBudgetWithLines(args: {
   const { budgetId, clientId, client, items, taxRate = 0, status = "draft" } = args;
   const normalizedClientId = (clientId ?? "").trim();
 
-  const { subtotal, tax_amount, total } = calcTotals(items, taxRate);
+  const { subtotal, tax_amount } = calcBudgetHeaderAmounts(items, taxRate);
   const derivedTitle = deriveBudgetTitle(client);
 
   const ensuredClientId =
@@ -347,7 +344,6 @@ export async function updateBudgetWithLines(args: {
     subtotal,
     tax_rate: taxRate,
     tax_amount,
-    total,
   });
 
   await replaceBudgetLines(budgetId, items);
@@ -390,13 +386,11 @@ export async function getBudgetLinesByBudgetId(
 export interface SaveBudgetWithLinesInput {
   client: BudgetClientDetails;
   items: BudgetClientItem[];
-  subtotal: number;
 }
 
 export async function saveBudgetWithLines({
   client,
   items,
-  subtotal,
 }: SaveBudgetWithLinesInput): Promise<{ budgetId: string }> {
   // TODO: evolve to findOrCreateClient (avoid duplicates) once we define the matching rules.
   const { id: clientId } = await createClient({
@@ -404,6 +398,7 @@ export async function saveBudgetWithLines({
     email: client.email,
     address: client.address,
   });
+  const { subtotal } = calcBudgetHeaderAmounts(items, 0);
   const { id } = await createBudget({ client, clientId, subtotal, status: "draft" });
   await createBudgetLines({ budgetId: id, items });
   return { budgetId: id };

@@ -10,7 +10,6 @@ import { normalizeLinesWithDraftContext } from "@/lib/normalizeLinesWithDraftCon
 import {
   applyPricePerSqm,
   computeHasPending,
-  computeTotal,
 } from "@/lib/budgetLineComputations";
 
 // ─── helpers ──────────────────────────────────────────────────────────────────
@@ -275,12 +274,10 @@ export function useBudgetLines() {
   const adjustedItems = applyLineMap(items, lineMap);
 
   const hasPending = computeHasPending(adjustedAllLines);
-  const adjustedTotal = computeTotal(adjustedAllLines);
 
   return {
     items: adjustedItems,
     hasPending,
-    adjustedTotal,
     pricePerSqm,
     setPricePerSqm,
     addLines,

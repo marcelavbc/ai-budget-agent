@@ -49,7 +49,6 @@ export type Database = {
           subtotal: number | null;
           tax_rate: number | null;
           tax_amount: number | null;
-          total: number | null;
           created_at: string | null;
           updated_at: string | null;
           quote_number: string | null;
@@ -67,7 +66,6 @@ export type Database = {
           subtotal?: number | null;
           tax_rate?: number | null;
           tax_amount?: number | null;
-          total?: number | null;
           created_at?: string | null;
           updated_at?: string | null;
           quote_number?: string | null;
@@ -85,7 +83,6 @@ export type Database = {
           subtotal?: number | null;
           tax_rate?: number | null;
           tax_amount?: number | null;
-          total?: number | null;
           created_at?: string | null;
           updated_at?: string | null;
           quote_number?: string | null;

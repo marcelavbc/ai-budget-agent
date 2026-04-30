@@ -20,7 +20,6 @@ function errorMessage(data: unknown, fallback: string): string {
 export async function saveBudgetWithLines(args: {
   client: BudgetClientDetails;
   items: BudgetClientItem[];
-  subtotal: number;
 }): Promise<{ budgetId: string }> {
   const res = await fetch("/api/budgets", {
     method: "POST",

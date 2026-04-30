@@ -5,7 +5,6 @@ import Link from "next/link";
 import { Search } from "lucide-react";
 import { Brush } from "lucide-react";
 import type { BudgetListRow } from "@/types/budgetsDb";
-import { formatEUR } from "@/lib/formatCurrency";
 import {
   budgetStatusOrAllLabel,
   normalizeBudgetStatusOrAll,
@@ -383,7 +382,6 @@ export function BudgetsView({
                   (b.title ?? "").trim() || "Pressupost sense títol";
                 const quote = (b.quote_number ?? "").trim();
                 const docDate = formatDate(b.document_date);
-                const total = formatEUR(b.total ?? 0);
 
                 return (
                   <li key={b.id}>
@@ -397,7 +395,6 @@ export function BudgetsView({
                             <h3 className={styles.cardTitle}>{title}</h3>
                           </Link>
                         </div>
-                        <span className={styles.total}>{total}</span>
                       </div>
 
                       <div className={styles.cardFooter}>
@@ -465,11 +462,6 @@ export function BudgetsView({
                     <th className={styles.th}>Núm. pressupost</th>
                     <th className={styles.th}>Client</th>
                     <th className={styles.th}>Data</th>
-                    <th
-                      className={`${styles.th} ${styles.colAmount} ${styles.thAmount}`}
-                    >
-                      Import
-                    </th>
                     <th className={`${styles.th} ${styles.colStatus}`}>
                       Estat
                     </th>
@@ -483,7 +475,6 @@ export function BudgetsView({
                     const quote = (b.quote_number ?? "").trim() || "—";
                     const client = (b.title ?? "").trim() || "—";
                     const docDate = formatDate(b.document_date) ?? "—";
-                    const total = formatEUR(b.total ?? 0);
 
                     return (
                       <tr key={b.id} className={styles.tr}>
@@ -500,11 +491,6 @@ export function BudgetsView({
                         </td>
                         <td className={`${styles.td} ${styles.colDate}`}>
                           {docDate}
-                        </td>
-                        <td
-                          className={`${styles.td} ${styles.colAmount} ${styles.amountValue}`}
-                        >
-                          {total}
                         </td>
                         <td className={`${styles.td} ${styles.colStatus}`}>
                           <StatusPill
