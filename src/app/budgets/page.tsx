@@ -34,17 +34,14 @@ export default async function BudgetsPage() {
             <h2 className={styles.emptyTitle}>
               Encara no hi ha pressupostos. Crea el primer!
             </h2>
-            <div className={styles.emptyCtas}>
-              <Link className={styles.cta} href="/budgets/nou">
-                Nou pressupost
-              </Link>
-            </div>
           </section>
         ) : (
-          <BudgetsView
-            budgets={budgets}
-            invoiceIdsByBudgetId={invoiceIdsByBudgetId}
-          />
+          <div className={styles.viewMount}>
+            <BudgetsView
+              budgets={budgets}
+              invoiceIdsByBudgetId={invoiceIdsByBudgetId}
+            />
+          </div>
         )}
       </div>
     </div>

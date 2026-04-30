@@ -88,6 +88,15 @@ export function BudgetsView({
     setItems(budgets);
   }, [budgets]);
 
+  // Lock page-level scroll: only the results area scrolls.
+  useEffect(() => {
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.body.style.overflow = prev;
+    };
+  }, []);
+
   useEffect(() => {
     function onPointerDown(e: MouseEvent | PointerEvent) {
       const el = menusRef.current;
@@ -192,7 +201,7 @@ export function BudgetsView({
   }
 
   return (
-    <>
+    <div className={styles.viewRoot}>
       <section className={styles.filters} aria-label="Filtres">
         <div className={styles.filterRow} ref={menusRef}>
           <div className={styles.search}>
@@ -344,6 +353,7 @@ export function BudgetsView({
         </div>
       </section>
 
+      <div className={styles.resultsScroll}>
       {filtered.length === 0 ? (
         <section className={styles.emptyResults} aria-live="polite">
           <Brush className={styles.emptyIcon} aria-hidden="true" />
@@ -526,6 +536,7 @@ export function BudgetsView({
           </div>
         </>
       )}
-    </>
+      </div>
+    </div>
   );
 }
