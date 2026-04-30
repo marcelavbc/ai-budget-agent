@@ -26,6 +26,8 @@ export interface BudgetLine {
   unitPrice: number;
   subtotal: number;
   pricingMode: BudgetLinePricingMode;
+  optionGroupId?: string;
+  optionLabel?: string;
 }
 
 export interface BudgetDraftResponse {
@@ -40,10 +42,24 @@ export interface BudgetGroup {
   subtotal: number;
 }
 
-export type BudgetListItem = BudgetLine | BudgetGroup;
+export interface BudgetOptionGroup {
+  /** Shared id across alternative options. */
+  id: string;
+  /** Title shown for the group (derived from first option). */
+  title: string;
+  options: BudgetLine[];
+}
+
+export type BudgetListItem = BudgetLine | BudgetGroup | BudgetOptionGroup;
 
 export function isBudgetGroup(item: BudgetListItem): item is BudgetGroup {
   return "zone" in item && "lines" in item;
+}
+
+export function isBudgetOptionGroup(
+  item: BudgetListItem
+): item is BudgetOptionGroup {
+  return "options" in item && "id" in item && !("zone" in item);
 }
 
 export const templateGroup: Record<BudgetLineType, string> = {
@@ -70,6 +86,8 @@ export interface BudgetClientItem {
   quantity?: number;
   unitLabel?: BudgetLineUnit;
   unitPrice?: number;
+  optionGroupId?: string;
+  optionLabel?: string;
 }
 
 /** Budget header (client + reference); used for UI and PDF export. */

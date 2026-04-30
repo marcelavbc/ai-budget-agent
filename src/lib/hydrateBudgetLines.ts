@@ -24,6 +24,8 @@ export function hydrateBudgetLines(aiLines: AIParsedLine[]): BudgetLine[] {
       unitPrice: unitMismatch ? 0 : template.defaultPrice,
       subtotal: 0,
       pricingMode: unitMismatch ? "input" : template.pricingMode,
+      optionGroupId: line.optionGroupId,
+      optionLabel: line.optionLabel,
     };
   });
 

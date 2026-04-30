@@ -332,13 +332,22 @@ export async function generateBudgetPdf({
   }
 
   function drawItemRow(item: BudgetClientItem) {
+    return drawItemRowInternal(item);
+  }
+
+  function drawItemRowInternal(
+    item: BudgetClientItem,
+    opts?: { indentX?: number; conceptOverride?: string }
+  ) {
     const padding = 10;
-    const conceptX = marginX + padding;
+    const indentX = opts?.indentX ?? 0;
+    const conceptX = marginX + padding + indentX;
     const measureX = marginX + tableCols.concept + padding;
-    const descX = marginX + tableCols.concept + tableCols.measure + padding;
+    const descX = marginX + tableCols.concept + tableCols.measure + padding + indentX;
     const amountX = marginX + tableWidth - padding;
 
-    const concept = item.title?.trim() || labels.fallbackConcept;
+    const concept =
+      opts?.conceptOverride?.trim() || item.title?.trim() || labels.fallbackConcept;
     const description = item.description?.trim() || labels.fallbackDescription;
     const measurement = formatMeasurement(item);
     const amount = formatEUR(item.total);
@@ -347,14 +356,14 @@ export async function generateBudgetPdf({
     doc.setFontSize(10);
     const conceptLines = doc.splitTextToSize(
       concept,
-      tableCols.concept - padding * 2
+      tableCols.concept - padding * 2 - indentX
     ) as string[];
 
     doc.setFont("helvetica", "normal");
     doc.setFontSize(9.5);
     const descLines = doc.splitTextToSize(
       description,
-      tableCols.description - padding * 2
+      tableCols.description - padding * 2 - indentX
     ) as string[];
 
     const lineH = 13;
@@ -405,6 +414,26 @@ export async function generateBudgetPdf({
     doc.text(amount, amountX, y + 14, { align: "right" });
 
     y += rowH;
+  }
+
+  function drawOptionGroupHeader() {
+    const rowH = 22;
+    ensureSpace(rowH + 8);
+
+    doc.setFillColor(
+      COLORS.accentSoft.r,
+      COLORS.accentSoft.g,
+      COLORS.accentSoft.b
+    );
+    doc.setDrawColor(COLORS.softLine.r, COLORS.softLine.g, COLORS.softLine.b);
+    doc.roundedRect(marginX, y, tableWidth, rowH, 4, 4, "FD");
+
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(9.5);
+    setTextColor(doc, COLORS.text);
+    doc.text(labels.optionGroupHeader, marginX + 10, y + 15);
+
+    y += rowH + 6;
   }
 
   function drawFinalTextSection(input: {
@@ -482,8 +511,42 @@ export async function generateBudgetPdf({
   drawClientIntroBlock();
   drawTableHeader();
 
-  for (const item of items) {
-    drawItemRow(item);
+  let idx = 0;
+  while (idx < items.length) {
+    const item = items[idx]!;
+    const optionGroupId = safeTrim(item.optionGroupId);
+
+    if (!optionGroupId) {
+      drawItemRow(item);
+      idx += 1;
+      continue;
+    }
+
+    const groupItems: BudgetClientItem[] = [item];
+    let j = idx + 1;
+    while (j < items.length) {
+      const next = items[j]!;
+      if (safeTrim(next.optionGroupId) !== optionGroupId) break;
+      groupItems.push(next);
+      j += 1;
+    }
+
+    if (groupItems.length < 2) {
+      drawItemRow({ ...item, optionGroupId: undefined, optionLabel: undefined });
+      idx = j;
+      continue;
+    }
+
+    drawOptionGroupHeader();
+    for (const opt of groupItems) {
+      const optLabel = safeTrim(opt.optionLabel) || "Opció";
+      drawItemRowInternal(opt, {
+        indentX: 14,
+        conceptOverride: `${optLabel}: ${safeTrim(opt.title)}`,
+      });
+    }
+
+    idx = j;
   }
 
   addPageBase("rest");

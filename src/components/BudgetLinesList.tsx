@@ -13,9 +13,15 @@ import type {
   DragOverEvent,
 } from "@dnd-kit/core";
 import type { BudgetLine, BudgetListItem } from "@/types/budget";
-import { isBudgetGroup, canGroup, templateGroup } from "@/types/budget";
+import {
+  isBudgetGroup,
+  isBudgetOptionGroup,
+  canGroup,
+  templateGroup,
+} from "@/types/budget";
 import { DraggableLine } from "./DraggableLine";
 import { BudgetGroupCard } from "./BudgetGroupCard";
+import { BudgetOptionGroupCard } from "./BudgetOptionGroupCard";
 import styles from "./BudgetLinesList.module.css";
 
 interface Props {
@@ -53,6 +59,11 @@ export function BudgetLinesList({
     if (!activeId) return null;
     for (const item of items) {
       if (!isBudgetGroup(item)) {
+        if (isBudgetOptionGroup(item)) {
+          const found = item.options.find((l) => l.id === activeId);
+          if (found) return found;
+          continue;
+        }
         if ((item as BudgetLine).id === activeId) return item as BudgetLine;
       } else {
         const found = (item as import("@/types/budget").BudgetGroup).lines.find(
@@ -127,6 +138,13 @@ export function BudgetLinesList({
                   onRemoveLine={onRemoveLine}
                   onUpdateLine={onUpdateLine}
                   onUngroup={() => onUngroupGroup(item.id)}
+                />
+              ) : isBudgetOptionGroup(item) ? (
+                <BudgetOptionGroupCard
+                  key={item.id}
+                  group={item}
+                  onRemoveLine={onRemoveLine}
+                  onUpdateLine={onUpdateLine}
                 />
               ) : (
                 <DraggableLine

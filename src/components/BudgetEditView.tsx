@@ -77,6 +77,8 @@ export function BudgetEditView({
         unitLabel: normalizeUnitLabel(l.unit),
         unitPrice: l.unit_price ?? 0,
         total: l.line_total ?? round2((l.quantity ?? 1) * (l.unit_price ?? 0)),
+        optionGroupId: (l.option_group_id ?? undefined) || undefined,
+        optionLabel: (l.option_label ?? undefined) || undefined,
       })),
     [lines]
   );

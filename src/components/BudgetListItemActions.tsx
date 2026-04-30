@@ -82,6 +82,8 @@ export function BudgetListItemActions({
         quantity: l.quantity ?? undefined,
         unitLabel: (l.unit ?? undefined) as BudgetClientItem["unitLabel"],
         unitPrice: l.unit_price ?? undefined,
+        optionGroupId: (l.option_group_id ?? undefined) || undefined,
+        optionLabel: (l.option_label ?? undefined) || undefined,
       }));
 
       const clientForPdf: BudgetClientDetails = {

@@ -5,6 +5,8 @@ export interface AIParsedLine {
   label: string;
   quantity: number | null;
   unitLabel: BudgetLineUnit;
+  optionGroupId?: string;
+  optionLabel?: string;
 }
 
 export interface AIParsedBudgetLines {

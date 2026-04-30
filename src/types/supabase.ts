@@ -100,6 +100,8 @@ export type Database = {
           unit: string | null;
           unit_price: number | null;
           line_total: number | null;
+          option_group_id: string | null;
+          option_label: string | null;
           sort_order: number | null;
           created_at: string | null;
         };
@@ -112,6 +114,8 @@ export type Database = {
           unit?: string | null;
           unit_price?: number | null;
           line_total?: number | null;
+          option_group_id?: string | null;
+          option_label?: string | null;
           sort_order?: number | null;
           created_at?: string | null;
         };
@@ -124,6 +128,8 @@ export type Database = {
           unit?: string | null;
           unit_price?: number | null;
           line_total?: number | null;
+          option_group_id?: string | null;
+          option_label?: string | null;
           sort_order?: number | null;
           created_at?: string | null;
         };

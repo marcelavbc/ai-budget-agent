@@ -374,7 +374,7 @@ export async function getBudgetLinesByBudgetId(
   const { data, error } = await supabase
     .from("budget_lines")
     .select(
-      "id,budget_id,title,description,quantity,unit,unit_price,line_total,sort_order,created_at"
+      "id,budget_id,title,description,quantity,unit,unit_price,line_total,option_group_id,option_label,sort_order,created_at"
     )
     .eq("budget_id", budgetId)
     .order("sort_order", { ascending: true });

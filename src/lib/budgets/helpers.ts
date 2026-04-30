@@ -45,6 +45,8 @@ export function toBudgetLineRows(
     unit: normalizeOptionalString(item.unitLabel ?? null),
     unit_price: item.unitPrice ?? null,
     line_total: item.total,
+    option_group_id: normalizeOptionalString(item.optionGroupId),
+    option_label: normalizeOptionalString(item.optionLabel),
     sort_order: idx,
   }));
 }

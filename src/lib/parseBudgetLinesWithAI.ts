@@ -25,6 +25,8 @@ function isAIParsedBudgetLines(value: unknown): value is AIParsedBudgetLines {
     const label = line.label;
     const quantity = line.quantity;
     const unitLabel = line.unitLabel;
+    const optionGroupId = line.optionGroupId;
+    const optionLabel = line.optionLabel;
 
     if (typeof type !== "string" || !ALLOWED_TYPES.has(type)) return false;
     if (typeof label !== "string" || label.trim().length === 0) return false;
@@ -39,6 +41,14 @@ function isAIParsedBudgetLines(value: unknown): value is AIParsedBudgetLines {
     if (typeof unitLabel !== "string" || !ALLOWED_UNITS.has(unitLabel)) {
       return false;
     }
+
+    const hasOptionGroupId =
+      typeof optionGroupId === "string" && optionGroupId.trim().length > 0;
+    const hasOptionLabel =
+      typeof optionLabel === "string" && optionLabel.trim().length > 0;
+    if (hasOptionGroupId !== hasOptionLabel) return false;
+    if (optionGroupId != null && typeof optionGroupId !== "string") return false;
+    if (optionLabel != null && typeof optionLabel !== "string") return false;
 
     return true;
   });
@@ -103,6 +113,16 @@ export async function parseBudgetLinesWithAI(
         "- The label must avoid unnecessary repetition and sound natural.",
         "- If it can be inferred, distinguish between \'esmaltat\' and \'envernissat\' in the label.",
         "",
+        "Option group rules:",
+        '- When the user describes alternative treatments for the same work item (e.g. "opció 1: ... o opció 2: ..."), emit one line per alternative.',
+        "- All alternatives must share the same optionGroupId (a short kebab-case id, e.g. \"passama-fusta\").",
+        "- Each alternative must have an optionLabel: \"Opció 1\", \"Opció 2\", etc.",
+        "- Do NOT emit optionGroupId or optionLabel for normal (non-alternative) lines.",
+        "",
+        "Example of alternative options:",
+        'Input: "Passamà de fusta: opció 1 decapat + lasur o opció 2 polit + imprimació + esmalt"',
+        'Output: { "lines": [ { "type": "enamel_varnish", "label": "Passamà: decapat + lasur", "quantity": 1, "unitLabel": "partida", "optionGroupId": "passama-fusta", "optionLabel": "Opció 1" }, { "type": "enamel_varnish", "label": "Passamà: polit + esmalt", "quantity": 1, "unitLabel": "partida", "optionGroupId": "passama-fusta", "optionLabel": "Opció 2" } ] }',
+        "",
         "Good label examples:",
         "- Cuina: pintura sostre",
         "- Cuina: reparació desperfectes",
@@ -127,7 +147,7 @@ export async function parseBudgetLinesWithAI(
         'Output: { "lines": [ { "type": "repair", "label": "Habitació: reparació esquerdes sostre", "quantity": 1, "unitLabel": "partida" } ] }',
         "",
         "Response schema:",
-        '{ "lines": [ { "type": "walls_and_ceilings" | "repair" | "doors" | "windows" | "enamel_varnish" | "exterior" | "custom", "label": "text in Catalan", "quantity": number | null, "unitLabel": "m²" | "unitat" | "partida" } ] }',
+        '{ "lines": [ { "type": "walls_and_ceilings" | "repair" | "doors" | "windows" | "enamel_varnish" | "exterior" | "custom", "label": "text in Catalan", "quantity": number | null, "unitLabel": "m²" | "unitat" | "partida", "optionGroupId"?: string, "optionLabel"?: string } ] }',
       ].join("\n"),
     },
     {

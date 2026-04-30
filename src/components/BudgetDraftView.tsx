@@ -11,6 +11,39 @@ import { usePdfExport } from "@/hooks/usePdfExport";
 import { BudgetClientForm } from "@/components/BudgetClientForm";
 import styles from "./BudgetDraftView.module.css";
 
+type DraftSegment =
+  | { kind: "single"; item: BudgetClientItem }
+  | { kind: "optionGroup"; id: string; items: BudgetClientItem[] };
+
+function segmentDraftItems(items: BudgetClientItem[]): DraftSegment[] {
+  const segments: DraftSegment[] = [];
+  let i = 0;
+  while (i < items.length) {
+    const cur = items[i]!;
+    const groupId = (cur.optionGroupId ?? "").trim();
+    if (!groupId) {
+      segments.push({ kind: "single", item: cur });
+      i += 1;
+      continue;
+    }
+    const groupItems: BudgetClientItem[] = [cur];
+    let j = i + 1;
+    while (j < items.length) {
+      const next = items[j]!;
+      if ((next.optionGroupId ?? "").trim() !== groupId) break;
+      groupItems.push(next);
+      j += 1;
+    }
+    if (groupItems.length < 2) {
+      segments.push({ kind: "single", item: { ...cur, optionGroupId: undefined, optionLabel: undefined } });
+    } else {
+      segments.push({ kind: "optionGroup", id: groupId, items: groupItems });
+    }
+    i = j;
+  }
+  return segments;
+}
+
 interface Props {
   mode?: "create" | "edit";
   items: BudgetClientItem[];
@@ -109,6 +142,8 @@ export function BudgetDraftView({
     }
   }
 
+  const segments = segmentDraftItems(items);
+
   return (
     <section className={styles.root}>
       <div className={styles.topBar}>
@@ -139,112 +174,147 @@ export function BudgetDraftView({
       ) : null}
 
       <ul className={styles.list}>
-        {items.map((item) => (
-          <li key={item.id} className={styles.card}>
-            <div className={styles.cardHeader}>
-              {mode === "edit" ? (
-                <input
-                  className={styles.itemTitleInput}
-                  type="text"
-                  value={item.title}
-                  onChange={(e) =>
-                    onItemChange(item.id, { title: e.target.value })
-                  }
-                  placeholder="Títol de la partida"
-                />
-              ) : (
-                <span className={styles.cardTitle}>{item.title}</span>
-              )}
-              <div className={styles.cardHeaderRight}>
-                <span className={styles.cardTotal}>
-                  {formatEUR(item.total)}
-                </span>
-                {onItemRemove ? (
-                  <div className={styles.cardIconActions}>
-                    <button
-                      type="button"
-                      className={styles.iconBtnDanger}
-                      onClick={() => onItemRemove(item.id)}
-                      aria-label={`Eliminar ${item.title}`}
-                    >
-                      <Trash2 size={16} />
-                    </button>
+        {segments.map((seg) => {
+          const renderCard = (item: BudgetClientItem, optionLabel?: string) => (
+            <div className={styles.card}>
+              <div className={styles.cardHeader}>
+                {mode === "edit" ? (
+                  <div className={styles.cardTitleRow}>
+                    {optionLabel ? (
+                      <span className={styles.optionBadge}>{optionLabel}</span>
+                    ) : null}
+                    <input
+                      className={styles.itemTitleInput}
+                      type="text"
+                      value={item.title}
+                      onChange={(e) =>
+                        onItemChange(item.id, { title: e.target.value })
+                      }
+                      placeholder="Títol de la partida"
+                    />
                   </div>
-                ) : null}
+                ) : (
+                  <div className={styles.cardTitleRow}>
+                    {optionLabel ? (
+                      <span className={styles.optionBadge}>{optionLabel}</span>
+                    ) : null}
+                    <span className={styles.cardTitle}>{item.title}</span>
+                  </div>
+                )}
+                <div className={styles.cardHeaderRight}>
+                  <span className={styles.cardTotal}>{formatEUR(item.total)}</span>
+                  {onItemRemove ? (
+                    <div className={styles.cardIconActions}>
+                      <button
+                        type="button"
+                        className={styles.iconBtnDanger}
+                        onClick={() => onItemRemove(item.id)}
+                        aria-label={`Eliminar ${item.title}`}
+                      >
+                        <Trash2 size={16} />
+                      </button>
+                    </div>
+                  ) : null}
+                </div>
               </div>
+
+              {mode === "edit" ? (
+                <div className={styles.itemMetaRow}>
+                  <label className={styles.itemField}>
+                    <span className={styles.itemFieldLabel}>Quant.</span>
+                    <input
+                      className={styles.itemFieldInput}
+                      type="number"
+                      inputMode="decimal"
+                      value={item.quantity ?? 1}
+                      min={0}
+                      step="0.01"
+                      onChange={(e) => {
+                        const q = Number(e.target.value);
+                        const quantity = Number.isFinite(q) ? q : 0;
+                        const unitPrice = item.unitPrice ?? 0;
+                        const total = Math.round(quantity * unitPrice * 100) / 100;
+                        onItemChange(item.id, { quantity, total });
+                      }}
+                    />
+                  </label>
+
+                  <label className={styles.itemField}>
+                    <span className={styles.itemFieldLabel}>Unitat</span>
+                    <select
+                      className={styles.itemFieldInput}
+                      value={item.unitLabel ?? "partida"}
+                      onChange={(e) =>
+                        onItemChange(item.id, {
+                          unitLabel:
+                            e.target.value as BudgetClientItem["unitLabel"],
+                        })
+                      }
+                    >
+                      <option value="partida">partida</option>
+                      <option value="unitat">unitat</option>
+                      <option value="m²">m²</option>
+                    </select>
+                  </label>
+
+                  <label className={styles.itemField}>
+                    <span className={styles.itemFieldLabel}>Preu</span>
+                    <input
+                      className={styles.itemFieldInput}
+                      type="number"
+                      inputMode="decimal"
+                      value={item.unitPrice ?? 0}
+                      min={0}
+                      step="0.01"
+                      onChange={(e) => {
+                        const p = Number(e.target.value);
+                        const unitPrice = Number.isFinite(p) ? p : 0;
+                        const quantity = item.quantity ?? 1;
+                        const total = Math.round(quantity * unitPrice * 100) / 100;
+                        onItemChange(item.id, { unitPrice, total });
+                      }}
+                    />
+                  </label>
+                </div>
+              ) : null}
+
+              <textarea
+                className={styles.descTextarea}
+                value={item.description}
+                onChange={(e) =>
+                  handleDescriptionChange(item.id, e.target.value)
+                }
+                rows={4}
+                placeholder="Descripció de la partida…"
+              />
             </div>
+          );
 
-            {mode === "edit" ? (
-              <div className={styles.itemMetaRow}>
-                <label className={styles.itemField}>
-                  <span className={styles.itemFieldLabel}>Quant.</span>
-                  <input
-                    className={styles.itemFieldInput}
-                    type="number"
-                    inputMode="decimal"
-                    value={item.quantity ?? 1}
-                    min={0}
-                    step="0.01"
-                    onChange={(e) => {
-                      const q = Number(e.target.value);
-                      const quantity = Number.isFinite(q) ? q : 0;
-                      const unitPrice = item.unitPrice ?? 0;
-                      const total =
-                        Math.round(quantity * unitPrice * 100) / 100;
-                      onItemChange(item.id, { quantity, total });
-                    }}
-                  />
-                </label>
+          if (seg.kind === "single") {
+            return <li key={seg.item.id}>{renderCard(seg.item)}</li>;
+          }
 
-                <label className={styles.itemField}>
-                  <span className={styles.itemFieldLabel}>Unitat</span>
-                  <select
-                    className={styles.itemFieldInput}
-                    value={item.unitLabel ?? "partida"}
-                    onChange={(e) =>
-                      onItemChange(item.id, {
-                        unitLabel: e.target
-                          .value as BudgetClientItem["unitLabel"],
-                      })
-                    }
-                  >
-                    <option value="partida">partida</option>
-                    <option value="unitat">unitat</option>
-                    <option value="m²">m²</option>
-                  </select>
-                </label>
-
-                <label className={styles.itemField}>
-                  <span className={styles.itemFieldLabel}>Preu</span>
-                  <input
-                    className={styles.itemFieldInput}
-                    type="number"
-                    inputMode="decimal"
-                    value={item.unitPrice ?? 0}
-                    min={0}
-                    step="0.01"
-                    onChange={(e) => {
-                      const p = Number(e.target.value);
-                      const unitPrice = Number.isFinite(p) ? p : 0;
-                      const quantity = item.quantity ?? 1;
-                      const total =
-                        Math.round(quantity * unitPrice * 100) / 100;
-                      onItemChange(item.id, { unitPrice, total });
-                    }}
-                  />
-                </label>
+          return (
+            <li key={`opt-${seg.id}`} className={styles.optionGroup}>
+              <div className={styles.optionGroupHeader}>
+                <span className={styles.optionGroupTitle}>
+                  Opcions alternatives
+                </span>
+                <span className={styles.optionGroupHint}>
+                  Escollir una opció. No sumar els imports.
+                </span>
               </div>
-            ) : null}
-
-            <textarea
-              className={styles.descTextarea}
-              value={item.description}
-              onChange={(e) => handleDescriptionChange(item.id, e.target.value)}
-              rows={4}
-              placeholder="Descripció de la partida…"
-            />
-          </li>
-        ))}
+              <div className={styles.optionGroupBody}>
+                {seg.items.map((item) =>
+                  renderCard(
+                    item,
+                    (item.optionLabel ?? "").trim() || "Opció"
+                  )
+                )}
+              </div>
+            </li>
+          );
+        })}
       </ul>
 
       {mode === "edit" && itemsFooter ? (

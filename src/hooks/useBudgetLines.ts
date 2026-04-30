@@ -2,10 +2,16 @@ import { useState } from "react";
 import type {
   BudgetLine,
   BudgetGroup,
+  BudgetOptionGroup,
   BudgetListItem,
   BudgetLineType,
 } from "@/types/budget";
-import { isBudgetGroup, templateGroup, canGroup } from "@/types/budget";
+import {
+  isBudgetGroup,
+  isBudgetOptionGroup,
+  templateGroup,
+  canGroup,
+} from "@/types/budget";
 import { normalizeLinesWithDraftContext } from "@/lib/normalizeLinesWithDraftContext";
 import {
   applyPricePerSqm,
@@ -16,7 +22,11 @@ import {
 
 function getAllLines(items: BudgetListItem[]): BudgetLine[] {
   return items.flatMap((item) =>
-    isBudgetGroup(item) ? item.lines : [item as BudgetLine]
+    isBudgetGroup(item)
+      ? item.lines
+      : isBudgetOptionGroup(item)
+        ? item.options
+        : [item as BudgetLine]
   );
 }
 
@@ -33,6 +43,14 @@ function applyLineMap(
       const updated = item.lines.map((l) => map.get(l.id) ?? l);
       return { ...item, lines: updated, subtotal: groupSubtotal(updated) };
     }
+    if (isBudgetOptionGroup(item)) {
+      const updated = item.options.map((l) => map.get(l.id) ?? l);
+      return {
+        ...item,
+        title: updated[0]?.label ?? item.title,
+        options: updated,
+      } satisfies BudgetOptionGroup;
+    }
     return map.get((item as BudgetLine).id) ?? item;
   });
 }
@@ -41,8 +59,26 @@ function applyLineMap(
 function stripLine(prev: BudgetListItem[], lineId: string): BudgetListItem[] {
   return prev
     .map((item): BudgetListItem | null => {
-      if (!isBudgetGroup(item)) {
+      if (!isBudgetGroup(item) && !isBudgetOptionGroup(item)) {
         return (item as BudgetLine).id === lineId ? null : item;
+      }
+      if (isBudgetOptionGroup(item)) {
+        const filtered = item.options.filter((l) => l.id !== lineId);
+        if (filtered.length === item.options.length) return item;
+        if (filtered.length === 0) return null;
+        if (filtered.length === 1) {
+          const [only] = filtered;
+          return {
+            ...only,
+            optionGroupId: undefined,
+            optionLabel: undefined,
+          };
+        }
+        return {
+          ...item,
+          title: filtered[0]?.label ?? item.title,
+          options: filtered,
+        };
       }
       const filtered = item.lines.filter((l) => l.id !== lineId);
       if (filtered.length === item.lines.length) return item;
@@ -68,7 +104,10 @@ function autoGroup(items: BudgetListItem[]): BudgetListItem[] {
       result
         .filter(
           (item): item is BudgetLine =>
-            !isBudgetGroup(item) && types.includes((item as BudgetLine).type)
+            !isBudgetGroup(item) &&
+            !isBudgetOptionGroup(item) &&
+            !((item as BudgetLine).optionGroupId ?? "").trim() &&
+            types.includes((item as BudgetLine).type)
         )
         .map((l) => l.id)
     );
@@ -84,12 +123,18 @@ function autoGroup(items: BudgetListItem[]): BudgetListItem[] {
       // Add loose lines into the existing group
       const looseLines = result.filter(
         (item): item is BudgetLine =>
-          !isBudgetGroup(item) && looseIds.has((item as BudgetLine).id)
+          !isBudgetGroup(item) &&
+          !isBudgetOptionGroup(item) &&
+          looseIds.has((item as BudgetLine).id)
       );
       result = result
         .filter(
           (item) =>
-            !(!isBudgetGroup(item) && looseIds.has((item as BudgetLine).id))
+            !(
+              !isBudgetGroup(item) &&
+              !isBudgetOptionGroup(item) &&
+              looseIds.has((item as BudgetLine).id)
+            )
         )
         .map((item) => {
           if (isBudgetGroup(item) && item.id === existingGroup.id) {
@@ -102,7 +147,9 @@ function autoGroup(items: BudgetListItem[]): BudgetListItem[] {
       // Create a new group only when there are 2+ loose lines
       const looseLines = result.filter(
         (item): item is BudgetLine =>
-          !isBudgetGroup(item) && looseIds.has((item as BudgetLine).id)
+          !isBudgetGroup(item) &&
+          !isBudgetOptionGroup(item) &&
+          looseIds.has((item as BudgetLine).id)
       );
       const newGroup: BudgetGroup = {
         id: `group-${crypto.randomUUID()}`,
@@ -115,6 +162,7 @@ function autoGroup(items: BudgetListItem[]): BudgetListItem[] {
       result = result
         .map((item): BudgetListItem | null => {
           if (isBudgetGroup(item)) return item;
+          if (isBudgetOptionGroup(item)) return item;
           const id = (item as BudgetLine).id;
           if (!looseIds.has(id)) return item;
           if (!placed) {
@@ -125,6 +173,58 @@ function autoGroup(items: BudgetListItem[]): BudgetListItem[] {
         })
         .filter((item): item is BudgetListItem => item !== null);
     }
+  }
+
+  return result;
+}
+
+function isOptionLine(line: BudgetLine): boolean {
+  return typeof line.optionGroupId === "string" && line.optionGroupId.trim().length > 0;
+}
+
+function buildOptionGroups(items: BudgetListItem[]): BudgetListItem[] {
+  const result: BudgetListItem[] = [];
+  let i = 0;
+
+  while (i < items.length) {
+    const item = items[i];
+    if (isBudgetGroup(item) || isBudgetOptionGroup(item)) {
+      result.push(item);
+      i += 1;
+      continue;
+    }
+
+    const line = item as BudgetLine;
+    if (!isOptionLine(line)) {
+      result.push(line);
+      i += 1;
+      continue;
+    }
+
+    const groupId = line.optionGroupId!.trim();
+    const options: BudgetLine[] = [line];
+    let j = i + 1;
+    while (j < items.length) {
+      const next = items[j];
+      if (isBudgetGroup(next) || isBudgetOptionGroup(next)) break;
+      const nextLine = next as BudgetLine;
+      if ((nextLine.optionGroupId ?? "").trim() !== groupId) break;
+      options.push(nextLine);
+      j += 1;
+    }
+
+    if (options.length < 2) {
+      result.push({ ...line, optionGroupId: undefined, optionLabel: undefined });
+    } else {
+      const group: BudgetOptionGroup = {
+        id: groupId,
+        title: options[0]?.label ?? "Opcions alternatives",
+        options,
+      };
+      result.push(group);
+    }
+
+    i = j;
   }
 
   return result;
@@ -143,7 +243,7 @@ export function useBudgetLines() {
         newLines,
         existingLines
       );
-      return autoGroup([...prev, ...normalized]);
+      return buildOptionGroups(autoGroup([...prev, ...normalized]));
     });
   }
 
@@ -157,11 +257,23 @@ export function useBudgetLines() {
   ) {
     setItems((prev) =>
       prev.map((item) => {
-        if (!isBudgetGroup(item)) {
+        if (!isBudgetGroup(item) && !isBudgetOptionGroup(item)) {
           const line = item as BudgetLine;
           if (line.id !== id) return line;
           const updated = { ...line, ...patch };
           return { ...updated, subtotal: updated.quantity * updated.unitPrice };
+        }
+        if (isBudgetOptionGroup(item)) {
+          const updatedOptions = item.options.map((l) => {
+            if (l.id !== id) return l;
+            const updated = { ...l, ...patch };
+            return { ...updated, subtotal: updated.quantity * updated.unitPrice };
+          });
+          return {
+            ...item,
+            title: updatedOptions[0]?.label ?? item.title,
+            options: updatedOptions,
+          };
         }
         const updatedLines = item.lines.map((l) => {
           if (l.id !== id) return l;
@@ -188,6 +300,7 @@ export function useBudgetLines() {
       const allLines = getAllLines(prev);
       const dragLine = allLines.find((l) => l.id === dragLineId);
       if (!dragLine) return prev;
+      if ((dragLine.optionGroupId ?? "").trim()) return prev;
 
       const dragGroup = templateGroup[dragLine.type];
 
@@ -213,6 +326,7 @@ export function useBudgetLines() {
       // ── dropped on a line ────────────────────────────────────────────────
       const targetLine = allLines.find((l) => l.id === targetId);
       if (!targetLine) return prev;
+      if ((targetLine.optionGroupId ?? "").trim()) return prev;
 
       if (!canGroup(dragLine, targetLine)) return prev;
       compatible = true;
