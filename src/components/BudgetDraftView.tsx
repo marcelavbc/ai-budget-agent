@@ -21,6 +21,8 @@ interface Props {
   onItemChange: (id: string, patch: Partial<BudgetClientItem>) => void;
   onItemRemove?: (id: string) => void;
   itemsFooter?: React.ReactNode;
+  footerActions?: React.ReactNode;
+  footerNotice?: React.ReactNode;
   onSave?: (args: {
     client: BudgetClientDetails;
     items: BudgetClientItem[];
@@ -30,6 +32,8 @@ interface Props {
   onQuoteNumberChange: (value: string) => void;
   onResetQuoteAutomation: () => void;
   onBack: () => void;
+  /** Hide PDF export (e.g. approved budgets where invoicing is the next step). */
+  showPdf?: boolean;
 }
 
 export function BudgetDraftView({
@@ -40,11 +44,14 @@ export function BudgetDraftView({
   onItemChange,
   onItemRemove,
   itemsFooter,
+  footerActions,
+  footerNotice,
   onSave,
   quoteManuallyEdited,
   onQuoteNumberChange,
   onResetQuoteAutomation,
   onBack,
+  showPdf = true,
 }: Props) {
   const [isSaving, setIsSaving] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
@@ -62,6 +69,11 @@ export function BudgetDraftView({
     window.addEventListener("pointerdown", onPointerDown);
     return () => window.removeEventListener("pointerdown", onPointerDown);
   }, [pdfMenuOpen]);
+
+  useEffect(() => {
+    if (showPdf) return;
+    setPdfMenuOpen(false);
+  }, [showPdf]);
 
   async function handleGeneratePdfLang(lang: "ca" | "es") {
     setPdfMenuOpen(false);
@@ -250,55 +262,59 @@ export function BudgetDraftView({
             {saveError}
           </p>
         ) : null}
-        {pdfError ? (
+        {showPdf && pdfError ? (
           <p className={styles.saveError} role="alert">
             {pdfError}
           </p>
         ) : null}
+        {footerNotice}
         <div className={styles.footerBtns}>
-          <div className={styles.pdfDropdown} ref={pdfDropdownRef}>
-            <button
-              type="button"
-              className={styles.pdfBtn}
-              disabled={generating}
-              aria-busy={generating || undefined}
-              aria-haspopup="menu"
-              aria-expanded={pdfMenuOpen}
-              onClick={() => setPdfMenuOpen((v) => !v)}
-            >
-              {generating ? (
-                "PDF…"
-              ) : (
-                <>
-                  <FileDown size={16} aria-hidden="true" />
-                  PDF
-                  <ChevronDown size={14} aria-hidden="true" />
-                </>
-              )}
-            </button>
-            {pdfMenuOpen ? (
-              <div className={styles.pdfMenu} role="menu">
-                <button
-                  type="button"
-                  className={styles.pdfMenuItem}
-                  role="menuitem"
-                  disabled={generating}
-                  onClick={() => handleGeneratePdfLang("ca")}
-                >
-                  Català <span className={styles.pdfMenuHint}>PDF</span>
-                </button>
-                <button
-                  type="button"
-                  className={styles.pdfMenuItem}
-                  role="menuitem"
-                  disabled={generating}
-                  onClick={() => handleGeneratePdfLang("es")}
-                >
-                  Castellano <span className={styles.pdfMenuHint}>PDF</span>
-                </button>
-              </div>
-            ) : null}
-          </div>
+          {footerActions}
+          {showPdf ? (
+            <div className={styles.pdfDropdown} ref={pdfDropdownRef}>
+              <button
+                type="button"
+                className={styles.pdfBtn}
+                disabled={generating}
+                aria-busy={generating || undefined}
+                aria-haspopup="menu"
+                aria-expanded={pdfMenuOpen}
+                onClick={() => setPdfMenuOpen((v) => !v)}
+              >
+                {generating ? (
+                  "PDF…"
+                ) : (
+                  <>
+                    <FileDown size={16} aria-hidden="true" />
+                    PDF
+                    <ChevronDown size={14} aria-hidden="true" />
+                  </>
+                )}
+              </button>
+              {pdfMenuOpen ? (
+                <div className={styles.pdfMenu} role="menu">
+                  <button
+                    type="button"
+                    className={styles.pdfMenuItem}
+                    role="menuitem"
+                    disabled={generating}
+                    onClick={() => handleGeneratePdfLang("ca")}
+                  >
+                    Català <span className={styles.pdfMenuHint}>PDF</span>
+                  </button>
+                  <button
+                    type="button"
+                    className={styles.pdfMenuItem}
+                    role="menuitem"
+                    disabled={generating}
+                    onClick={() => handleGeneratePdfLang("es")}
+                  >
+                    Castellano <span className={styles.pdfMenuHint}>PDF</span>
+                  </button>
+                </div>
+              ) : null}
+            </div>
+          ) : null}
           <button
             type="button"
             className={styles.saveBtn}

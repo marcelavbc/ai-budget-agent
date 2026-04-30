@@ -14,6 +14,9 @@ import {
 import { addMonths, startOfMonth, startOfYear, toYMD } from "@/lib/dateUtils";
 import { BudgetListItemActions } from "@/components/BudgetListItemActions";
 import { StatusPill } from "./StatusPill";
+import type { BudgetInvoiceIds } from "@/lib/invoices";
+import type { InvoicePricingMode } from "@/types/invoice";
+import { pricingModeToSlot } from "@/types/invoice";
 import styles from "./page.module.css";
 
 function formatDate(value: string | null) {
@@ -47,8 +50,30 @@ function periodLabel(key: PeriodKey) {
   return "Personalitzat";
 }
 
-export function BudgetsView({ budgets }: { budgets: BudgetListRow[] }) {
+function mergeInvoiceIds(
+  budgetId: string,
+  base: Record<string, BudgetInvoiceIds>,
+  overrides: Partial<Record<string, Partial<BudgetInvoiceIds>>>
+): BudgetInvoiceIds {
+  const row = base[budgetId] ?? { withoutIva: null, withIva: null };
+  const o = overrides[budgetId];
+  return {
+    withoutIva: o?.withoutIva ?? row.withoutIva,
+    withIva: o?.withIva ?? row.withIva,
+  };
+}
+
+export function BudgetsView({
+  budgets,
+  invoiceIdsByBudgetId,
+}: {
+  budgets: BudgetListRow[];
+  invoiceIdsByBudgetId: Record<string, BudgetInvoiceIds>;
+}) {
   const [items, setItems] = useState<BudgetListRow[]>(() => budgets);
+  const [invoiceOverrides, setInvoiceOverrides] = useState<
+    Partial<Record<string, Partial<BudgetInvoiceIds>>>
+  >({});
   const [query, setQuery] = useState("");
   const [selectedStatuses, setSelectedStatuses] = useState<Set<BudgetStatus>>(
     () => new Set()
@@ -383,7 +408,29 @@ export function BudgetsView({ budgets }: { budgets: BudgetListRow[] }) {
                       </div>
 
                       <div className={styles.cardActions}>
-                        <BudgetListItemActions budgetId={b.id} variant="icons" />
+                        <BudgetListItemActions
+                          budgetId={b.id}
+                          budgetStatus={b.status}
+                          invoices={mergeInvoiceIds(
+                            b.id,
+                            invoiceIdsByBudgetId,
+                            invoiceOverrides
+                          )}
+                          onInvoiceCreated={(
+                            pricingMode: InvoicePricingMode,
+                            invoiceId: string
+                          ) =>
+                            setInvoiceOverrides((prev) => {
+                              const slot = pricingModeToSlot(pricingMode);
+                              const cur = prev[b.id] ?? {};
+                              return {
+                                ...prev,
+                                [b.id]: { ...cur, [slot]: invoiceId },
+                              };
+                            })
+                          }
+                          variant="icons"
+                        />
                       </div>
                     </div>
                   </div>
@@ -419,7 +466,12 @@ export function BudgetsView({ budgets }: { budgets: BudgetListRow[] }) {
                   return (
                     <tr key={b.id} className={styles.tr}>
                       <td className={`${styles.td} ${styles.colQuote}`}>
-                        {quote}
+                        <Link
+                          className={styles.quoteLink}
+                          href={`/budgets/${b.id}/edit`}
+                        >
+                          {quote}
+                        </Link>
                       </td>
                       <td className={`${styles.td} ${styles.colClient}`}>
                         {client}
@@ -443,6 +495,25 @@ export function BudgetsView({ budgets }: { budgets: BudgetListRow[] }) {
                         <div className={styles.rowActions}>
                           <BudgetListItemActions
                             budgetId={b.id}
+                            budgetStatus={b.status}
+                            invoices={mergeInvoiceIds(
+                              b.id,
+                              invoiceIdsByBudgetId,
+                              invoiceOverrides
+                            )}
+                            onInvoiceCreated={(
+                              pricingMode: InvoicePricingMode,
+                              invoiceId: string
+                            ) =>
+                              setInvoiceOverrides((prev) => {
+                                const slot = pricingModeToSlot(pricingMode);
+                                const cur = prev[b.id] ?? {};
+                                return {
+                                  ...prev,
+                                  [b.id]: { ...cur, [slot]: invoiceId },
+                                };
+                              })
+                            }
                             variant="icons"
                           />
                         </div>

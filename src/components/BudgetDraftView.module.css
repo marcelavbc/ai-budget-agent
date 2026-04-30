@@ -426,6 +426,21 @@
   gap: 0.75rem;
   align-items: stretch;
   margin-top: 32px;
+  flex-wrap: wrap;
+}
+
+.invoiceFooterCluster {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  flex: 1 1 280px;
+  align-items: stretch;
+}
+
+.invoiceFooterCluster .pdfBtn {
+  flex: 1 1 140px;
+  width: auto;
+  min-width: 0;
 }
 
 .pdfDropdown {

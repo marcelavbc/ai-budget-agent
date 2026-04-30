@@ -11,6 +11,13 @@
   flex-wrap: nowrap;
 }
 
+.invoicePair {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  flex-shrink: 0;
+}
+
 .error {
   width: 100%;
   margin: 0.35rem 0 0;

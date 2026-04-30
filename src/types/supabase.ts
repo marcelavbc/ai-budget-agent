@@ -132,6 +132,75 @@ export type Database = {
         };
         Relationships: [];
       };
+      invoices: {
+        Row: {
+          id: string;
+          budget_id: string | null;
+          client_id: string | null;
+          subtotal: number;
+          tax_rate: number;
+          tax_amount: number;
+          total: number;
+          pricing_mode: string;
+          created_at: string | null;
+        };
+        Insert: {
+          id?: string;
+          budget_id?: string | null;
+          client_id?: string | null;
+          subtotal?: number;
+          tax_rate?: number;
+          tax_amount?: number;
+          total?: number;
+          pricing_mode?: string;
+          created_at?: string | null;
+        };
+        Update: {
+          id?: string;
+          budget_id?: string | null;
+          client_id?: string | null;
+          subtotal?: number;
+          tax_rate?: number;
+          tax_amount?: number;
+          total?: number;
+          pricing_mode?: string;
+          created_at?: string | null;
+        };
+        Relationships: [];
+      };
+      invoice_lines: {
+        Row: {
+          id: string;
+          invoice_id: string;
+          description: string | null;
+          quantity: number | null;
+          unit_price: number | null;
+          subtotal: number | null;
+          sort_order: number | null;
+          created_at: string | null;
+        };
+        Insert: {
+          id?: string;
+          invoice_id: string;
+          description?: string | null;
+          quantity?: number | null;
+          unit_price?: number | null;
+          subtotal?: number | null;
+          sort_order?: number | null;
+          created_at?: string | null;
+        };
+        Update: {
+          id?: string;
+          invoice_id?: string;
+          description?: string | null;
+          quantity?: number | null;
+          unit_price?: number | null;
+          subtotal?: number | null;
+          sort_order?: number | null;
+          created_at?: string | null;
+        };
+        Relationships: [];
+      };
     };
     Views: Record<string, never>;
     Functions: Record<string, never>;

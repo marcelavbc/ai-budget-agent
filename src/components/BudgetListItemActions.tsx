@@ -1,28 +1,44 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useTransition } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { FileDown, Pencil, Trash2, ChevronDown } from "lucide-react";
+import { FileDown, Pencil, Percent, Receipt, Trash2, ChevronDown } from "lucide-react";
 import { ConfirmDialog } from "@/components/ConfirmDialog";
 import styles from "./BudgetListItemActions.module.css";
 import { usePdfExport } from "@/hooks/usePdfExport";
 import type { BudgetClientDetails, BudgetClientItem } from "@/types/budget";
 import type { BudgetLineRow, BudgetRow, ClientRow } from "@/types/budgetsDb";
 import { deleteBudgetWithLines, getBudgetExportData } from "@/lib/budgetsClient";
+import { createInvoiceFromBudget } from "@/lib/invoicesClient";
+import { normalizeBudgetStatus } from "@/lib/budgetStatus";
+import type { InvoicePricingMode } from "@/types/invoice";
 
 export function BudgetListItemActions({
   budgetId,
+  budgetStatus,
+  invoices,
+  onInvoiceCreated,
   variant = "full",
 }: {
   budgetId: string;
+  budgetStatus?: string | null;
+  invoices?: { withoutIva: string | null; withIva: string | null };
+  onInvoiceCreated?: (pricingMode: InvoicePricingMode, invoiceId: string) => void;
   variant?: "full" | "icons";
 }) {
   const { exportPdf, generating, pdfError, setPdfError } = usePdfExport();
   const [pdfMenuOpen, setPdfMenuOpen] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [confirmOpen, setConfirmOpen] = useState(false);
+  const [invoiceError, setInvoiceError] = useState<string | null>(null);
+  const [isInvoicing, startInvoicing] = useTransition();
+  const [invoicePricingBusy, setInvoicePricingBusy] =
+    useState<InvoicePricingMode | null>(null);
   const router = useRouter();
+
+  const isApproved = normalizeBudgetStatus(budgetStatus) === "approved";
+  const inv = invoices ?? { withoutIva: null, withIva: null };
 
   async function handleGeneratePdfLang(
     e: React.MouseEvent<HTMLButtonElement>,
@@ -95,83 +111,177 @@ export function BudgetListItemActions({
     }
   }
 
-  return (
-    <div className={`${styles.root} ${variant === "icons" ? styles.rootIcons : ""}`}>
-      <Link
-        href={`/budgets/${budgetId}/edit`}
-        onClick={(e) => e.stopPropagation()}
-        className={variant === "icons" ? styles.iconBtn : styles.btn}
-        aria-label="Editar pressupost"
-        title="Editar"
-      >
-        {variant === "icons" ? (
-          <Pencil size={18} aria-hidden="true" />
-        ) : (
-          "Editar"
-        )}
-      </Link>
-      <div
-        className={styles.dropdown}
-        onClick={(e) => e.stopPropagation()}
-        onKeyDown={(e) => {
-          if (e.key === "Escape") setPdfMenuOpen(false);
-        }}
-      >
-        <button
-          type="button"
-          disabled={generating}
-          className={
-            variant === "icons"
-              ? styles.iconBtn
-              : `${styles.btn} ${styles.primary}`
-          }
-          aria-busy={generating || undefined}
-          aria-haspopup="menu"
-          aria-expanded={pdfMenuOpen}
-          onClick={(e) => {
-            e.preventDefault();
-            setPdfMenuOpen((v) => !v);
-          }}
-          title="PDF"
+  function startCreateInvoice(pricingMode: InvoicePricingMode) {
+    if (isInvoicing || invoicePricingBusy) return;
+    setInvoiceError(null);
+    setInvoicePricingBusy(pricingMode);
+    startInvoicing(() => {
+      void (async () => {
+        try {
+          const { invoiceId: createdId } = await createInvoiceFromBudget(
+            budgetId,
+            pricingMode
+          );
+          onInvoiceCreated?.(pricingMode, createdId);
+          router.push(`/invoices/${createdId}`);
+          router.refresh();
+        } catch (err) {
+          setInvoiceError(
+            err instanceof Error
+              ? err.message
+              : "No s'ha pogut generar la factura."
+          );
+        } finally {
+          setInvoicePricingBusy(null);
+        }
+      })();
+    });
+  }
+
+  function renderInvoiceControl(pricingMode: InvoicePricingMode) {
+    const id =
+      pricingMode === "without_iva" ? inv.withoutIva : inv.withIva;
+    const resolved = id?.trim() ? id : null;
+    const busy = invoicePricingBusy === pricingMode;
+    const Icon = pricingMode === "without_iva" ? Receipt : Percent;
+    const shortTitle =
+      pricingMode === "without_iva" ? "Sense IVA" : "Amb IVA";
+
+    if (resolved) {
+      return (
+        <Link
+          key={pricingMode}
+          href={`/invoices/${resolved}`}
+          onClick={(e) => e.stopPropagation()}
+          className={variant === "icons" ? styles.iconBtn : styles.btn}
+          aria-label={`Veure factura ${shortTitle}`}
+          title={`Veure factura (${shortTitle})`}
         >
           {variant === "icons" ? (
-            generating ? (
-              "…"
-            ) : (
-              <FileDown size={18} aria-hidden="true" />
-            )
-          ) : generating ? (
-            "PDF…"
+            <Icon size={18} aria-hidden="true" />
           ) : (
-            <>
-              PDF <ChevronDown size={16} aria-hidden="true" />
-            </>
+            `Veure · ${shortTitle}`
           )}
-        </button>
+        </Link>
+      );
+    }
 
-        {pdfMenuOpen ? (
-          <div className={styles.dropdownMenu} role="menu">
-            <button
-              type="button"
-              className={styles.menuItem}
-              role="menuitem"
-              disabled={generating}
-              onClick={(e) => handleGeneratePdfLang(e, "ca")}
-            >
-              Català <span className={styles.menuHint}>PDF</span>
-            </button>
-            <button
-              type="button"
-              className={styles.menuItem}
-              role="menuitem"
-              disabled={generating}
-              onClick={(e) => handleGeneratePdfLang(e, "es")}
-            >
-              Castellano <span className={styles.menuHint}>PDF</span>
-            </button>
-          </div>
-        ) : null}
-      </div>
+    return (
+      <button
+        key={pricingMode}
+        type="button"
+        className={variant === "icons" ? styles.iconBtn : styles.btn}
+        disabled={busy || isInvoicing}
+        aria-busy={busy || undefined}
+        aria-label={`Generar factura ${shortTitle}`}
+        title={`Generar factura (${shortTitle})`}
+        onClick={(e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          startCreateInvoice(pricingMode);
+        }}
+      >
+        {variant === "icons" ? (
+          busy ? (
+            "…"
+          ) : (
+            <Icon size={18} aria-hidden="true" />
+          )
+        ) : busy ? (
+          "…"
+        ) : (
+          `Factura · ${shortTitle}`
+        )}
+      </button>
+    );
+  }
+
+  return (
+    <div className={`${styles.root} ${variant === "icons" ? styles.rootIcons : ""}`}>
+      {isApproved ? (
+        <div className={styles.invoicePair}>
+          {renderInvoiceControl("without_iva")}
+          {renderInvoiceControl("with_iva")}
+        </div>
+      ) : (
+        <Link
+          href={`/budgets/${budgetId}/edit`}
+          onClick={(e) => e.stopPropagation()}
+          className={variant === "icons" ? styles.iconBtn : styles.btn}
+          aria-label="Editar pressupost"
+          title="Editar"
+        >
+          {variant === "icons" ? (
+            <Pencil size={18} aria-hidden="true" />
+          ) : (
+            "Editar"
+          )}
+        </Link>
+      )}
+      {!isApproved ? (
+        <div
+          className={styles.dropdown}
+          onClick={(e) => e.stopPropagation()}
+          onKeyDown={(e) => {
+            if (e.key === "Escape") setPdfMenuOpen(false);
+          }}
+        >
+          <button
+            type="button"
+            disabled={generating}
+            className={
+              variant === "icons"
+                ? styles.iconBtn
+                : `${styles.btn} ${styles.primary}`
+            }
+            aria-busy={generating || undefined}
+            aria-haspopup="menu"
+            aria-expanded={pdfMenuOpen}
+            onClick={(e) => {
+              e.preventDefault();
+              setPdfMenuOpen((v) => !v);
+            }}
+            title="PDF"
+          >
+            {variant === "icons" ? (
+              generating ? (
+                "…"
+              ) : (
+                <FileDown size={18} aria-hidden="true" />
+              )
+            ) : generating ? (
+              "PDF…"
+            ) : (
+              <>
+                PDF <ChevronDown size={16} aria-hidden="true" />
+              </>
+            )}
+          </button>
+
+          {pdfMenuOpen ? (
+            <div className={styles.dropdownMenu} role="menu">
+              <button
+                type="button"
+                className={styles.menuItem}
+                role="menuitem"
+                disabled={generating}
+                onClick={(e) => handleGeneratePdfLang(e, "ca")}
+              >
+                Català <span className={styles.menuHint}>PDF</span>
+              </button>
+              <button
+                type="button"
+                className={styles.menuItem}
+                role="menuitem"
+                disabled={generating}
+                onClick={(e) => handleGeneratePdfLang(e, "es")}
+              >
+                Castellano <span className={styles.menuHint}>PDF</span>
+              </button>
+            </div>
+          ) : null}
+        </div>
+      ) : null}
 
       <button
         type="button"
@@ -210,12 +320,16 @@ export function BudgetListItemActions({
         onConfirm={handleConfirmDelete}
       />
 
-      {pdfError ? (
+      {!isApproved && pdfError ? (
         <p className={styles.error} role="alert">
           {pdfError}
+        </p>
+      ) : null}
+      {invoiceError ? (
+        <p className={styles.error} role="alert">
+          {invoiceError}
         </p>
       ) : null}
     </div>
   );
 }
-

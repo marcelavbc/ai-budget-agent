@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { getBudgets, getRecentBudgetActivity } from "@/lib/budgets";
+import { getInvoiceDashboardStats } from "@/lib/invoices";
 import { formatEUR } from "@/lib/formatCurrency";
 import { budgetStatusLabel, normalizeBudgetStatus } from "@/lib/budgetStatus";
 
@@ -20,9 +21,10 @@ function badgeClass(value: ReturnType<typeof normalizeBudgetStatus>): string {
 }
 
 export default async function HomePage() {
-  const [budgets, recent] = await Promise.all([
+  const [budgets, recent, invoiceStats] = await Promise.all([
     getBudgets(),
     getRecentBudgetActivity(5),
+    getInvoiceDashboardStats(),
   ]);
 
   const totals = {
@@ -162,14 +164,33 @@ export default async function HomePage() {
             )}
           </div>
 
-          <div className={`${styles.panel} ${styles.panelPlaceholder}`}>
+          <div className={styles.panel}>
             <div className={styles.panelTop}>
               <h2 className={styles.panelTitle}>Factures</h2>
-              <span className={styles.soon}>Pròximament</span>
+            </div>
+            <div className={styles.invoiceMetrics}>
+              <div className={styles.invoiceMetric}>
+                <p className={styles.invoiceMetricKicker}>Sense IVA</p>
+                <p className={styles.invoiceMetricValue}>
+                  {invoiceStats.countWithoutIva}
+                </p>
+                <p className={styles.invoiceMetricHint}>
+                  Total: {formatEUR(invoiceStats.totalWithoutIva)}
+                </p>
+              </div>
+              <div className={styles.invoiceMetric}>
+                <p className={styles.invoiceMetricKicker}>Amb IVA</p>
+                <p className={styles.invoiceMetricValue}>
+                  {invoiceStats.countWithIva}
+                </p>
+                <p className={styles.invoiceMetricHint}>
+                  Total: {formatEUR(invoiceStats.totalWithIva)}
+                </p>
+              </div>
             </div>
             <p className={styles.emptyText}>
-              Aquesta secció servirà per veure factures, imports pendents i
-              conciliació. De moment, estem centrats en els pressupostos.
+              Suma dels totals de factura per tipus (els imports segueixen el
+              mode triat a cada factura).
             </p>
           </div>
         </section>

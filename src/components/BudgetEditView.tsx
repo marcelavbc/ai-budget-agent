@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import type { BudgetClientDetails, BudgetClientItem } from "@/types/budget";
 import type { BudgetLineRow, BudgetRow, ClientRow } from "@/types/budgetsDb";
@@ -8,9 +8,12 @@ import { normalizeBudgetStatus } from "@/lib/budgetStatus";
 import { BudgetDraftView } from "@/components/BudgetDraftView";
 import { BudgetAIInput } from "@/components/BudgetAIInput";
 import { updateBudgetWithLines } from "@/lib/budgetsClient";
+import { createInvoiceFromBudget } from "@/lib/invoicesClient";
 import { useGenerateBudgetDraft } from "@/hooks/useGenerateBudgetDraft";
 import { budgetLinesToClientItems } from "@/lib/budgetLineToClientItem";
 import { useQuoteNumber } from "@/hooks/useQuoteNumber";
+import type { InvoicePricingMode } from "@/types/invoice";
+import styles from "./BudgetDraftView.module.css";
 
 function round2(n: number) {
   return Math.round(n * 100) / 100;
@@ -28,13 +31,21 @@ export function BudgetEditView({
   budget,
   client,
   lines,
+  invoiceWithoutIvaId,
+  invoiceWithIvaId,
 }: {
   budget: BudgetRow;
   client: ClientRow;
   lines: BudgetLineRow[];
+  invoiceWithoutIvaId?: string | null;
+  invoiceWithIvaId?: string | null;
 }) {
   const router = useRouter();
   const { submit, loading, formError } = useGenerateBudgetDraft();
+  const [invoiceError, setInvoiceError] = useState<string | null>(null);
+  const [isGeneratingInvoice, startGeneratingInvoice] = useTransition();
+  const [invoiceBusyMode, setInvoiceBusyMode] =
+    useState<InvoicePricingMode | null>(null);
 
   const initialClient: BudgetClientDetails = useMemo(
     () => ({
@@ -74,7 +85,6 @@ export function BudgetEditView({
     useState<BudgetClientDetails>(initialClient);
   const [items, setItems] = useState<BudgetClientItem[]>(initialItems);
 
-  // In edit mode, avoid auto-overwriting quote numbers unless the user explicitly resets.
   const {
     quoteManuallyEdited,
     setClientWithAutoQuote,
@@ -99,6 +109,32 @@ export function BudgetEditView({
       status: normalizeBudgetStatus(budget.status),
     });
     router.push(`/budgets/${budget.id}`);
+  }
+
+  const status = normalizeBudgetStatus(budget.status);
+  const showInvoiceActions = status === "approved";
+  const invoicePending = invoiceBusyMode !== null;
+
+  function runCreateInvoice(mode: InvoicePricingMode) {
+    if (isGeneratingInvoice || invoiceBusyMode) return;
+    setInvoiceError(null);
+    setInvoiceBusyMode(mode);
+    startGeneratingInvoice(() => {
+      void (async () => {
+        try {
+          const { invoiceId } = await createInvoiceFromBudget(budget.id, mode);
+          router.push(`/invoices/${invoiceId}`);
+        } catch (e) {
+          setInvoiceError(
+            e instanceof Error
+              ? e.message
+              : "No s'ha pogut generar la factura."
+          );
+        } finally {
+          setInvoiceBusyMode(null);
+        }
+      })();
+    });
   }
 
   return (
@@ -134,6 +170,66 @@ export function BudgetEditView({
       onResetQuoteAutomation={resetAutomation}
       onBack={() => router.push(`/budgets/${budget.id}`)}
       onSave={handleSave}
+      showPdf={status !== "approved"}
+      footerNotice={
+        invoiceError ? (
+          <p className={styles.saveError} role="alert">
+            {invoiceError}
+          </p>
+        ) : null
+      }
+      footerActions={
+        showInvoiceActions ? (
+          <div className={styles.invoiceFooterCluster}>
+            {invoiceWithoutIvaId?.trim() ? (
+              <button
+                type="button"
+                className={styles.pdfBtn}
+                onClick={() =>
+                  router.push(`/invoices/${invoiceWithoutIvaId.trim()}`)
+                }
+              >
+                Veure sense IVA
+              </button>
+            ) : (
+              <button
+                type="button"
+                className={styles.pdfBtn}
+                disabled={invoicePending}
+                aria-busy={invoiceBusyMode === "without_iva" ? true : undefined}
+                onClick={() => runCreateInvoice("without_iva")}
+              >
+                {invoiceBusyMode === "without_iva"
+                  ? "Generant…"
+                  : "Generar sense IVA"}
+              </button>
+            )}
+            {invoiceWithIvaId?.trim() ? (
+              <button
+                type="button"
+                className={styles.pdfBtn}
+                onClick={() =>
+                  router.push(`/invoices/${invoiceWithIvaId.trim()}`)
+                }
+              >
+                Veure amb IVA
+              </button>
+            ) : (
+              <button
+                type="button"
+                className={styles.pdfBtn}
+                disabled={invoicePending}
+                aria-busy={invoiceBusyMode === "with_iva" ? true : undefined}
+                onClick={() => runCreateInvoice("with_iva")}
+              >
+                {invoiceBusyMode === "with_iva"
+                  ? "Generant…"
+                  : "Generar amb IVA"}
+              </button>
+            )}
+          </div>
+        ) : null
+      }
     />
   );
 }
