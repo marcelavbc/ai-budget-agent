@@ -30,15 +30,44 @@ const COLORS = {
   accent: hexToRgb(C.goldMedium),
 };
 
-async function loadImageAsDataUrl(src: string): Promise<string> {
-  const response = await fetch(src);
-  const blob = await response.blob();
-
+/**
+ * Loads an image and returns an optimised JPEG data-URL.
+ *
+ * Before: raw PNG → base64  (~10 MB in the resulting PDF)
+ * After:  PNG → canvas (max 300 px wide, white background) → JPEG 0.65 quality
+ *         → typically < 1 MB in the resulting PDF
+ */
+async function loadOptimizedImageAsDataUrl(src: string): Promise<string> {
   return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onloadend = () => resolve(reader.result as string);
-    reader.onerror = reject;
-    reader.readAsDataURL(blob);
+    const img = new Image();
+    img.crossOrigin = "anonymous";
+
+    img.onload = () => {
+      const MAX_WIDTH = 300;
+      const scale =
+        img.naturalWidth > MAX_WIDTH ? MAX_WIDTH / img.naturalWidth : 1;
+      const w = Math.round(img.naturalWidth * scale);
+      const h = Math.round(img.naturalHeight * scale);
+
+      const canvas = document.createElement("canvas");
+      canvas.width = w;
+      canvas.height = h;
+      const ctx = canvas.getContext("2d");
+      if (!ctx) {
+        reject(new Error("Could not get 2D canvas context"));
+        return;
+      }
+
+      // White background avoids transparency artefacts in JPEG output.
+      ctx.fillStyle = "#ffffff";
+      ctx.fillRect(0, 0, w, h);
+      ctx.drawImage(img, 0, 0, w, h);
+
+      resolve(canvas.toDataURL("image/jpeg", 0.65));
+    };
+
+    img.onerror = () => reject(new Error("Failed to load image: " + src));
+    img.src = src;
   });
 }
 
@@ -113,14 +142,14 @@ export async function generateBudgetPdf({
   items,
   lang = "ca",
 }: GenerateBudgetPdfInput): Promise<Blob> {
-  const doc = new jsPDF({ unit: "pt", format: "a4" });
-  const logoDataUrl = await loadImageAsDataUrl("/logo-sanmarti.png");
+  const doc = new jsPDF({ unit: "pt", format: "a4", compress: true });
+  const logoDataUrl = await loadOptimizedImageAsDataUrl("/logo-sanmarti.png");
   const logoNatural = await naturalSizeFromDataUrl(logoDataUrl);
   const { w: logoW, h: logoH } = fitLogoSize(
     logoNatural.w,
     logoNatural.h,
-    380,
-    136
+    300,
+    110
   );
 
   const pageWidth = doc.internal.pageSize.getWidth();
@@ -177,7 +206,7 @@ export async function generateBudgetPdf({
     const left = marginX;
     const right = pageWidth - marginX;
 
-    doc.addImage(logoDataUrl, "PNG", left, logoTopY, logoW, logoH);
+    doc.addImage(logoDataUrl, "JPEG", left, logoTopY, logoW, logoH);
 
     const quote = safeTrim(client.quoteNumber);
     if (quote.length > 0) {
@@ -474,26 +503,30 @@ export async function generateBudgetPdf({
     return titles[0]!;
   }
 
-  function drawFinalTextSection(input: {
-    heading: string;
-    materials: string;
-    payment: string;
-    validity: string;
-    generalConditions: string[];
-  }) {
+  function drawFinalTextSection(
+    input: {
+      heading: string;
+      materials: string;
+      payment: string;
+      validity: string;
+      generalConditions: string[];
+    },
+    dryRun = false
+  ) {
     const width = pageWidth - marginX * 2;
     const bodyW = width;
 
-    ensureSpace(80);
+    if (!dryRun) ensureSpace(80);
 
     doc.setFont("helvetica", "bold");
     doc.setFontSize(12.5);
-    setTextColor(doc, COLORS.text);
-    doc.text(input.heading, marginX, y);
-
-    doc.setDrawColor(COLORS.accent.r, COLORS.accent.g, COLORS.accent.b);
-    doc.setLineWidth(1);
-    doc.line(marginX, y + 10, marginX + 120, y + 10);
+    if (!dryRun) {
+      setTextColor(doc, COLORS.text);
+      doc.text(input.heading, marginX, y);
+      doc.setDrawColor(COLORS.accent.r, COLORS.accent.g, COLORS.accent.b);
+      doc.setLineWidth(1);
+      doc.line(marginX, y + 10, marginX + 120, y + 10);
+    }
 
     y += 32;
 
@@ -504,12 +537,14 @@ export async function generateBudgetPdf({
     if (ivaSentence) {
       doc.setFont("helvetica", "bold");
       doc.setFontSize(10.8);
-      setTextColor(doc, COLORS.text);
 
       const ivaLines = doc.splitTextToSize(ivaSentence, bodyW) as string[];
       for (const line of ivaLines) {
-        ensureSpace(14 + 6);
-        doc.text(line, marginX, y);
+        if (!dryRun) {
+          ensureSpace(14 + 6);
+          setTextColor(doc, COLORS.text);
+          doc.text(line, marginX, y);
+        }
         y += 14;
       }
 
@@ -527,13 +562,15 @@ export async function generateBudgetPdf({
 
     doc.setFont("helvetica", "normal");
     doc.setFontSize(10);
-    setTextColor(doc, COLORS.muted);
 
     for (const paragraph of paragraphs) {
       const wrapped = doc.splitTextToSize(paragraph, bodyW) as string[];
       for (const line of wrapped) {
-        ensureSpace(13 + 10);
-        doc.text(line, marginX, y);
+        if (!dryRun) {
+          ensureSpace(13 + 10);
+          setTextColor(doc, COLORS.muted);
+          doc.text(line, marginX, y);
+        }
         y += 13;
       }
 
@@ -586,15 +623,23 @@ export async function generateBudgetPdf({
   }
 
   addPageBase("rest");
-  y += 4;
 
-  drawFinalTextSection({
+  const finalSectionInput = {
     heading: labels.finalSection.heading,
     materials: finalSectionCopy.materials,
     payment: finalSectionCopy.payment,
     validity: finalSectionCopy.validity,
     generalConditions: finalSectionCopy.generalConditions,
-  });
+  };
+
+  // Measure content height with a dry run, then vertically center on the page.
+  const pageContentStartY = y;
+  drawFinalTextSection(finalSectionInput, true);
+  const contentHeight = y - pageContentStartY;
+  const availableHeight = contentBottomY - pageContentStartY;
+  y = pageContentStartY + Math.max(0, Math.floor((availableHeight - contentHeight) / 2));
+
+  drawFinalTextSection(finalSectionInput);
 
   const totalPages = doc.getNumberOfPages();
 
