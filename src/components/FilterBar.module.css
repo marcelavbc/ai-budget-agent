@@ -62,6 +62,38 @@
   color: var(--text);
 }
 
+.controlYearLabelBtn {
+  appearance: none;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  font: inherit;
+  min-width: 7.5rem;
+  max-width: min(42vw, 11rem);
+  padding: 0 4px;
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+  font-weight: 650;
+  letter-spacing: -0.01em;
+  color: var(--text);
+  border-radius: 8px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  transition: background 120ms ease;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .controlYearLabelBtn:hover {
+    background: var(--bg-subtle);
+  }
+}
+
+.controlYearLabelBtn:focus-visible {
+  outline: 2px solid var(--focus-ring);
+  outline-offset: 2px;
+}
+
 .controlLabelActive {
   box-shadow: inset 0 -2px 0 0
     color-mix(in srgb, var(--brand-accent) 45%, transparent);

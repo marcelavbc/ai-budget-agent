@@ -19,6 +19,8 @@ const monthLabels = [
   { n: 12, label: "Des" },
 ] as const;
 
+const MIN_YEAR = 2000;
+
 function parseIntSafe(v: string | null): number | null {
   if (!v) return null;
   const n = Number.parseInt(v, 10);
@@ -33,8 +35,11 @@ export function FilterBar() {
   const lastClickedMonthRef = useRef<number | null>(null);
 
   const nowYear = new Date().getFullYear();
-  const paramYear = parseIntSafe(searchParams.get("year"));
-  const activeYear = Math.min(paramYear ?? nowYear, nowYear);
+  const yearFromUrl = parseIntSafe(searchParams.get("year"));
+  const hasConcreteYear =
+    yearFromUrl != null && yearFromUrl >= MIN_YEAR && yearFromUrl <= nowYear;
+  const navigableYear =
+    hasConcreteYear && yearFromUrl != null ? yearFromUrl : nowYear;
 
   const selectedMonths = useMemo(() => {
     const raw = searchParams.getAll("month");
@@ -52,11 +57,22 @@ export function FilterBar() {
     router.push(qs ? `${pathname}?${qs}` : pathname);
   }
 
-  function setYear(nextYear: number) {
-    const clamped = Math.min(nextYear, nowYear);
+  function setYearParam(nextYear: number) {
+    const clamped = Math.min(Math.max(nextYear, MIN_YEAR), nowYear);
     const next = new URLSearchParams(searchParams.toString());
     next.set("year", String(clamped));
     push(next);
+  }
+
+  function clearYearParam() {
+    const next = new URLSearchParams(searchParams.toString());
+    next.delete("year");
+    push(next);
+  }
+
+  function toggleYearScope() {
+    if (hasConcreteYear) clearYearParam();
+    else setYearParam(nowYear);
   }
 
   function setMonths(nextSelected: Set<number>) {
@@ -66,7 +82,6 @@ export function FilterBar() {
     const months = [...nextSelected].sort((a, b) => a - b);
     for (const m of months) next.append("month", String(m));
 
-    if (months.length > 0 && !next.get("year")) next.set("year", String(nowYear));
     push(next);
   }
 
@@ -127,18 +142,29 @@ export function FilterBar() {
         <button
           type="button"
           className={styles.controlButton}
-          onClick={() => setYear(activeYear - 1)}
+          onClick={() => setYearParam(navigableYear - 1)}
           aria-label="Any anterior"
+          disabled={!hasConcreteYear || navigableYear <= MIN_YEAR}
         >
           ←
         </button>
-        <span className={styles.controlLabel}>{activeYear}</span>
+        <button
+          type="button"
+          className={styles.controlYearLabelBtn}
+          onClick={toggleYearScope}
+          aria-pressed={hasConcreteYear}
+          title={
+            hasConcreteYear ? "Mostrar tots els anys" : "Triar un any concret"
+          }
+        >
+          {hasConcreteYear ? String(yearFromUrl) : "Tots els anys"}
+        </button>
         <button
           type="button"
           className={styles.controlButton}
-          onClick={() => setYear(activeYear + 1)}
+          onClick={() => setYearParam(navigableYear + 1)}
           aria-label="Any següent"
-          disabled={activeYear >= nowYear}
+          disabled={!hasConcreteYear || navigableYear >= nowYear}
         >
           →
         </button>
@@ -195,4 +221,3 @@ export function FilterBar() {
     </div>
   );
 }
-

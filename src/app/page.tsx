@@ -12,24 +12,47 @@ type SearchParams = Record<string, string | string[] | undefined>;
 
 function formatFilterLabel(filter: DateFilter): string {
   if (!filter) return "Tots els temps";
+
   const months = filter.months ?? [];
-  if (months.length === 0) return String(filter.year);
-  if (months.length === 1) {
-    const dt = new Date(Date.UTC(filter.year, months[0] - 1, 1));
+  const hasYear = typeof filter.year === "number";
+  const multiMonthLabel = (ms: number[]) => {
+    const labels = ms
+      .slice(0, 4)
+      .map((m) =>
+        new Intl.DateTimeFormat("ca-ES", { month: "short" }).format(
+          new Date(Date.UTC(2000, m - 1, 1))
+        )
+      )
+      .map((s) => s.replace(".", ""));
+    const extra = ms.length > 4 ? ` +${ms.length - 4}` : "";
+    return `${labels.join(", ")}${extra}`;
+  };
+
+  if (months.length === 0 && hasYear) return String(filter.year);
+
+  if (months.length === 1 && !hasYear) {
+    const dt = new Date(Date.UTC(2000, months[0] - 1, 1));
+    const month = new Intl.DateTimeFormat("ca-ES", { month: "long" }).format(dt);
+    const titleMonth = month.charAt(0).toUpperCase() + month.slice(1);
+    return `${titleMonth} · Tots els anys`;
+  }
+
+  if (months.length > 1 && !hasYear) {
+    return `${multiMonthLabel(months)} · Tots els anys`;
+  }
+
+  if (months.length === 1 && hasYear) {
+    const dt = new Date(Date.UTC(filter.year!, months[0] - 1, 1));
     const month = new Intl.DateTimeFormat("ca-ES", { month: "long" }).format(dt);
     const titleMonth = month.charAt(0).toUpperCase() + month.slice(1);
     return `${titleMonth} ${filter.year}`;
   }
-  const labels = months
-    .slice(0, 4)
-    .map((m) =>
-      new Intl.DateTimeFormat("ca-ES", { month: "short" }).format(
-        new Date(Date.UTC(filter.year, m - 1, 1))
-      )
-    )
-    .map((s) => s.replace(".", ""));
-  const extra = months.length > 4 ? ` +${months.length - 4}` : "";
-  return `${filter.year} · ${labels.join(", ")}${extra}`;
+
+  if (months.length > 1 && hasYear) {
+    return `${filter.year} · ${multiMonthLabel(months)}`;
+  }
+
+  return "Tots els temps";
 }
 
 export default async function HomePage(props: { searchParams?: SearchParams }) {

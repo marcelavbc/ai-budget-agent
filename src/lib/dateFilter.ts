@@ -1,4 +1,5 @@
-export type DateFilter = { months?: number[]; year: number } | null;
+/** `year` absent = all years (still combinable with `months`). */
+export type DateFilter = { year?: number; months?: number[] } | null;
 
 type SearchParamValue = string | string[] | undefined;
 
@@ -23,8 +24,10 @@ function isValidMonth(month: number): boolean {
 
 /**
  * Parses URL search params (`?month=1&month=3&year=2026`) into a DateFilter.
- * - If only `year` is present: filters the whole year
- * - If `month` is present without `year`: defaults to the current year
+ * - No `year` and no `month`: no filter (all time)
+ * - Only `year`: that calendar year
+ * - Only `month` (repeatable): those months across **all** years
+ * - Both: those months inside that year
  */
 export function parseDateFilter(params: {
   month?: SearchParamValue;
@@ -32,9 +35,14 @@ export function parseDateFilter(params: {
 }): DateFilter {
   const yearRaw = firstParam(params.year);
 
-  const year = parseIntSafe(yearRaw);
-
+  const yearParsedRaw = parseIntSafe(yearRaw);
   const nowYear = new Date().getFullYear();
+
+  let yearParsed = yearParsedRaw;
+  if (yearParsed != null) {
+    if (!isValidYear(yearParsed)) yearParsed = null;
+    else if (yearParsed > nowYear) yearParsed = nowYear;
+  }
 
   const monthValues = (() => {
     const raw = params.month;
@@ -46,13 +54,23 @@ export function parseDateFilter(params: {
     return [...new Set(out)].sort((a, b) => a - b);
   })();
 
-  if (monthValues.length === 0 && year == null) return null;
+  if (monthValues.length === 0 && yearParsed == null) return null;
 
-  const resolvedYear = year ?? (monthValues.length ? nowYear : null);
-  if (resolvedYear == null || !isValidYear(resolvedYear)) return null;
+  if (monthValues.length === 0) {
+    if (yearParsed != null && !isValidYear(yearParsed)) return null;
+    if (yearParsed == null) return null;
+    return { year: yearParsed };
+  }
 
-  if (monthValues.length === 0) return { year: resolvedYear };
-  return { year: resolvedYear, months: monthValues };
+  if (yearParsed == null) {
+    return { months: monthValues };
+  }
+
+  if (!isValidYear(yearParsed)) {
+    return { months: monthValues };
+  }
+
+  return { year: yearParsed, months: monthValues };
 }
 
 /**
@@ -69,7 +87,7 @@ export function dateFilterRange(
   if (!f) return null;
 
   const year = f.year;
-  if (!isValidYear(year)) return null;
+  if (typeof year !== "number" || !isValidYear(year)) return null;
 
   const start = new Date(Date.UTC(year, 0, 1, 0, 0, 0, 0));
   const end = new Date(Date.UTC(year, 11, 31, 23, 59, 59, 999));
@@ -78,11 +96,20 @@ export function dateFilterRange(
 
 export function matchesDateFilter(createdAt: string | null, f: DateFilter): boolean {
   if (!f) return true;
+
   const months = f.months ?? [];
-  if (months.length === 0) return true;
+  const hasMonths = months.length > 0;
+  const hasYear = typeof f.year === "number";
+
+  if (!hasYear && !hasMonths) return true;
+
   if (!createdAt) return false;
   const dt = new Date(createdAt);
   if (Number.isNaN(dt.getTime())) return false;
+
+  if (hasYear && dt.getUTCFullYear() !== f.year) return false;
+
+  if (!hasMonths) return true;
   const month = dt.getUTCMonth() + 1;
   return months.includes(month);
 }
