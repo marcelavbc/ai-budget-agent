@@ -164,6 +164,7 @@ export function BudgetsView({
       return true;
     });
   }, [items, query, selectedStatuses, dateFrom, dateTo]);
+  console.log(filtered);
 
   const customHasDates =
     period === "custom" && (dateFrom.trim() !== "" || dateTo.trim() !== "");
@@ -354,155 +355,77 @@ export function BudgetsView({
       </section>
 
       <div className={styles.resultsScroll}>
-      {filtered.length === 0 ? (
-        <section className={styles.emptyResults} aria-live="polite">
-          <Brush className={styles.emptyIcon} aria-hidden="true" />
-          <h2 className={styles.emptyTitle}>
-            Cap resultat amb aquests filtres.
-          </h2>
-          <p className={styles.emptyText}>
-            Prova a canviar la cerca, l’estat o la data.
-          </p>
-          <div className={styles.emptyCtas}>
-            <button type="button" className={styles.actionBtn} onClick={reset}>
-              Netejar filtres
-            </button>
-          </div>
-        </section>
-      ) : (
-        <>
-          {/* Mobile: cards */}
-          <ul className={`${styles.list} ${styles.listMobile}`}>
-            {filtered.map((b) => {
-              const title = (b.title ?? "").trim() || "Pressupost sense títol";
-              const quote = (b.quote_number ?? "").trim();
-              const docDate = formatDate(b.document_date);
-              const total = formatEUR(b.total ?? 0);
+        {filtered.length === 0 ? (
+          <section className={styles.emptyResults} aria-live="polite">
+            <Brush className={styles.emptyIcon} aria-hidden="true" />
+            <h2 className={styles.emptyTitle}>
+              Cap resultat amb aquests filtres.
+            </h2>
+            <p className={styles.emptyText}>
+              Prova a canviar la cerca, l’estat o la data.
+            </p>
+            <div className={styles.emptyCtas}>
+              <button
+                type="button"
+                className={styles.actionBtn}
+                onClick={reset}
+              >
+                Netejar filtres
+              </button>
+            </div>
+          </section>
+        ) : (
+          <>
+            {/* Mobile: cards */}
+            <ul className={`${styles.list} ${styles.listMobile}`}>
+              {filtered.map((b) => {
+                const title =
+                  (b.title ?? "").trim() || "Pressupost sense títol";
+                const quote = (b.quote_number ?? "").trim();
+                const docDate = formatDate(b.document_date);
+                const total = formatEUR(b.total ?? 0);
 
-              return (
-                <li key={b.id}>
-                  <div className={styles.card}>
-                    <div className={styles.cardTop}>
-                      <div className={styles.cardTopLeft}>
-                        <Link
-                          className={styles.cardTitleLink}
-                          href={`/budgets/${b.id}/edit`}
-                        >
-                          <h3 className={styles.cardTitle}>{title}</h3>
-                        </Link>
-                      </div>
-                      <span className={styles.total}>{total}</span>
-                    </div>
-
-                    <div className={styles.cardFooter}>
-                      <div className={styles.meta}>
-                        <StatusPill
-                          budgetId={b.id}
-                          initialStatus={b.status}
-                          onStatusChange={(next) => setBudgetStatus(b.id, next)}
-                        />
-
-                        {docDate ? (
-                          <span>
-                            <span className={styles.k}>Data</span>
-                            {docDate}
-                          </span>
-                        ) : null}
-
-                        {quote ? (
-                          <span>
-                            <span className={styles.k}>Núm.</span>
-                            {quote}
-                          </span>
-                        ) : null}
+                return (
+                  <li key={b.id}>
+                    <div className={styles.card}>
+                      <div className={styles.cardTop}>
+                        <div className={styles.cardTopLeft}>
+                          <Link
+                            className={styles.cardTitleLink}
+                            href={`/budgets/${b.id}/edit`}
+                          >
+                            <h3 className={styles.cardTitle}>{title}</h3>
+                          </Link>
+                        </div>
+                        <span className={styles.total}>{total}</span>
                       </div>
 
-                      <div className={styles.cardActions}>
-                        <BudgetListItemActions
-                          budgetId={b.id}
-                          budgetStatus={b.status}
-                          invoices={mergeInvoiceIds(
-                            b.id,
-                            invoiceIdsByBudgetId,
-                            invoiceOverrides
-                          )}
-                          onInvoiceCreated={(
-                            pricingMode: InvoicePricingMode,
-                            invoiceId: string
-                          ) =>
-                            setInvoiceOverrides((prev) => {
-                              const slot = pricingModeToSlot(pricingMode);
-                              const cur = prev[b.id] ?? {};
-                              return {
-                                ...prev,
-                                [b.id]: { ...cur, [slot]: invoiceId },
-                              };
-                            })
-                          }
-                          variant="icons"
-                        />
-                      </div>
-                    </div>
-                  </div>
-                </li>
-              );
-            })}
-          </ul>
+                      <div className={styles.cardFooter}>
+                        <div className={styles.meta}>
+                          <StatusPill
+                            budgetId={b.id}
+                            initialStatus={b.status}
+                            onStatusChange={(next) =>
+                              setBudgetStatus(b.id, next)
+                            }
+                          />
 
-          {/* Desktop: table */}
-          <div className={styles.tableWrap}>
-            <table className={styles.table}>
-              <thead>
-                <tr>
-                  <th className={styles.th}>Núm. pressupost</th>
-                  <th className={styles.th}>Client</th>
-                  <th className={styles.th}>Data</th>
-                  <th className={`${styles.th} ${styles.colAmount} ${styles.thAmount}`}>
-                    Import
-                  </th>
-                  <th className={`${styles.th} ${styles.colStatus}`}>Estat</th>
-                  <th className={`${styles.th} ${styles.colActions}`}>
-                    Accions
-                  </th>
-                </tr>
-              </thead>
-              <tbody>
-                {filtered.map((b) => {
-                  const quote = (b.quote_number ?? "").trim() || "—";
-                  const client = (b.title ?? "").trim() || "—";
-                  const docDate = formatDate(b.document_date) ?? "—";
-                  const total = formatEUR(b.total ?? 0);
+                          {docDate ? (
+                            <span>
+                              <span className={styles.k}>Data</span>
+                              {docDate}
+                            </span>
+                          ) : null}
 
-                  return (
-                    <tr key={b.id} className={styles.tr}>
-                      <td className={`${styles.td} ${styles.colQuote}`}>
-                        <Link
-                          className={styles.quoteLink}
-                          href={`/budgets/${b.id}/edit`}
-                        >
-                          {quote}
-                        </Link>
-                      </td>
-                      <td className={`${styles.td} ${styles.colClient}`}>
-                        {client}
-                      </td>
-                      <td className={`${styles.td} ${styles.colDate}`}>
-                        {docDate}
-                      </td>
-                      <td
-                        className={`${styles.td} ${styles.colAmount} ${styles.amountValue}`}
-                      >
-                        {total}
-                      </td>
-                      <td className={`${styles.td} ${styles.colStatus}`}>
-                        <StatusPill
-                          budgetId={b.id}
-                          initialStatus={b.status}
-                          onStatusChange={(next) => setBudgetStatus(b.id, next)}
-                        />
-                      </td>
-                      <td className={`${styles.td} ${styles.colActions}`}>
-                        <div className={styles.rowActions}>
+                          {quote ? (
+                            <span>
+                              <span className={styles.k}>Núm.</span>
+                              {quote}
+                            </span>
+                          ) : null}
+                        </div>
+
+                        <div className={styles.cardActions}>
                           <BudgetListItemActions
                             budgetId={b.id}
                             budgetStatus={b.status}
@@ -527,15 +450,106 @@ export function BudgetsView({
                             variant="icons"
                           />
                         </div>
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          </div>
-        </>
-      )}
+                      </div>
+                    </div>
+                  </li>
+                );
+              })}
+            </ul>
+
+            {/* Desktop: table */}
+            <div className={styles.tableWrap}>
+              <table className={styles.table}>
+                <thead>
+                  <tr>
+                    <th className={styles.th}>Núm. pressupost</th>
+                    <th className={styles.th}>Client</th>
+                    <th className={styles.th}>Data</th>
+                    <th
+                      className={`${styles.th} ${styles.colAmount} ${styles.thAmount}`}
+                    >
+                      Import
+                    </th>
+                    <th className={`${styles.th} ${styles.colStatus}`}>
+                      Estat
+                    </th>
+                    <th className={`${styles.th} ${styles.colActions}`}>
+                      Accions
+                    </th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {filtered.map((b) => {
+                    const quote = (b.quote_number ?? "").trim() || "—";
+                    const client = (b.title ?? "").trim() || "—";
+                    const docDate = formatDate(b.document_date) ?? "—";
+                    const total = formatEUR(b.total ?? 0);
+
+                    return (
+                      <tr key={b.id} className={styles.tr}>
+                        <td className={`${styles.td} ${styles.colQuote}`}>
+                          <Link
+                            className={styles.quoteLink}
+                            href={`/budgets/${b.id}/edit`}
+                          >
+                            {quote}
+                          </Link>
+                        </td>
+                        <td className={`${styles.td} ${styles.colClient}`}>
+                          {client}
+                        </td>
+                        <td className={`${styles.td} ${styles.colDate}`}>
+                          {docDate}
+                        </td>
+                        <td
+                          className={`${styles.td} ${styles.colAmount} ${styles.amountValue}`}
+                        >
+                          {total}
+                        </td>
+                        <td className={`${styles.td} ${styles.colStatus}`}>
+                          <StatusPill
+                            budgetId={b.id}
+                            initialStatus={b.status}
+                            onStatusChange={(next) =>
+                              setBudgetStatus(b.id, next)
+                            }
+                          />
+                        </td>
+                        <td className={`${styles.td} ${styles.colActions}`}>
+                          <div className={styles.rowActions}>
+                            <BudgetListItemActions
+                              budgetId={b.id}
+                              budgetStatus={b.status}
+                              invoices={mergeInvoiceIds(
+                                b.id,
+                                invoiceIdsByBudgetId,
+                                invoiceOverrides
+                              )}
+                              onInvoiceCreated={(
+                                pricingMode: InvoicePricingMode,
+                                invoiceId: string
+                              ) =>
+                                setInvoiceOverrides((prev) => {
+                                  const slot = pricingModeToSlot(pricingMode);
+                                  const cur = prev[b.id] ?? {};
+                                  return {
+                                    ...prev,
+                                    [b.id]: { ...cur, [slot]: invoiceId },
+                                  };
+                                })
+                              }
+                              variant="icons"
+                            />
+                          </div>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          </>
+        )}
       </div>
     </div>
   );

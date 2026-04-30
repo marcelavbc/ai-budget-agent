@@ -244,6 +244,7 @@ export async function getBudgets(filter?: DateFilter): Promise<BudgetListRow[]> 
   let q = supabase
     .from("budgets")
     .select("id,title,job_address,status,document_date,quote_number,total,created_at")
+    .order("document_date", { ascending: false, nullsFirst: false })
     .order("created_at", { ascending: false });
 
   if (range) {

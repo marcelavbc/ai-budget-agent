@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useEffect, useRef, useState, useTransition } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { FileDown, Pencil, Percent, Receipt, Trash2, ChevronDown } from "lucide-react";
@@ -29,6 +29,7 @@ export function BudgetListItemActions({
 }) {
   const { exportPdf, generating, pdfError, setPdfError } = usePdfExport();
   const [pdfMenuOpen, setPdfMenuOpen] = useState(false);
+  const pdfMenuRef = useRef<HTMLDivElement | null>(null);
   const [deleting, setDeleting] = useState(false);
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [invoiceError, setInvoiceError] = useState<string | null>(null);
@@ -39,6 +40,20 @@ export function BudgetListItemActions({
 
   const isApproved = normalizeBudgetStatus(budgetStatus) === "approved";
   const inv = invoices ?? { withoutIva: null, withIva: null };
+
+  useEffect(() => {
+    if (!pdfMenuOpen) return;
+
+    function onPointerDown(e: PointerEvent) {
+      const root = pdfMenuRef.current;
+      if (!root) return;
+      if (e.target instanceof Node && root.contains(e.target)) return;
+      setPdfMenuOpen(false);
+    }
+
+    window.addEventListener("pointerdown", onPointerDown);
+    return () => window.removeEventListener("pointerdown", onPointerDown);
+  }, [pdfMenuOpen]);
 
   async function handleGeneratePdfLang(
     e: React.MouseEvent<HTMLButtonElement>,
@@ -220,6 +235,7 @@ export function BudgetListItemActions({
       )}
       {!isApproved ? (
         <div
+          ref={pdfMenuRef}
           className={styles.dropdown}
           onClick={(e) => e.stopPropagation()}
           onKeyDown={(e) => {

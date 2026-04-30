@@ -17,8 +17,8 @@ export default async function BudgetsPage() {
           <header className={styles.header}>
             <h1 className={styles.title}>Pressupostos</h1>
             <p className={styles.subtitle}>
-              Tots els pressupostos guardats, ordenats del més recent al més
-              antic.
+              Tots els pressupostos guardats, ordenats per la data del
+              pressupost del més recent al més antic.
             </p>
           </header>
 
