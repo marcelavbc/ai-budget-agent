@@ -11,6 +11,7 @@ export const pdfLabelsCa = {
   documentTitle: "PRESSUPOST DE PINTURA",
   client: "Client",
   date: (formattedDdMmYyyy: string) => `Data: ${formattedDdMmYyyy}`,
+  estimatedDurationLabel: "Durada estimada del treball",
   table: {
     concept: "CONCEPTE",
     measure: "MESURA",

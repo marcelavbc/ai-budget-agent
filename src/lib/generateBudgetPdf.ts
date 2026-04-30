@@ -8,6 +8,7 @@ import {
   pdfLabelsCa,
 } from "@/lib/pdfCopy.ca";
 import { pdfFinalSectionCopyEs, pdfLabelsEs } from "@/lib/pdfCopy.es";
+import { localizeAddress } from "@/lib/addressLocale";
 
 export interface GenerateBudgetPdfInput {
   client: BudgetClientDetails;
@@ -229,7 +230,7 @@ export async function generateBudgetPdf({
     const width = pageWidth - marginX * 2;
     const name = safeTrim(client.nameOrCompany);
     const addressLines = compactLines(
-      safeTrim(client.address)
+      localizeAddress(safeTrim(client.address), lang)
         .split("\n")
         .map((l) => l.trim())
     );
@@ -249,6 +250,33 @@ export async function generateBudgetPdf({
     }
 
     y += 12;
+
+    // Duration: right-aligned, just below the date row (label + value stacked)
+    const durationLines = compactLines(
+      safeTrim(client.estimatedTime)
+        .split("\n")
+        .map((l) => l.trim())
+    );
+    const durationStartY = y;
+    if (durationLines.length > 0) {
+      doc.setFont("helvetica", "normal");
+      doc.setFontSize(9);
+      setTextColor(doc, COLORS.muted);
+      const labelW = doc.getTextWidth(labels.estimatedDurationLabel);
+      doc.text(labels.estimatedDurationLabel, right - labelW, y);
+      y += 12;
+      doc.setFont("helvetica", "normal");
+      doc.setFontSize(10);
+      setTextColor(doc, COLORS.text);
+      for (const line of durationLines) {
+        const lineW = doc.getTextWidth(line);
+        doc.text(line, right - lineW, y);
+        y += 13;
+      }
+    }
+
+    // Reset y to after the date row so left column (name + address) flows from there
+    y = durationStartY;
 
     if (name.length > 0) {
       doc.setFont("helvetica", "bold");
@@ -273,6 +301,15 @@ export async function generateBudgetPdf({
       }
 
       y += 2;
+    }
+
+    // y must clear both left and right columns
+    if (durationLines.length > 0) {
+      const durationEndY =
+        durationStartY +
+        12 +
+        durationLines.length * 13;
+      y = Math.max(y, durationEndY + 2);
     }
 
     // Keep a compact separation before the table.

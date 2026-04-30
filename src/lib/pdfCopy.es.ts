@@ -5,6 +5,7 @@ export const pdfLabelsEs = {
   documentTitle: "PRESUPUESTO DE PINTURA",
   client: "Cliente",
   date: (formattedDdMmYyyy: string) => `Fecha: ${formattedDdMmYyyy}`,
+  estimatedDurationLabel: "Duración estimada del trabajo",
   table: {
     concept: "CONCEPTO",
     measure: "MEDIDA",

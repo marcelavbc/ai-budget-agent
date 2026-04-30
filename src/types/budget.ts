@@ -80,7 +80,7 @@ export interface BudgetClientDetails {
   quoteNumber: string;
   /** ISO YYYY-MM-DD (compatible with input type="date"). */
   date: string;
-  /** Lead time or free-text estimate (e.g. business days). */
+  /** Durada estimada del treball (text lliure, p. ex. dies hàbils). */
   estimatedTime: string;
 }
 

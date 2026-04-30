@@ -51,7 +51,7 @@ export function BudgetClientForm({
           />
         </label>
         <label className={styles.field}>
-          <span className={styles.fieldLabel}>Temps estimat</span>
+          <span className={styles.fieldLabel}>Durada estimada del treball</span>
           <textarea
             className={styles.fieldTextarea}
             rows={2}

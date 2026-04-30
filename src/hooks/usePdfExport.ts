@@ -1,6 +1,28 @@
 import { useCallback, useState } from "react";
 import type { BudgetClientDetails, BudgetClientItem } from "@/types/budget";
 
+function buildPdfFilename(
+  client: BudgetClientDetails,
+  lang: "ca" | "es"
+): string {
+  const slug = (value: string) =>
+    value
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "")
+      .replace(/[^a-zA-Z0-9]+/g, "-")
+      .replace(/^-+|-+$/g, "")
+      .slice(0, 40);
+
+  const prefix = lang === "es" ? "Presupuesto" : "Pressupost";
+  const name = slug(client.nameOrCompany.trim());
+  const quote = slug(client.quoteNumber.trim());
+
+  if (name && quote) return `${prefix}-${name}-${quote}.pdf`;
+  if (name) return `${prefix}-${name}.pdf`;
+  if (quote) return `${prefix}-${quote}.pdf`;
+  return `${prefix}.pdf`;
+}
+
 async function translateItemsForPdf(
   items: BudgetClientItem[],
   lang: "ca" | "es"
@@ -44,7 +66,10 @@ export function usePdfExport() {
           lang: args.lang,
         });
         const url = URL.createObjectURL(blob);
-        window.open(url, "_blank", "noopener,noreferrer");
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = buildPdfFilename(args.client, args.lang);
+        a.click();
         window.setTimeout(() => URL.revokeObjectURL(url), 30_000);
       } catch (e) {
         setPdfError(
