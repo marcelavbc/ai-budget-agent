@@ -251,31 +251,20 @@ export async function generateBudgetPdf({
 
     y += 12;
 
-    // Duration: right-aligned, just below the date row (label + value stacked)
-    const durationLines = compactLines(
-      safeTrim(client.estimatedTime)
-        .split("\n")
-        .map((l) => l.trim())
-    );
+    // Duration: single right-aligned line "Durada estimada del treball: 5-6 dies"
+    const durationValue = safeTrim(client.estimatedTime).replace(/\n+/g, " – ");
     const durationStartY = y;
-    if (durationLines.length > 0) {
+    if (durationValue.length > 0) {
+      const durationLine = `${labels.estimatedDurationLabel}: ${durationValue}`;
       doc.setFont("helvetica", "normal");
       doc.setFontSize(9);
       setTextColor(doc, COLORS.muted);
-      const labelW = doc.getTextWidth(labels.estimatedDurationLabel);
-      doc.text(labels.estimatedDurationLabel, right - labelW, y);
-      y += 12;
-      doc.setFont("helvetica", "normal");
-      doc.setFontSize(10);
-      setTextColor(doc, COLORS.text);
-      for (const line of durationLines) {
-        const lineW = doc.getTextWidth(line);
-        doc.text(line, right - lineW, y);
-        y += 13;
-      }
+      const lineW = doc.getTextWidth(durationLine);
+      doc.text(durationLine, right - lineW, y);
+      y += 13;
     }
 
-    // Reset y to after the date row so left column (name + address) flows from there
+    // Reset y so left column (name + address) flows from the same start point
     y = durationStartY;
 
     if (name.length > 0) {
@@ -304,12 +293,8 @@ export async function generateBudgetPdf({
     }
 
     // y must clear both left and right columns
-    if (durationLines.length > 0) {
-      const durationEndY =
-        durationStartY +
-        12 +
-        durationLines.length * 13;
-      y = Math.max(y, durationEndY + 2);
+    if (durationValue.length > 0) {
+      y = Math.max(y, durationStartY + 13 + 2);
     }
 
     // Keep a compact separation before the table.
