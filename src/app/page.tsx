@@ -3,13 +3,44 @@ import { getBudgets } from "@/lib/budgets";
 import { getInvoiceDashboardStats } from "@/lib/invoices";
 import { formatEUR } from "@/lib/formatCurrency";
 import { budgetStatusLabel, normalizeBudgetStatus } from "@/lib/budgetStatus";
+import { parseDateFilter, type DateFilter } from "@/lib/dateFilter";
 
 import styles from "./page.module.css";
+import { FilterBar } from "@/components/FilterBar";
 
-export default async function HomePage() {
+type SearchParams = Record<string, string | string[] | undefined>;
+
+function formatFilterLabel(filter: DateFilter): string {
+  if (!filter) return "Tots els temps";
+  const months = filter.months ?? [];
+  if (months.length === 0) return String(filter.year);
+  if (months.length === 1) {
+    const dt = new Date(Date.UTC(filter.year, months[0] - 1, 1));
+    const month = new Intl.DateTimeFormat("ca-ES", { month: "long" }).format(dt);
+    const titleMonth = month.charAt(0).toUpperCase() + month.slice(1);
+    return `${titleMonth} ${filter.year}`;
+  }
+  const labels = months
+    .slice(0, 4)
+    .map((m) =>
+      new Intl.DateTimeFormat("ca-ES", { month: "short" }).format(
+        new Date(Date.UTC(filter.year, m - 1, 1))
+      )
+    )
+    .map((s) => s.replace(".", ""));
+  const extra = months.length > 4 ? ` +${months.length - 4}` : "";
+  return `${filter.year} · ${labels.join(", ")}${extra}`;
+}
+
+export default async function HomePage(props: { searchParams?: SearchParams }) {
+  const filter = parseDateFilter({
+    month: props.searchParams?.month,
+    year: props.searchParams?.year,
+  });
+
   const [budgets, invoiceStats] = await Promise.all([
-    getBudgets(),
-    getInvoiceDashboardStats(),
+    getBudgets(filter),
+    getInvoiceDashboardStats(filter),
   ]);
 
   const totals = {
@@ -39,7 +70,11 @@ export default async function HomePage() {
     <main className={styles.wrap}>
       <div className={styles.inner}>
         <header className={styles.header}>
-          <h1 className={styles.title}>Tauler</h1>
+          <div className={styles.headerTop}>
+            <h1 className={styles.title}>Tauler</h1>
+            <span className={styles.filterLabel}>{formatFilterLabel(filter)}</span>
+          </div>
+          <FilterBar />
         </header>
 
         <div className={styles.twoCol}>
@@ -160,7 +195,9 @@ export default async function HomePage() {
                     invoiceStats.totalWithoutIva + invoiceStats.totalWithIva
                   )}
                 </p>
-                <p className={styles.statHint}>Suma de totes les factures</p>
+                <p className={styles.statHint}>
+                  Suma de totes les factures pagadas
+                </p>
               </div>
 
               <div className={styles.stat}>

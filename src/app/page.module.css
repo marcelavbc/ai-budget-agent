@@ -10,7 +10,17 @@
 }
 
 .header {
-  margin: 0 0 1.75rem;
+  margin: 0 0 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.headerTop {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
 }
 
 .title {
@@ -20,6 +30,13 @@
   letter-spacing: -0.02em;
   color: var(--text);
   margin: 0;
+}
+
+.filterLabel {
+  font-size: 0.9rem;
+  color: var(--text-muted);
+  font-weight: 600;
+  white-space: nowrap;
 }
 
 /* ── Two equal columns ── */

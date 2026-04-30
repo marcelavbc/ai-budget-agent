@@ -4,6 +4,7 @@ import { getSupabaseClient } from "@/lib/supabaseClient";
 import { normalizeBudgetStatus } from "@/lib/budgetStatus";
 import { getBudgetById, getBudgetLinesByBudgetId } from "@/lib/budgets";
 import { calcTotalsFromSubtotal } from "@/lib/budgets/helpers";
+import { dateFilterRange, matchesDateFilter, type DateFilter } from "@/lib/dateFilter";
 import type { InvoicePricingMode } from "@/types/invoice";
 import { isInvoicePricingMode } from "@/types/invoice";
 import type { BudgetLineRow } from "@/types/budgetsDb";
@@ -97,11 +98,19 @@ export async function getInvoiceIdsByBudgetIds(
   return map;
 }
 
-export async function getInvoiceDashboardStats(): Promise<InvoiceDashboardStats> {
+export async function getInvoiceDashboardStats(
+  filter?: DateFilter
+): Promise<InvoiceDashboardStats> {
   const supabase = getSupabaseClient();
-  const { data, error } = await supabase
+  const range = dateFilterRange(filter ?? null);
+  let q = supabase
     .from("invoices")
-    .select("pricing_mode,total");
+    .select("pricing_mode,total,created_at");
+  if (range) {
+    q = q.gte("created_at", range.gte).lte("created_at", range.lte);
+  }
+
+  const { data, error } = await q;
   if (error) throw new Error(error.message);
 
   const stats: InvoiceDashboardStats = {
@@ -111,6 +120,7 @@ export async function getInvoiceDashboardStats(): Promise<InvoiceDashboardStats>
     totalWithIva: 0,
   };
   for (const row of data ?? []) {
+    if (!matchesDateFilter(row.created_at ?? null, filter ?? null)) continue;
     const t = typeof row.total === "number" ? row.total : 0;
     if (row.pricing_mode === "with_iva") {
       stats.countWithIva += 1;

@@ -1,6 +1,7 @@
 import "server-only";
 
 import { getSupabaseClient } from "@/lib/supabaseClient";
+import { dateFilterRange, matchesDateFilter, type DateFilter } from "@/lib/dateFilter";
 import type { BudgetClientDetails, BudgetClientItem } from "@/types/budget";
 import type { TablesInsert } from "@/types/supabase";
 import {
@@ -237,15 +238,24 @@ export async function updateBudgetById(
   if (error) throw new Error(error.message);
 }
 
-export async function getBudgets(): Promise<BudgetListRow[]> {
+export async function getBudgets(filter?: DateFilter): Promise<BudgetListRow[]> {
   const supabase = getSupabaseClient();
-  const { data, error } = await supabase
+  const range = dateFilterRange(filter ?? null);
+  let q = supabase
     .from("budgets")
     .select("id,title,job_address,status,document_date,quote_number,total,created_at")
     .order("created_at", { ascending: false });
 
+  if (range) {
+    q = q.gte("created_at", range.gte).lte("created_at", range.lte);
+  }
+
+  const { data, error } = await q;
+
   if (error) throw new Error(error.message);
-  return data ?? [];
+  const rows = data ?? [];
+  if (!filter?.months?.length) return rows;
+  return rows.filter((r) => matchesDateFilter(r.created_at ?? null, filter));
 }
 
 export async function getRecentBudgetActivity(

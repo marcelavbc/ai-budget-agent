@@ -15,7 +15,7 @@ const displayFont = Cormorant_Garamond({
 });
 
 export const metadata: Metadata = {
-  title: "Pressupost de pintura",
+  title: "Sanmartí Pintura Decorativa",
   description:
     "Genera pressupostos de pintura ràpidament a partir d’una descripció breu.",
   icons: {
