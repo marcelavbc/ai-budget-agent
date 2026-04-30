@@ -34,20 +34,17 @@ export interface CreateBudgetResult {
 
 export interface CreateClientInput {
   name: string;
-  email: string;
   phone?: string | null;
   address?: string | null;
 }
 
 export async function createClient({
   name,
-  email,
   phone = null,
   address = null,
 }: CreateClientInput): Promise<{ id: string }> {
   const supabase = getSupabaseClient();
   const normalizedName = name.trim();
-  const normalizedEmail = (email ?? "").trim();
   const normalizedPhone = (phone ?? "").trim();
   const normalizedAddress = (address ?? "").trim();
 
@@ -56,7 +53,6 @@ export async function createClient({
     .insert([
       {
         name: normalizedName,
-        email: normalizeOptionalString(normalizedEmail),
         phone: normalizeOptionalString(normalizedPhone),
         address: normalizeOptionalString(normalizedAddress),
       },
@@ -71,12 +67,11 @@ export async function createClient({
 
 export async function updateClientById(
   id: string,
-  patch: Partial<Pick<ClientRow, "name" | "email" | "phone" | "address">>
+  patch: Partial<Pick<ClientRow, "name" | "phone" | "address">>
 ): Promise<void> {
   const supabase = getSupabaseClient();
   const normalized = {
     name: typeof patch.name === "string" ? patch.name.trim() : patch.name,
-    email: typeof patch.email === "string" ? patch.email.trim() : patch.email,
     phone: typeof patch.phone === "string" ? patch.phone.trim() : patch.phone,
     address:
       typeof patch.address === "string" ? patch.address.trim() : patch.address,
@@ -93,16 +88,15 @@ export async function getClientById(id: string | null): Promise<ClientRow> {
     return {
       id: normalizedId || "unknown",
       name: null,
-      email: null,
       phone: null,
       address: null,
       created_at: null,
-    };
+    } as ClientRow;
   }
 
   const { data, error } = await supabase
     .from("clients")
-    .select("id,name,email,phone,address,created_at")
+    .select("id,name,phone,address,created_at")
     .eq("id", normalizedId)
     .maybeSingle();
   if (error) {
@@ -111,11 +105,10 @@ export async function getClientById(id: string | null): Promise<ClientRow> {
       return {
         id: normalizedId,
         name: null,
-        email: null,
         phone: null,
         address: null,
         created_at: null,
-      };
+      } as ClientRow;
     }
     throw new Error(error.message);
   }
@@ -123,13 +116,12 @@ export async function getClientById(id: string | null): Promise<ClientRow> {
     return {
       id: normalizedId,
       name: null,
-      email: null,
       phone: null,
       address: null,
       created_at: null,
-    };
+    } as ClientRow;
   }
-  return data;
+  return data as ClientRow;
 }
 
 export async function createBudget({
@@ -319,7 +311,6 @@ export async function updateBudgetWithLines(args: {
       : (
           await createClient({
             name: client.nameOrCompany,
-            email: client.email,
             address: client.address,
           })
         ).id;
@@ -328,7 +319,6 @@ export async function updateBudgetWithLines(args: {
   if (ensuredClientId === normalizedClientId) {
     await updateClientById(ensuredClientId, {
       name: client.nameOrCompany,
-      email: client.email,
       address: client.address,
     });
   }
@@ -395,7 +385,6 @@ export async function saveBudgetWithLines({
   // TODO: evolve to findOrCreateClient (avoid duplicates) once we define the matching rules.
   const { id: clientId } = await createClient({
     name: client.nameOrCompany,
-    email: client.email,
     address: client.address,
   });
   const { subtotal } = calcBudgetHeaderAmounts(items, 0);

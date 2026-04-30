@@ -1,16 +1,16 @@
 import { useCallback, useState } from "react";
 import type { BudgetClientDetails, BudgetClientItem } from "@/types/budget";
 
-async function translateItemsIfNeeded(
+async function translateItemsForPdf(
   items: BudgetClientItem[],
   lang: "ca" | "es"
 ): Promise<BudgetClientItem[]> {
-  if (lang === "ca") return items;
+  if (items.length === 0) return items;
   try {
     const res = await fetch("/api/translate-budget-items", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ items, targetLang: "es" }),
+      body: JSON.stringify({ items, targetLang: lang }),
     });
     if (!res.ok) return items;
     const data = (await res.json()) as unknown;
@@ -36,7 +36,7 @@ export function usePdfExport() {
       setGenerating(true);
       setPdfError(null);
       try {
-        const finalItems = await translateItemsIfNeeded(args.items, args.lang);
+        const finalItems = await translateItemsForPdf(args.items, args.lang);
         const { generateBudgetPdf } = await import("@/lib/generateBudgetPdf");
         const blob = await generateBudgetPdf({
           client: args.client,

@@ -57,12 +57,6 @@ export function InvoiceView({
             </span>
           </div>
           <div className={styles.kv}>
-            <span className={styles.k}>Email</span>
-            <span className={styles.v}>
-              {(client.email ?? "").trim() || "—"}
-            </span>
-          </div>
-          <div className={styles.kv}>
             <span className={styles.k}>Telèfon</span>
             <span className={styles.v}>
               {(client.phone ?? "").trim() || "—"}

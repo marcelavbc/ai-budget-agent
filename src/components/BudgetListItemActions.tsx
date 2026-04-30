@@ -88,7 +88,6 @@ export function BudgetListItemActions({
 
       const clientForPdf: BudgetClientDetails = {
         nameOrCompany: (client.name ?? "").trim(),
-        email: (client.email ?? "").trim(),
         address: (budget.job_address ?? client.address ?? "").trim(),
         quoteNumber: (budget.quote_number ?? "").trim(),
         date: (budget.document_date ?? "").trim(),

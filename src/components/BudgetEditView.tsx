@@ -50,7 +50,6 @@ export function BudgetEditView({
   const initialClient: BudgetClientDetails = useMemo(
     () => ({
       nameOrCompany: (client.name ?? "").trim(),
-      email: (client.email ?? "").trim(),
       address: (budget.job_address ?? client.address ?? "").trim(),
       quoteNumber: (budget.quote_number ?? "").trim(),
       date: (budget.document_date ?? "").trim(),
@@ -62,7 +61,6 @@ export function BudgetEditView({
       budget.job_address,
       budget.quote_number,
       client.address,
-      client.email,
       client.name,
     ]
   );

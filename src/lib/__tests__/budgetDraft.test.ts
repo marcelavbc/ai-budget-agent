@@ -5,7 +5,6 @@ import type { BudgetClientDetails, BudgetClientItem } from "@/types/budget";
 function baseClient(): BudgetClientDetails {
   return {
     nameOrCompany: "Maria Vila",
-    email: "maria@example.cat",
     address: "Carrer Major 1\n08001 Barcelona",
     quoteNumber: "MV-20260422",
     date: "2026-04-22",
@@ -32,9 +31,6 @@ describe("isBudgetDraftComplete", () => {
       isBudgetDraftComplete({ client: { ...baseClient(), nameOrCompany: "" }, items }),
     ).toBe(false);
     expect(
-      isBudgetDraftComplete({ client: { ...baseClient(), email: "" }, items }),
-    ).toBe(false);
-    expect(
       isBudgetDraftComplete({ client: { ...baseClient(), address: "   " }, items }),
     ).toBe(false);
     expect(
@@ -45,15 +41,6 @@ describe("isBudgetDraftComplete", () => {
     ).toBe(false);
     expect(
       isBudgetDraftComplete({ client: { ...baseClient(), estimatedTime: "" }, items }),
-    ).toBe(false);
-  });
-
-  it("retorna false si l'email és invàlid", () => {
-    expect(
-      isBudgetDraftComplete({
-        client: { ...baseClient(), email: "no-es-email" },
-        items: baseItems(),
-      }),
     ).toBe(false);
   });
 
@@ -73,4 +60,3 @@ describe("isBudgetDraftComplete", () => {
     );
   });
 });
-

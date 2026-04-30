@@ -3,7 +3,6 @@ import type { BudgetClientDetails, BudgetClientItem } from "@/types/budget";
 export const pdfCompanyCopyCa = {
   brand: "SANMARTÍ",
   subtitle: "Pintura decorativa",
-  email: "navarroisanmarti@gmail.com",
   phone: "616 287 601",
 };
 
@@ -21,6 +20,7 @@ export const pdfLabelsCa = {
   fallbackConcept: "Concepte",
   fallbackDescription: "Segons treball indicat.",
   total: "Total",
+  defaultOptionLabel: "Opció",
   optionGroupHint: "Opcions (escollir-ne una)",
   page: (pageNumber: number, totalPages: number) =>
     `Pàgina ${pageNumber} / ${totalPages}`,

@@ -27,6 +27,7 @@ export async function callGroq(
     apiKey?: string;
     model?: string;
     temperature?: number;
+    maxTokens?: number;
     responseFormat?: GroqResponseFormat;
   }
 ): Promise<string> {
@@ -44,6 +45,7 @@ export async function callGroq(
     body: JSON.stringify({
       model: opts?.model ?? GROQ_DEFAULT_MODEL,
       temperature: opts?.temperature ?? 0,
+      ...(opts?.maxTokens != null ? { max_tokens: opts.maxTokens } : {}),
       messages,
       ...(opts?.responseFormat
         ? { response_format: { type: opts.responseFormat } }
@@ -52,7 +54,20 @@ export async function callGroq(
   });
 
   if (!response.ok) {
-    throw new Error(`Groq request failed (${response.status})`);
+    let detail = "";
+    try {
+      const errBody = (await response.json()) as unknown;
+      if (
+        typeof errBody === "object" &&
+        errBody !== null &&
+        "error" in errBody
+      ) {
+        detail = ` – ${JSON.stringify((errBody as { error: unknown }).error)}`;
+      }
+    } catch {
+      // ignore parse failure
+    }
+    throw new Error(`Groq request failed (${response.status})${detail}`);
   }
 
   const data = (await response.json()) as GroqResponse;

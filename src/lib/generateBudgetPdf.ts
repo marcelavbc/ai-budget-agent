@@ -27,7 +27,6 @@ const COLORS = {
   softFill: hexToRgb(C.background),
   softFill2: hexToRgb(C.beigeLight),
   accent: hexToRgb(C.goldMedium),
-  accentSoft: hexToRgb(C.goldLight),
 };
 
 async function loadImageAsDataUrl(src: string): Promise<string> {
@@ -411,13 +410,9 @@ export async function generateBudgetPdf({
     const rowH = 22;
     ensureSpace(rowH + 8);
 
-    doc.setFillColor(
-      COLORS.accentSoft.r,
-      COLORS.accentSoft.g,
-      COLORS.accentSoft.b
-    );
     doc.setDrawColor(COLORS.softLine.r, COLORS.softLine.g, COLORS.softLine.b);
-    doc.roundedRect(marginX, y, tableWidth, rowH, 4, 4, "FD");
+    doc.setLineWidth(1);
+    doc.line(marginX, y + rowH, marginX + tableWidth, y + rowH);
 
     doc.setFont("helvetica", "bold");
     doc.setFontSize(9.5);
@@ -558,7 +553,7 @@ export async function generateBudgetPdf({
 
     drawOptionGroupHeader(deriveOptionGroupTitle(groupItems));
     for (const opt of groupItems) {
-      const optLabel = safeTrim(opt.optionLabel) || "Opció";
+      const optLabel = safeTrim(opt.optionLabel) || labels.defaultOptionLabel;
       drawItemRowInternal(opt, {
         indentX: 14,
         conceptOverride: `${optLabel}: ${safeTrim(opt.title)}`,

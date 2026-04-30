@@ -1,5 +1,4 @@
 import type { BudgetClientDetails, BudgetClientItem } from "@/types/budget";
-import { isValidEmail } from "@/lib/isValidEmail";
 
 export interface BudgetDraftSnapshot {
   client: BudgetClientDetails;
@@ -11,8 +10,6 @@ export function isBudgetDraftComplete({
   items,
 }: BudgetDraftSnapshot): boolean {
   if (client.nameOrCompany.trim().length === 0) return false;
-  if (client.email.trim().length === 0) return false;
-  if (!isValidEmail(client.email)) return false;
   if (client.address.trim().length === 0) return false;
   if (client.quoteNumber.trim().length === 0) return false;
   if (client.date.trim().length === 0) return false;

@@ -1,5 +1,4 @@
 import type { BudgetClientDetails } from "@/types/budget";
-import { isValidEmail } from "@/lib/isValidEmail";
 import styles from "./BudgetDraftView.module.css";
 
 export function BudgetClientForm({
@@ -15,9 +14,6 @@ export function BudgetClientForm({
   onQuoteNumberChange: (value: string) => void;
   onResetQuoteAutomation: () => void;
 }) {
-  const emailInvalid =
-    client.email.trim().length > 0 && !isValidEmail(client.email);
-
   function setClientField<K extends keyof BudgetClientDetails>(
     key: K,
     value: BudgetClientDetails[K]
@@ -27,7 +23,9 @@ export function BudgetClientForm({
 
   return (
     <div className={styles.clientSection}>
-      <h3 className={styles.clientSectionTitle}>Dades del client i del pressupost</h3>
+      <h3 className={styles.clientSectionTitle}>
+        Dades del client i del pressupost
+      </h3>
       <div className={styles.fields}>
         <label className={styles.field}>
           <span className={styles.fieldLabel}>Nom o empresa</span>
@@ -40,26 +38,7 @@ export function BudgetClientForm({
             placeholder="Ex: Maria Vila / Pintures Puig"
           />
         </label>
-        <label className={styles.field}>
-          <span className={styles.fieldLabel}>Correu electrònic</span>
-          <input
-            className={`${styles.fieldInput} ${
-              emailInvalid ? styles.fieldInputInvalid : ""
-            }`}
-            type="email"
-            inputMode="email"
-            value={client.email}
-            onChange={(e) => setClientField("email", e.target.value)}
-            autoComplete="email"
-            placeholder="nom@exemple.cat"
-            aria-invalid={emailInvalid}
-          />
-          {emailInvalid ? (
-            <span className={styles.fieldError} role="alert">
-              Revisa el format del correu (cal una adreça vàlida).
-            </span>
-          ) : null}
-        </label>
+
         <label className={styles.field}>
           <span className={styles.fieldLabel}>Adreça</span>
           <textarea
@@ -96,8 +75,8 @@ export function BudgetClientForm({
               />
             </label>
             <p id="quote-hint" className={styles.fieldHint}>
-              Es genera automàticament amb les inicials del nom o empresa i la data
-              (p. ex. MV-20260415). Pots corregir-lo si cal.
+              Es genera automàticament amb les inicials del nom o empresa i la
+              data (p. ex. MV-20260415). Pots corregir-lo si cal.
             </p>
             {quoteManuallyEdited ? (
               <button
@@ -123,4 +102,3 @@ export function BudgetClientForm({
     </div>
   );
 }
-

@@ -76,7 +76,6 @@ export interface BudgetClientItem {
 /** Budget header (client + reference); used for UI and PDF export. */
 export interface BudgetClientDetails {
   nameOrCompany: string;
-  email: string;
   address: string;
   quoteNumber: string;
   /** ISO YYYY-MM-DD (compatible with input type="date"). */
@@ -93,7 +92,6 @@ export function defaultBudgetClientDetails(): BudgetClientDetails {
   const date = `${y}-${m}-${d}`;
   return {
     nameOrCompany: "",
-    email: "",
     address: "",
     quoteNumber: buildAutoQuoteNumber("", date),
     date,

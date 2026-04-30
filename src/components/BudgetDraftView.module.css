@@ -266,15 +266,20 @@
 
 .cardHeader {
   display: flex;
-  justify-content: space-between;
-  align-items: baseline;
+  align-items: center;
   gap: 0.75rem;
 }
 
 .cardTitleRow {
-  display: inline-flex;
-  align-items: baseline;
+  display: flex;
+  align-items: center;
   gap: 0.55rem;
+  flex: 1 1 0;
+  min-width: 0;
+}
+
+.itemTitleInputWrap {
+  flex: 1 1 0;
   min-width: 0;
 }
 
@@ -303,6 +308,7 @@
   display: inline-flex;
   align-items: center;
   gap: 10px;
+  flex: 0 0 auto;
 }
 
 .optionGroup {
@@ -376,6 +382,7 @@
 }
 
 .itemTitleInput {
+  display: block;
   width: 100%;
   border: 1px solid var(--border-soft);
   border-radius: 8px;
@@ -394,12 +401,27 @@
   box-shadow: none;
 }
 
-.cardTotal {
+.cardTotalInput {
+  width: 7.25rem;
+  min-width: 5.5rem;
+  max-width: 100%;
+  box-sizing: border-box;
+  border: 1px solid var(--border-soft);
+  border-radius: 8px;
+  padding: 0.38rem 0.45rem;
   font-size: 0.95rem;
   font-weight: 600;
+  font-family: inherit;
   color: var(--total-figure);
-  white-space: nowrap;
+  background: var(--surface);
+  text-align: right;
   font-variant-numeric: tabular-nums;
+  outline: none;
+  transition: border-color 0.15s;
+}
+
+.cardTotalInput:focus {
+  border-color: var(--color-gold-medium);
 }
 
 .itemMetaRow {
