@@ -10,6 +10,7 @@
 .inner {
   max-width: 860px;
   margin: 0 auto;
+  padding: 0.85rem 1.25rem;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -190,11 +191,8 @@
 }
 
 @media (max-width: 520px) {
-  .header {
-    padding: 0.65rem 1rem;
-  }
-
   .inner {
+    padding: 0.65rem 1rem;
     align-items: center;
   }
 

@@ -1,6 +1,6 @@
 :root {
   /* ── Canonical palette (sync with src/theme/colors.ts) ── */
-  --color-background: #f4f1ec;
+  --color-background: #ffffff;
   --color-beige-light: #e6d6c3;
   --color-beige-medium: #d8c4ac;
   --color-green-light: #a6a892;
@@ -27,16 +27,16 @@
 
   --text: var(--color-black);
   --text-secondary: var(--color-black-soft);
-  --text-muted: color-mix(in srgb, var(--color-black-soft) 55%, var(--color-background));
+  --text-muted: color-mix(in srgb, var(--color-black-soft) 58%, var(--color-background));
 
   /* ── Surfaces ── */
   --surface: #ffffff;
   --bg: var(--color-background);
-  --bg-subtle: color-mix(in srgb, var(--color-background) 38%, var(--surface));
+  --bg-subtle: color-mix(in srgb, var(--color-beige-light) 18%, var(--surface));
 
   /* ── Hairline borders (warm neutral, not heavy boxes) ── */
-  --border: color-mix(in srgb, var(--color-beige-medium) 38%, var(--color-background));
-  --border-soft: color-mix(in srgb, var(--color-beige-light) 32%, var(--color-background));
+  --border: color-mix(in srgb, var(--color-beige-medium) 42%, var(--surface));
+  --border-soft: color-mix(in srgb, var(--color-beige-light) 34%, var(--surface));
 
   /* ── Legacy / bridge tokens ── */
   --brand-primary: var(--color-black);

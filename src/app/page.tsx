@@ -1,29 +1,14 @@
 import Link from "next/link";
-import { getBudgets, getRecentBudgetActivity } from "@/lib/budgets";
+import { getBudgets } from "@/lib/budgets";
 import { getInvoiceDashboardStats } from "@/lib/invoices";
 import { formatEUR } from "@/lib/formatCurrency";
 import { budgetStatusLabel, normalizeBudgetStatus } from "@/lib/budgetStatus";
 
 import styles from "./page.module.css";
 
-function formatActivityDate(value: string | null): string {
-  const v = (value ?? "").trim();
-  if (!v) return "—";
-  const dt = new Date(v);
-  if (Number.isNaN(dt.getTime())) return "—";
-  return new Intl.DateTimeFormat("ca-ES", { dateStyle: "medium" }).format(dt);
-}
-
-function badgeClass(value: ReturnType<typeof normalizeBudgetStatus>): string {
-  if (value === "sent") return styles.badgeSent;
-  if (value === "approved") return styles.badgeApproved;
-  return styles.badgeDraft;
-}
-
 export default async function HomePage() {
-  const [budgets, recent, invoiceStats] = await Promise.all([
+  const [budgets, invoiceStats] = await Promise.all([
     getBudgets(),
-    getRecentBudgetActivity(5),
     getInvoiceDashboardStats(),
   ]);
 
@@ -54,146 +39,140 @@ export default async function HomePage() {
     <main className={styles.wrap}>
       <div className={styles.inner}>
         <header className={styles.header}>
-          <div className={styles.headerLeft}>
-            <h1 className={styles.title}>Tauler</h1>
-            <p className={styles.subtitle}>
-              Una vista ràpida de l’activitat i l’estat dels pressupostos.
-            </p>
-          </div>
+          <h1 className={styles.title}>Tauler</h1>
         </header>
 
-        <section className={styles.grid} aria-label="Mètriques">
-          <div className={styles.card}>
-            <p className={styles.cardKicker}>Pressupostos creats</p>
-            <p className={styles.cardValue}>{totals.all}</p>
-            <p className={styles.cardHint}>Total (tots els temps)</p>
-          </div>
-
-          <div className={styles.card}>
-            <p className={styles.cardKicker}>Per estat</p>
-            <div className={styles.badges}>
-              <span className={`${styles.badge} ${styles.badgeDraft}`}>
-                Esborrany{" "}
-                <span className={styles.badgeCount}>{totals.draft}</span>
-              </span>
-              <span className={`${styles.badge} ${styles.badgeSent}`}>
-                Enviat <span className={styles.badgeCount}>{totals.sent}</span>
-              </span>
-              <span className={`${styles.badge} ${styles.badgeApproved}`}>
-                Aprovat{" "}
-                <span className={styles.badgeCount}>{totals.approved}</span>
-              </span>
-            </div>
-            <p className={styles.cardHint}>Recompte actual</p>
-          </div>
-
-          <div className={styles.card}>
-            <p className={styles.cardKicker}>Valor aprovat</p>
-            <p
-              className={`${styles.cardValue} ${
-                totals.approvedValue > 0 ? styles.cardValueAccent : ""
-              }`}
-            >
-              {formatEUR(totals.approvedValue)}
-            </p>
-            <p className={styles.cardHint}>Suma de pressupostos aprovats</p>
-          </div>
-
-          <div className={styles.card}>
-            <p className={styles.cardKicker}>Pendent d’aprovació</p>
-            <p className={styles.cardValue}>{formatEUR(totals.sentValue)}</p>
-            <p className={styles.cardHint}>Suma de pressupostos enviats</p>
-          </div>
-        </section>
-
-        <section className={styles.twoCol}>
-          <div className={styles.panel}>
-            <div className={`${styles.panelTop} ${styles.panelTopAccent}`}>
-              <h2 className={styles.panelTitle}>Activitat recent</h2>
+        <div className={styles.twoCol}>
+          {/* Pressupostos */}
+          <section className={styles.panel} aria-labelledby="section-budgets">
+            <div className={styles.panelTop}>
+              <h2 className={styles.panelTitle} id="section-budgets">
+                Pressupostos
+              </h2>
               <Link className={styles.panelLink} href="/budgets">
                 Veure tots
               </Link>
             </div>
 
-            {recent.length === 0 ? (
-              <p className={styles.emptyText}>
-                Encara no hi ha pressupostos. Quan en creïs un, apareixerà aquí.
-              </p>
-            ) : (
-              <ul className={styles.activityList}>
-                {recent.map((r) => {
-                  const status = normalizeBudgetStatus(r.status);
-                  const clientName = (() => {
-                    const c = r.client;
-                    if (Array.isArray(c))
-                      return (c[0]?.name ?? "").trim() || "Client";
-                    return (c?.name ?? "").trim() || "Client";
-                  })();
-                  const amount = formatEUR(r.total ?? 0);
-                  const date = formatActivityDate(r.created_at);
+            <div className={styles.statGrid}>
+              <div className={styles.stat}>
+                <p className={styles.statKicker}>Total</p>
+                <p className={styles.statValue}>{totals.all}</p>
+                <p className={styles.statHint}>Tots els temps</p>
+              </div>
 
-                  return (
-                    <li key={r.id} className={styles.activityItem}>
-                      <Link
-                        className={styles.activityRow}
-                        href={`/budgets/${r.id}`}
-                      >
-                        <div className={styles.activityMain}>
-                          <p className={styles.activityTitle}>{clientName}</p>
-                          <p className={styles.activityMeta}>{date}</p>
-                        </div>
+              <div className={styles.stat}>
+                <p className={styles.statKicker}>Per estat</p>
+                <div className={styles.badges}>
+                  <span className={`${styles.badge} ${styles.badgeDraft}`}>
+                    {budgetStatusLabel("draft")}
+                    <span className={styles.badgeCount}>{totals.draft}</span>
+                  </span>
+                  <span className={`${styles.badge} ${styles.badgeSent}`}>
+                    {budgetStatusLabel("sent")}
+                    <span className={styles.badgeCount}>{totals.sent}</span>
+                  </span>
+                  <span className={`${styles.badge} ${styles.badgeApproved}`}>
+                    {budgetStatusLabel("approved")}
+                    <span className={styles.badgeCount}>{totals.approved}</span>
+                  </span>
+                </div>
+              </div>
 
-                        <div className={styles.activityRight}>
-                          <span className={styles.activityAmount}>
-                            {amount}
-                          </span>
-                          <span
-                            className={`${styles.badge} ${badgeClass(status)}`}
-                          >
-                            {budgetStatusLabel(status)}
-                          </span>
-                          <span className={styles.chevron} aria-hidden="true">
-                            →
-                          </span>
-                        </div>
-                      </Link>
-                    </li>
-                  );
-                })}
-              </ul>
-            )}
-          </div>
+              <div className={styles.stat}>
+                <p className={styles.statKicker}>Valor aprovat</p>
+                <p
+                  className={`${styles.statValue} ${
+                    totals.approvedValue > 0 ? styles.statValueAccent : ""
+                  }`}
+                >
+                  {formatEUR(totals.approvedValue)}
+                </p>
+                <p className={styles.statHint}>Suma de pressupostos aprovats</p>
+              </div>
 
-          <div className={styles.panel}>
+              <div className={styles.stat}>
+                <p className={styles.statKicker}>Pendent d&apos;aprovació</p>
+                <p className={styles.statValue}>
+                  {formatEUR(totals.sentValue)}
+                </p>
+                <p className={styles.statHint}>Suma de pressupostos enviats</p>
+              </div>
+            </div>
+          </section>
+
+          {/* Factures */}
+          <section className={styles.panel} aria-labelledby="section-invoices">
             <div className={styles.panelTop}>
-              <h2 className={styles.panelTitle}>Factures</h2>
+              <h2 className={styles.panelTitle} id="section-invoices">
+                Factures
+              </h2>
+              <Link className={styles.panelLink} href="/invoices">
+                Veure totes
+              </Link>
             </div>
-            <div className={styles.invoiceMetrics}>
-              <div className={styles.invoiceMetric}>
-                <p className={styles.invoiceMetricKicker}>Sense IVA</p>
-                <p className={styles.invoiceMetricValue}>
-                  {invoiceStats.countWithoutIva}
-                </p>
-                <p className={styles.invoiceMetricHint}>
-                  Total: {formatEUR(invoiceStats.totalWithoutIva)}
-                </p>
+
+            <div className={styles.statGrid}>
+              {/* Combined IVA card */}
+              <div className={styles.stat}>
+                <p className={styles.statKicker}>Tipus IVA</p>
+                <div className={styles.statSplit}>
+                  <div className={styles.statSplitItem}>
+                    <span className={styles.statSplitValue}>
+                      {invoiceStats.countWithoutIva}
+                    </span>
+                    <span className={styles.statSplitLabel}>Sense IVA</span>
+                    <span className={styles.statSplitHint}>
+                      {formatEUR(invoiceStats.totalWithoutIva)}
+                    </span>
+                  </div>
+                  <div className={styles.statSplitDivider} aria-hidden="true" />
+                  <div className={styles.statSplitItem}>
+                    <span className={styles.statSplitValue}>
+                      {invoiceStats.countWithIva}
+                    </span>
+                    <span className={styles.statSplitLabel}>Amb IVA</span>
+                    <span className={styles.statSplitHint}>
+                      {formatEUR(invoiceStats.totalWithIva)}
+                    </span>
+                  </div>
+                </div>
               </div>
-              <div className={styles.invoiceMetric}>
-                <p className={styles.invoiceMetricKicker}>Amb IVA</p>
-                <p className={styles.invoiceMetricValue}>
-                  {invoiceStats.countWithIva}
+
+              {/* Status placeholder */}
+              <div className={styles.stat}>
+                <p className={styles.statKicker}>Per estat</p>
+                <div className={styles.badges}>
+                  <span className={`${styles.badge} ${styles.badgeSent}`}>
+                    Enviada <span className={styles.badgeCount}>—</span>
+                  </span>
+                  <span className={`${styles.badge} ${styles.badgeApproved}`}>
+                    Pagada <span className={styles.badgeCount}>—</span>
+                  </span>
+                </div>
+                <p className={styles.statHint}>Aviat disponible</p>
+              </div>
+
+              <div className={styles.stat}>
+                <p className={styles.statKicker}>Total facturat</p>
+                <p className={`${styles.statValue} ${styles.statValueAccent}`}>
+                  {formatEUR(
+                    invoiceStats.totalWithoutIva + invoiceStats.totalWithIva
+                  )}
                 </p>
-                <p className={styles.invoiceMetricHint}>
-                  Total: {formatEUR(invoiceStats.totalWithIva)}
+                <p className={styles.statHint}>Suma de totes les factures</p>
+              </div>
+
+              <div className={styles.stat}>
+                <p className={styles.statKicker}>Total factures</p>
+                <p className={styles.statValue}>
+                  {invoiceStats.countWithoutIva + invoiceStats.countWithIva}
                 </p>
+                <p className={styles.statHint}>Totes les factures emeses</p>
               </div>
             </div>
-            <p className={styles.emptyText}>
-              Suma dels totals de factura per tipus (els imports segueixen el
-              mode triat a cada factura).
-            </p>
-          </div>
-        </section>
+          </section>
+        </div>
       </div>
     </main>
   );

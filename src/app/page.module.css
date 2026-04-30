@@ -1,6 +1,5 @@
 .wrap {
-  min-height: 100vh;
-  padding: 2.5rem 1.25rem 4.5rem;
+  padding: 2.5rem 1.25rem 2rem;
   background: var(--bg);
 }
 
@@ -11,131 +10,178 @@
 }
 
 .header {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 1rem;
-  margin: 0 0 2rem;
-  padding: 0;
-}
-
-.headerLeft {
-  min-width: 0;
-}
-
-.headerRight {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  flex-shrink: 0;
-}
-
-.title {
-  font-size: 32px;
-  font-weight: 700;
-  letter-spacing: -0.03em;
-  color: var(--text);
-  margin: 0 0 0.5rem;
-}
-
-.subtitle {
-  font-size: 0.95rem;
-  color: var(--text-secondary);
-  margin: 0;
-  line-height: 1.5;
-}
-
-.cta {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  height: 40px;
-  padding: 0 16px;
-  border-radius: 10px;
-  border: 1px solid var(--color-black);
-  background: var(--color-black);
-  color: var(--text-on-inverse);
-  text-decoration: none;
-  font-weight: 650;
-  letter-spacing: -0.01em;
-  box-shadow: var(--shadow-card);
-  transition:
-    transform 120ms ease,
-    background 120ms ease,
-    border-color 120ms ease;
-}
-
-@media (hover: hover) and (pointer: fine) {
-  .cta:hover {
-    background: var(--accent-hover);
-    transform: translateY(-1px);
-    border-color: var(--color-gold-medium);
-  }
-}
-
-.grid {
-  display: grid;
-  grid-template-columns: repeat(12, 1fr);
-  gap: 16px;
   margin: 0 0 1.75rem;
 }
 
-.card {
-  grid-column: span 3;
+.title {
+  font-family: var(--font-body);
+  font-size: 1.5rem;
+  font-weight: 650;
+  letter-spacing: -0.02em;
+  color: var(--text);
+  margin: 0;
+}
+
+/* ── Two equal columns ── */
+
+.twoCol {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+/* ── Panel ── */
+
+.panel {
   background: var(--surface);
   border: 1px solid var(--border-soft);
   border-radius: 10px;
   padding: 24px;
   box-shadow: var(--shadow-card);
-  transition: border-color 140ms ease;
 }
 
-.card:hover {
-  border-color: var(--border);
+.panelTop {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px;
+  padding-bottom: 16px;
+  margin-bottom: 16px;
+  border-bottom: 1px solid var(--border-soft);
 }
 
-.cardKicker {
-  margin: 0 0 10px;
-  font-size: 13px;
-  font-weight: 500;
+.panelTitle {
+  margin: 0;
+  font-family: var(--font-body);
+  font-size: 0.9rem;
+  font-weight: 650;
+  letter-spacing: -0.01em;
   text-transform: uppercase;
-  letter-spacing: 0.05em;
   color: var(--text-muted);
 }
 
-.cardValue {
+.panelLink {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  text-decoration: none;
+  border-bottom: 1px solid transparent;
+  transition: color 0.15s, border-color 0.15s;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .panelLink:hover {
+    color: var(--text);
+    border-bottom-color: var(--border);
+  }
+}
+
+/* ── Stat grid (2×2 inside each panel) ── */
+
+.statGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.stat {
+  background: var(--bg-subtle);
+  border: 1px solid var(--border-soft);
+  border-radius: 8px;
+  padding: 14px 16px;
+}
+
+.statKicker {
+  margin: 0 0 6px;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text-muted);
+}
+
+.statValue {
   margin: 0;
-  font-size: 36px;
+  font-size: 28px;
   font-weight: 700;
-  letter-spacing: -0.03em;
+  letter-spacing: -0.025em;
   color: var(--text);
   font-variant-numeric: tabular-nums;
 }
 
-.cardValueAccent {
+.statValueAccent {
   color: var(--total-figure);
 }
 
-.cardHint {
-  margin: 10px 0 0;
-  font-size: 0.9rem;
+.statHint {
+  margin: 6px 0 0;
+  font-size: 0.82rem;
   color: var(--text-muted);
+  font-variant-numeric: tabular-nums;
+  line-height: 1.4;
 }
+
+/* ── Split stat (two figures side by side in one card) ── */
+
+.statSplit {
+  display: flex;
+  align-items: stretch;
+  gap: 0;
+  margin-top: 6px;
+}
+
+.statSplitItem {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.statSplitValue {
+  font-size: 26px;
+  font-weight: 700;
+  letter-spacing: -0.025em;
+  color: var(--text);
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+}
+
+.statSplitLabel {
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.statSplitHint {
+  font-size: 0.78rem;
+  color: var(--text-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.statSplitDivider {
+  width: 1px;
+  background: var(--border-soft);
+  margin: 0 14px;
+  align-self: stretch;
+}
+
+/* ── Badges (status chips) ── */
 
 .badges {
   display: flex;
   flex-wrap: wrap;
-  gap: 8px;
-  margin-top: 2px;
+  gap: 6px;
+  margin-top: 4px;
 }
 
 .badge {
   display: inline-flex;
   align-items: center;
-  gap: 8px;
+  gap: 6px;
   border-radius: 999px;
-  padding: 6px 10px;
-  font-size: 0.85rem;
+  padding: 4px 9px;
+  font-size: 0.8rem;
   border: 1px solid var(--border-soft);
   background: var(--bg-subtle);
   color: var(--text);
@@ -165,224 +211,20 @@
   color: var(--state-approved);
 }
 
-.twoCol {
-  display: grid;
-  grid-template-columns: 1.2fr 0.8fr;
-  gap: 16px;
-  margin-top: 18px;
-}
+/* ── Responsive ── */
 
-.panel {
-  background: var(--surface);
-  border: 1px solid var(--border-soft);
-  border-radius: 10px;
-  padding: 24px;
-  box-shadow: var(--shadow-card);
-}
-
-.panelTop {
-  display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: 10px;
-  padding-bottom: 12px;
-  border-bottom: 1px solid var(--border-soft);
-}
-
-.panelTopAccent {
-  border-left: 2px solid var(--color-gold-medium);
-  padding-left: 14px;
-  margin-left: -14px;
-}
-
-.panelTitle {
-  margin: 0;
-  font-size: 1rem;
-  font-weight: 650;
-  letter-spacing: -0.01em;
-  color: var(--text);
-}
-
-.panelLink {
-  font-size: 0.9rem;
-  color: var(--text-muted);
-  text-decoration: none;
-  border-bottom: 1px solid transparent;
-}
-
-.panelLink:hover {
-  color: var(--text);
-  border-bottom-color: var(--border);
-}
-
-.soon {
-  font-size: 0.85rem;
-  color: var(--text-muted);
-  border: 1px dashed var(--border);
-  background: var(--bg-subtle);
-  padding: 4px 8px;
-  border-radius: 999px;
-}
-
-.emptyText {
-  margin: 12px 0 0;
-  color: var(--text-muted);
-  font-size: 0.95rem;
-  line-height: 1.6;
-}
-
-.activityList {
-  list-style: none;
-  padding: 0;
-  margin: 10px 0 0;
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-.activityItem {
-  padding: 0;
-  border: 1px solid var(--border-soft);
-  border-radius: 12px;
-  background: var(--surface);
-  overflow: hidden;
-}
-
-.activityRow {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  padding: 12px 14px;
-  text-decoration: none;
-  color: inherit;
-  cursor: pointer;
-  transition: background 120ms ease;
-}
-
-@media (hover: hover) and (pointer: fine) {
-  .activityRow:hover {
-    background: var(--bg-subtle);
-  }
-}
-
-.activityMain {
-  min-width: 0;
-}
-
-.activityTitle {
-  margin: 0;
-  font-weight: 600;
-  letter-spacing: -0.01em;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  color: var(--text);
-}
-
-.activityMeta {
-  margin: 2px 0 0;
-  font-size: 0.85rem;
-  color: var(--text-muted);
-}
-
-.activityRight {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  flex-shrink: 0;
-}
-
-.activityAmount {
-  font-variant-numeric: tabular-nums;
-  font-weight: 650;
-  letter-spacing: -0.01em;
-  color: var(--text);
-}
-
-.chevron {
-  color: var(--text-secondary);
-  font-weight: 700;
-  letter-spacing: -0.02em;
-}
-
-.invoiceMetrics {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 14px;
-  margin-top: 8px;
-}
-
-@media (max-width: 520px) {
-  .invoiceMetrics {
-    grid-template-columns: 1fr;
-  }
-}
-
-.invoiceMetric {
-  background: var(--surface);
-  border: 1px solid var(--border-soft);
-  border-radius: 10px;
-  padding: 14px 16px;
-}
-
-.invoiceMetricKicker {
-  margin: 0 0 6px;
-  font-size: 12px;
-  font-weight: 650;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  color: var(--text-muted);
-}
-
-.invoiceMetricValue {
-  margin: 0;
-  font-size: 28px;
-  font-weight: 700;
-  letter-spacing: -0.02em;
-  font-variant-numeric: tabular-nums;
-  color: var(--text);
-}
-
-.invoiceMetricHint {
-  margin: 8px 0 0;
-  font-size: 0.88rem;
-  color: var(--text-secondary);
-  font-variant-numeric: tabular-nums;
-}
-
-.panelPlaceholder {
-  border-style: dashed;
-  background: var(--bg-subtle);
-  color: var(--text-muted);
-}
-
-@media (max-width: 900px) {
-  .card {
-    grid-column: span 6;
-  }
+@media (max-width: 700px) {
   .twoCol {
     grid-template-columns: 1fr;
   }
 }
 
-@media (max-width: 560px) {
-  .header {
-    flex-direction: column;
-    align-items: stretch;
+@media (max-width: 480px) {
+  .statGrid {
+    grid-template-columns: 1fr;
   }
-  .headerRight {
-    width: 100%;
-  }
-  .cta {
-    width: 100%;
-  }
-  .card {
-    grid-column: span 12;
-  }
-  .activityRight {
-    align-items: flex-end;
-    flex-direction: column;
-    gap: 6px;
+
+  .wrap {
+    padding: 1.5rem 1rem 1.5rem;
   }
 }

@@ -3,7 +3,7 @@
  */
 export const theme = {
   colors: {
-    background: "#F4F1EC",
+    background: "#FFFFFF",
     beigeLight: "#E6D6C3",
     beigeMedium: "#D8C4AC",
     greenLight: "#A6A892",
