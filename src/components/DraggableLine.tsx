@@ -1,9 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { useDraggable, useDroppable } from "@dnd-kit/core";
-import { CSS } from "@dnd-kit/utilities";
-import { GripVertical, Pencil, Trash2 } from "lucide-react";
+import { Pencil, Trash2 } from "lucide-react";
 import type { BudgetLine } from "@/types/budget";
 import { formatEUR } from "@/lib/formatCurrency";
 import { isPricePending } from "@/lib/isPricePending";
@@ -11,8 +9,6 @@ import styles from "./DraggableLine.module.css";
 
 interface Props {
   line: BudgetLine;
-  isDragOver: boolean;
-  isDropCompatible: boolean | null; // null = no active drag
   onRemove: () => void;
   onUpdate: (
     patch: Partial<Pick<BudgetLine, "label" | "quantity" | "unitPrice">>
@@ -21,8 +17,6 @@ interface Props {
 
 export function DraggableLine({
   line,
-  isDragOver,
-  isDropCompatible,
   onRemove,
   onUpdate,
 }: Props) {
@@ -32,20 +26,6 @@ export function DraggableLine({
     quantity: "",
     unitPrice: "",
   });
-
-  const {
-    attributes,
-    listeners,
-    setNodeRef: setDragRef,
-    transform,
-    isDragging,
-  } = useDraggable({ id: line.id });
-
-  const { setNodeRef: setDropRef } = useDroppable({ id: line.id });
-
-  const style = {
-    transform: CSS.Translate.toString(transform),
-  };
 
   function startEdit() {
     setIsEditing(true);
@@ -65,21 +45,9 @@ export function DraggableLine({
     setIsEditing(false);
   }
 
-  const dropClass =
-    isDragOver && isDropCompatible === true
-      ? styles.dropCompatible
-      : isDragOver && isDropCompatible === false
-        ? styles.dropIncompatible
-        : "";
-
   return (
     <div
-      ref={(node) => {
-        setDragRef(node);
-        setDropRef(node);
-      }}
-      style={style}
-      className={`${styles.lineItem} ${isEditing ? styles.lineItemEditing : ""} ${isDragging ? styles.dragging : ""} ${dropClass}`}
+      className={`${styles.lineItem} ${isEditing ? styles.lineItemEditing : ""}`}
     >
       {isEditing ? (
         <form
@@ -143,16 +111,6 @@ export function DraggableLine({
         </form>
       ) : (
         <>
-          <button
-            className={styles.dragHandle}
-            {...listeners}
-            {...attributes}
-            tabIndex={-1}
-            aria-label="Arrossega per agrupar"
-          >
-            <GripVertical size={16} aria-hidden="true" />
-          </button>
-
           <div className={styles.lineMain}>
             <p className={styles.lineTitle}>{line.label}</p>
             {isPricePending(line) ? (

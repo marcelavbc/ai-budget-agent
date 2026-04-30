@@ -1,26 +1,9 @@
 "use client";
 
 import { useState } from "react";
-import {
-  DndContext,
-  PointerSensor,
-  useSensor,
-  useSensors,
-} from "@dnd-kit/core";
-import type {
-  DragEndEvent,
-  DragStartEvent,
-  DragOverEvent,
-} from "@dnd-kit/core";
 import type { BudgetLine, BudgetListItem } from "@/types/budget";
-import {
-  isBudgetGroup,
-  isBudgetOptionGroup,
-  canGroup,
-  templateGroup,
-} from "@/types/budget";
+import { isBudgetOptionGroup } from "@/types/budget";
 import { DraggableLine } from "./DraggableLine";
-import { BudgetGroupCard } from "./BudgetGroupCard";
 import { BudgetOptionGroupCard } from "./BudgetOptionGroupCard";
 import styles from "./BudgetLinesList.module.css";
 
@@ -33,8 +16,6 @@ interface Props {
     id: string,
     patch: Partial<Pick<BudgetLine, "label" | "quantity" | "unitPrice">>
   ) => void;
-  onGroupLines: (dragId: string, targetId: string) => boolean;
-  onUngroupGroup: (groupId: string) => void;
   onGenerateDraft?: () => void;
 }
 
@@ -44,60 +25,9 @@ export function BudgetLinesList({
   warnings,
   onRemoveLine,
   onUpdateLine,
-  onGroupLines,
-  onUngroupGroup,
   onGenerateDraft,
 }: Props) {
-  const [activeId, setActiveId] = useState<string | null>(null);
-  const [overId, setOverId] = useState<string | null>(null);
-  const [dropError, setDropError] = useState<string | null>(null);
-
-  const sensors = useSensors(useSensor(PointerSensor));
-
-  // Line currently being dragged (null when nothing is dragged)
-  const activeLine = (() => {
-    if (!activeId) return null;
-    for (const item of items) {
-      if (!isBudgetGroup(item)) {
-        if (isBudgetOptionGroup(item)) {
-          const found = item.options.find((l) => l.id === activeId);
-          if (found) return found;
-          continue;
-        }
-        if ((item as BudgetLine).id === activeId) return item as BudgetLine;
-      } else {
-        const found = (item as import("@/types/budget").BudgetGroup).lines.find(
-          (l) => l.id === activeId
-        );
-        if (found) return found;
-      }
-    }
-    return null;
-  })();
-
-  // Template group of the line currently being dragged
-  const activeDragZone = activeLine ? templateGroup[activeLine.type] : null;
-
-  function handleDragStart(event: DragStartEvent) {
-    setActiveId(event.active.id as string);
-    setDropError(null);
-  }
-
-  function handleDragOver(event: DragOverEvent) {
-    setOverId(event.over ? (event.over.id as string) : null);
-  }
-
-  function handleDragEnd(event: DragEndEvent) {
-    const { active, over } = event;
-    setActiveId(null);
-    setOverId(null);
-    if (!over || active.id === over.id) return;
-    const ok = onGroupLines(active.id as string, over.id as string);
-    if (!ok)
-      setDropError(
-        "Grups incompatibles — només es poden agrupar línies del mateix grup."
-      );
-  }
+  const [dropError] = useState<string | null>(null);
 
   if (items.length === 0) {
     return (
@@ -122,49 +52,25 @@ export function BudgetLinesList({
           </p>
         )}
 
-        <DndContext
-          sensors={sensors}
-          onDragStart={handleDragStart}
-          onDragOver={handleDragOver}
-          onDragEnd={handleDragEnd}
-        >
-          <div className={styles.linesList}>
-            {items.map((item) =>
-              isBudgetGroup(item) ? (
-                <BudgetGroupCard
-                  key={item.id}
-                  group={item}
-                  activeDragZone={activeDragZone}
-                  onRemoveLine={onRemoveLine}
-                  onUpdateLine={onUpdateLine}
-                  onUngroup={() => onUngroupGroup(item.id)}
-                />
-              ) : isBudgetOptionGroup(item) ? (
-                <BudgetOptionGroupCard
-                  key={item.id}
-                  group={item}
-                  onRemoveLine={onRemoveLine}
-                  onUpdateLine={onUpdateLine}
-                />
-              ) : (
-                <DraggableLine
-                  key={(item as BudgetLine).id}
-                  line={item as BudgetLine}
-                  isDragOver={overId === (item as BudgetLine).id}
-                  isDropCompatible={
-                    activeLine === null
-                      ? null
-                      : canGroup(activeLine, item as BudgetLine)
-                  }
-                  onRemove={() => onRemoveLine((item as BudgetLine).id)}
-                  onUpdate={(patch) =>
-                    onUpdateLine((item as BudgetLine).id, patch)
-                  }
-                />
-              )
-            )}
-          </div>
-        </DndContext>
+        <div className={styles.linesList}>
+          {items.map((item) =>
+            isBudgetOptionGroup(item) ? (
+              <BudgetOptionGroupCard
+                key={item.id}
+                group={item}
+                onRemoveLine={onRemoveLine}
+                onUpdateLine={onUpdateLine}
+              />
+            ) : (
+              <DraggableLine
+                key={(item as BudgetLine).id}
+                line={item as BudgetLine}
+                onRemove={() => onRemoveLine((item as BudgetLine).id)}
+                onUpdate={(patch) => onUpdateLine((item as BudgetLine).id, patch)}
+              />
+            )
+          )}
+        </div>
       </div>
 
       {warnings && warnings.length > 0 ? (

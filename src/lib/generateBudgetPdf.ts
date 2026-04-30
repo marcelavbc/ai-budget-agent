@@ -3,7 +3,6 @@ import type { BudgetClientDetails, BudgetClientItem } from "@/types/budget";
 import { formatEUR } from "@/lib/formatCurrency";
 import { hexToRgb, theme } from "@/theme/colors";
 import {
-  formatUnitCa,
   pdfCompanyCopyCa,
   pdfFinalSectionCopyCa,
   pdfLabelsCa,
@@ -107,25 +106,7 @@ function formatDateDdMmYyyy(value: string): string {
   return `${dd}-${mm}-${yyyy}`;
 }
 
-function formatMeasurement(item: BudgetClientItem): string {
-  const unit = safeTrim(item.unitLabel);
-  const hasQty =
-    typeof item.quantity === "number" && Number.isFinite(item.quantity);
-
-  if (!hasQty && unit.length === 0) return "—";
-  if (!hasQty) return unit;
-
-  const qRaw = item.quantity as number;
-  const q =
-    Math.abs(qRaw - Math.round(qRaw)) < 1e-9
-      ? String(Math.round(qRaw))
-      : String(qRaw).replace(".", ",");
-
-  if (unit.length === 0) return q;
-  if (unit === "m²") return `${q} ${unit}`;
-
-  return `${q} ${formatUnitCa(unit, q)}`;
-}
+// Measurement column intentionally removed from the PDF table layout.
 
 export async function generateBudgetPdf({
   client,
@@ -157,19 +138,17 @@ export async function generateBudgetPdf({
   const logoTopY = headerTop - 8;
   const headerSeparatorY = logoTopY + logoH + 16;
   const firstPageTitleY = headerSeparatorY + 40;
-  const firstPageStartY = firstPageTitleY + 48;
+  const firstPageStartY = firstPageTitleY + 24;
   const continuedPageStartY = headerSeparatorY + 28;
 
   const tableCols = {
     concept: 150,
-    measure: 70,
-    description: 205,
+    description: 275,
     amount: 82,
   };
 
   const tableWidth =
     tableCols.concept +
-    tableCols.measure +
     tableCols.description +
     tableCols.amount;
 
@@ -256,12 +235,21 @@ export async function generateBudgetPdf({
         .map((l) => l.trim())
     );
     const date = safeTrim(client.date);
+    const right = pageWidth - marginX;
+    const topY = y;
 
     doc.setFont("helvetica", "normal");
     doc.setFontSize(9);
     setTextColor(doc, COLORS.muted);
     doc.text(labels.client, marginX, y);
-    y += 14;
+
+    if (date.length > 0) {
+      const dateLabel = labels.date(formatDateDdMmYyyy(date));
+      const dateW = doc.getTextWidth(dateLabel);
+      doc.text(dateLabel, right - dateW, y);
+    }
+
+    y += 12;
 
     if (name.length > 0) {
       doc.setFont("helvetica", "bold");
@@ -285,18 +273,12 @@ export async function generateBudgetPdf({
         }
       }
 
-      y += 4;
+      y += 2;
     }
 
-    if (date.length > 0) {
-      doc.setFont("helvetica", "normal");
-      doc.setFontSize(10);
-      setTextColor(doc, COLORS.muted);
-      doc.text(labels.date(formatDateDdMmYyyy(date)), marginX, y);
-      y += 10;
-    }
-
-    y += 10;
+    // Keep a compact separation before the table.
+    y = Math.max(y, topY + 48);
+    y += 8;
   }
 
   function drawTableHeader() {
@@ -318,11 +300,9 @@ export async function generateBudgetPdf({
 
     const pad = 10;
     const xConcept = marginX + pad;
-    const xMeasure = marginX + tableCols.concept + pad;
-    const xDesc = marginX + tableCols.concept + tableCols.measure + pad;
+    const xDesc = marginX + tableCols.concept + pad;
 
     doc.text(labels.table.concept, xConcept, y + 16);
-    doc.text(labels.table.measure, xMeasure, y + 16);
     doc.text(labels.table.description, xDesc, y + 16);
     doc.text(labels.table.amount, marginX + tableWidth - pad, y + 16, {
       align: "right",
@@ -342,14 +322,12 @@ export async function generateBudgetPdf({
     const padding = 10;
     const indentX = opts?.indentX ?? 0;
     const conceptX = marginX + padding + indentX;
-    const measureX = marginX + tableCols.concept + padding;
-    const descX = marginX + tableCols.concept + tableCols.measure + padding + indentX;
+    const descX = marginX + tableCols.concept + padding + indentX;
     const amountX = marginX + tableWidth - padding;
 
     const concept =
       opts?.conceptOverride?.trim() || item.title?.trim() || labels.fallbackConcept;
     const description = item.description?.trim() || labels.fallbackDescription;
-    const measurement = formatMeasurement(item);
     const amount = formatEUR(item.total);
 
     doc.setFont("helvetica", "bold");
@@ -367,56 +345,69 @@ export async function generateBudgetPdf({
     ) as string[];
 
     const lineH = 13;
-    const conceptH = conceptLines.length * lineH;
-    const descH = descLines.length * lineH;
-    const rowH = Math.max(34, Math.max(conceptH, descH) + 14);
+    const topPad = 14;
 
-    ensureSpace(rowH + 2);
+    let remainingDesc = [...descLines];
+    let firstChunk = true;
 
-    doc.setDrawColor(COLORS.softLine.r, COLORS.softLine.g, COLORS.softLine.b);
-    doc.line(marginX, y + rowH, marginX + tableWidth, y + rowH);
+    while (remainingDesc.length > 0) {
+      // Ensure we have at least a minimal area to print.
+      ensureSpace(34 + 2);
 
-    doc.setFont("helvetica", "bold");
-    doc.setFontSize(10);
-    setTextColor(doc, COLORS.text);
+      const available = contentBottomY - y;
+      const maxDescLines = Math.max(1, Math.floor((available - topPad - 8) / lineH));
+      const descChunk = remainingDesc.slice(0, maxDescLines);
+      remainingDesc = remainingDesc.slice(maxDescLines);
 
-    let conceptY = y + 14;
-    for (const line of conceptLines) {
-      doc.text(line, conceptX, conceptY);
-      conceptY += lineH;
+      const chunkConceptLines = firstChunk ? conceptLines : [];
+      const conceptH = chunkConceptLines.length * lineH;
+      const descH = descChunk.length * lineH;
+      const rowH = Math.max(34, Math.max(conceptH, descH) + topPad);
+
+      // If the computed row doesn't fit, start a new page and retry chunk sizing.
+      if (y + rowH > contentBottomY) {
+        addPageBase("rest");
+        continue;
+      }
+
+      doc.setDrawColor(COLORS.softLine.r, COLORS.softLine.g, COLORS.softLine.b);
+      doc.line(marginX, y + rowH, marginX + tableWidth, y + rowH);
+
+      if (firstChunk) {
+        doc.setFont("helvetica", "bold");
+        doc.setFontSize(10);
+        setTextColor(doc, COLORS.text);
+
+        let conceptY = y + topPad;
+        for (const line of chunkConceptLines) {
+          doc.text(line, conceptX, conceptY);
+          conceptY += lineH;
+        }
+      }
+
+      doc.setFont("helvetica", "normal");
+      doc.setFontSize(9.5);
+      setTextColor(doc, COLORS.text);
+
+      let descY = y + topPad;
+      for (const line of descChunk) {
+        doc.text(line, descX, descY);
+        descY += lineH;
+      }
+
+      if (firstChunk) {
+        doc.setFont("helvetica", "bold");
+        doc.setFontSize(10);
+        setTextColor(doc, COLORS.text);
+        doc.text(amount, amountX, y + topPad, { align: "right" });
+      }
+
+      y += rowH;
+      firstChunk = false;
     }
-
-    doc.setFont("helvetica", "normal");
-    doc.setFontSize(9.5);
-    setTextColor(doc, COLORS.muted);
-
-    const measureW = tableCols.measure - padding * 2;
-    const measureText =
-      measurement.length > 0
-        ? (doc.splitTextToSize(measurement, measureW) as string[])[0]
-        : "—";
-
-    doc.text(measureText ?? "—", measureX, y + 14);
-
-    doc.setFont("helvetica", "normal");
-    doc.setFontSize(9.5);
-    setTextColor(doc, COLORS.text);
-
-    let descY = y + 14;
-    for (const line of descLines) {
-      doc.text(line, descX, descY);
-      descY += lineH;
-    }
-
-    doc.setFont("helvetica", "bold");
-    doc.setFontSize(10);
-    setTextColor(doc, COLORS.text);
-    doc.text(amount, amountX, y + 14, { align: "right" });
-
-    y += rowH;
   }
 
-  function drawOptionGroupHeader() {
+  function drawOptionGroupHeader(title: string) {
     const rowH = 22;
     ensureSpace(rowH + 8);
 
@@ -431,9 +422,39 @@ export async function generateBudgetPdf({
     doc.setFont("helvetica", "bold");
     doc.setFontSize(9.5);
     setTextColor(doc, COLORS.text);
-    doc.text(labels.optionGroupHeader, marginX + 10, y + 15);
+    const headerTitle = safeTrim(title) || labels.optionGroupHint;
+    doc.text(headerTitle, marginX + 10, y + 15);
+
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(9);
+    setTextColor(doc, COLORS.muted);
+    const hint = labels.optionGroupHint;
+    const hintW = doc.getTextWidth(hint);
+    doc.text(hint, marginX + tableWidth - 10 - hintW, y + 15);
 
     y += rowH + 6;
+  }
+
+  function deriveOptionGroupTitle(groupItems: BudgetClientItem[]): string {
+    const titles = groupItems.map((it) => safeTrim(it.title)).filter(Boolean);
+    if (titles.length === 0) return "";
+
+    const prefixes = titles
+      .map((t) => {
+        const idx = t.indexOf(":");
+        return idx === -1 ? "" : t.slice(0, idx).trim();
+      })
+      .filter(Boolean);
+
+    if (prefixes.length === titles.length) {
+      const first = prefixes[0]!;
+      if (prefixes.every((p) => p === first)) return `${first}:`;
+      return `${prefixes[0]!}:`;
+    }
+
+    const idx = titles[0]!.indexOf(":");
+    if (idx !== -1) return `${titles[0]!.slice(0, idx).trim()}:`;
+    return titles[0]!;
   }
 
   function drawFinalTextSection(input: {
@@ -469,9 +490,8 @@ export async function generateBudgetPdf({
       setTextColor(doc, COLORS.text);
 
       const ivaLines = doc.splitTextToSize(ivaSentence, bodyW) as string[];
-      ensureSpace(ivaLines.length * 14 + 14);
-
       for (const line of ivaLines) {
+        ensureSpace(14 + 6);
         doc.text(line, marginX, y);
         y += 14;
       }
@@ -494,9 +514,8 @@ export async function generateBudgetPdf({
 
     for (const paragraph of paragraphs) {
       const wrapped = doc.splitTextToSize(paragraph, bodyW) as string[];
-      ensureSpace(wrapped.length * 13 + 18);
-
       for (const line of wrapped) {
+        ensureSpace(13 + 10);
         doc.text(line, marginX, y);
         y += 13;
       }
@@ -537,7 +556,7 @@ export async function generateBudgetPdf({
       continue;
     }
 
-    drawOptionGroupHeader();
+    drawOptionGroupHeader(deriveOptionGroupTitle(groupItems));
     for (const opt of groupItems) {
       const optLabel = safeTrim(opt.optionLabel) || "Opció";
       drawItemRowInternal(opt, {

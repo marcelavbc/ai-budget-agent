@@ -26,8 +26,6 @@ export default function NewBudgetPage() {
     addLines,
     removeLine,
     updateLine,
-    moveLineToTarget,
-    ungroupGroup,
   } = useBudgetLines();
 
   const [view, setView] = useState<"lines" | "draft">("lines");
@@ -79,8 +77,6 @@ export default function NewBudgetPage() {
               warnings={lastResponse?.errors}
               onRemoveLine={removeLine}
               onUpdateLine={updateLine}
-              onGroupLines={moveLineToTarget}
-              onUngroupGroup={ungroupGroup}
               onGenerateDraft={handleGenerateDraft}
             />
           </>

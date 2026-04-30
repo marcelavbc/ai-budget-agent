@@ -21,7 +21,7 @@ export const pdfLabelsCa = {
   fallbackConcept: "Concepte",
   fallbackDescription: "Segons treball indicat.",
   total: "Total",
-  optionGroupHeader: "Opcions (escollir-ne una)",
+  optionGroupHint: "Opcions (escollir-ne una)",
   page: (pageNumber: number, totalPages: number) =>
     `Pàgina ${pageNumber} / ${totalPages}`,
   finalSection: {

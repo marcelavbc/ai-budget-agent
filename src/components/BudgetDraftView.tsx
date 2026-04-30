@@ -35,7 +35,10 @@ function segmentDraftItems(items: BudgetClientItem[]): DraftSegment[] {
       j += 1;
     }
     if (groupItems.length < 2) {
-      segments.push({ kind: "single", item: { ...cur, optionGroupId: undefined, optionLabel: undefined } });
+      segments.push({
+        kind: "single",
+        item: { ...cur, optionGroupId: undefined, optionLabel: undefined },
+      });
     } else {
       segments.push({ kind: "optionGroup", id: groupId, items: groupItems });
     }
@@ -175,8 +178,12 @@ export function BudgetDraftView({
 
       <ul className={styles.list}>
         {segments.map((seg) => {
-          const renderCard = (item: BudgetClientItem, optionLabel?: string) => (
-            <div className={styles.card}>
+          const renderCard = (
+            item: BudgetClientItem,
+            optionLabel?: string,
+            key?: string
+          ) => (
+            <div key={key ?? item.id} className={styles.card}>
               <div className={styles.cardHeader}>
                 {mode === "edit" ? (
                   <div className={styles.cardTitleRow}>
@@ -202,7 +209,9 @@ export function BudgetDraftView({
                   </div>
                 )}
                 <div className={styles.cardHeaderRight}>
-                  <span className={styles.cardTotal}>{formatEUR(item.total)}</span>
+                  <span className={styles.cardTotal}>
+                    {formatEUR(item.total)}
+                  </span>
                   {onItemRemove ? (
                     <div className={styles.cardIconActions}>
                       <button
@@ -233,7 +242,8 @@ export function BudgetDraftView({
                         const q = Number(e.target.value);
                         const quantity = Number.isFinite(q) ? q : 0;
                         const unitPrice = item.unitPrice ?? 0;
-                        const total = Math.round(quantity * unitPrice * 100) / 100;
+                        const total =
+                          Math.round(quantity * unitPrice * 100) / 100;
                         onItemChange(item.id, { quantity, total });
                       }}
                     />
@@ -246,8 +256,8 @@ export function BudgetDraftView({
                       value={item.unitLabel ?? "partida"}
                       onChange={(e) =>
                         onItemChange(item.id, {
-                          unitLabel:
-                            e.target.value as BudgetClientItem["unitLabel"],
+                          unitLabel: e.target
+                            .value as BudgetClientItem["unitLabel"],
                         })
                       }
                     >
@@ -270,7 +280,8 @@ export function BudgetDraftView({
                         const p = Number(e.target.value);
                         const unitPrice = Number.isFinite(p) ? p : 0;
                         const quantity = item.quantity ?? 1;
-                        const total = Math.round(quantity * unitPrice * 100) / 100;
+                        const total =
+                          Math.round(quantity * unitPrice * 100) / 100;
                         onItemChange(item.id, { unitPrice, total });
                       }}
                     />
@@ -300,15 +311,13 @@ export function BudgetDraftView({
                 <span className={styles.optionGroupTitle}>
                   Opcions alternatives
                 </span>
-                <span className={styles.optionGroupHint}>
-                  Escollir una opció. No sumar els imports.
-                </span>
               </div>
               <div className={styles.optionGroupBody}>
                 {seg.items.map((item) =>
                   renderCard(
                     item,
-                    (item.optionLabel ?? "").trim() || "Opció"
+                    (item.optionLabel ?? "").trim() || "Opció",
+                    item.id
                   )
                 )}
               </div>

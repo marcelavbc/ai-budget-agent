@@ -10,27 +10,6 @@
   border-radius: 10px;
 }
 
-.dragging {
-  opacity: 0.45;
-  box-shadow: none;
-  border-radius: 10px;
-  z-index: 10;
-}
-
-.dropCompatible {
-  background: color-mix(in srgb, var(--color-green-light) 14%, var(--surface));
-  box-shadow: inset 0 0 0 1px
-    color-mix(in srgb, var(--color-green-dark) 22%, var(--surface));
-  border-radius: 10px;
-}
-
-.dropIncompatible {
-  background: color-mix(in srgb, var(--color-terracotta) 7%, var(--surface));
-  box-shadow: inset 0 0 0 1px
-    color-mix(in srgb, var(--color-terracotta) 32%, var(--surface));
-  border-radius: 10px;
-}
-
 /* ── edit mode ── */
 
 .lineItemEditing {
@@ -135,32 +114,6 @@
 
 .cancelButton:hover {
   color: var(--text);
-}
-
-/* ── drag handle ── */
-
-.dragHandle {
-  flex-shrink: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 1.5rem;
-  margin-top: 0.05rem;
-  border: none;
-  background: transparent;
-  color: var(--border);
-  cursor: grab;
-  padding: 0;
-  touch-action: none;
-  transition: color 0.15s;
-}
-
-.dragHandle:hover {
-  color: var(--text-muted);
-}
-
-.dragHandle:active {
-  cursor: grabbing;
 }
 
 /* ── read mode ── */

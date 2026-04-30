@@ -3,7 +3,7 @@ import type {
   BudgetListItem,
   BudgetClientItem,
 } from "@/types/budget";
-import { isBudgetGroup, isBudgetOptionGroup, templateGroup } from "@/types/budget";
+import { isBudgetOptionGroup, templateGroup } from "@/types/budget";
 
 function getTemplateDescription(zone: string, lines: BudgetLine[]): string {
   const colorMatch = lines
@@ -29,18 +29,6 @@ export function generateBudgetDraft(
   items: BudgetListItem[]
 ): BudgetClientItem[] {
   return items.flatMap((item): BudgetClientItem[] => {
-    if (isBudgetGroup(item)) {
-      const uniqueLabels = [...new Set(item.lines.map((l) => l.label))];
-      return [
-        {
-        id: item.id,
-        title: uniqueLabels.join(" + "),
-        description: getTemplateDescription(item.zone, item.lines),
-        total: item.subtotal,
-        },
-      ];
-    }
-
     if (isBudgetOptionGroup(item)) {
       return item.options.map((opt) => ({
         id: opt.id,
@@ -58,13 +46,13 @@ export function generateBudgetDraft(
     const line = item as BudgetLine;
     return [
       {
-      id: line.id,
-      title: line.label,
-      description: getTemplateDescription(templateGroup[line.type], [line]),
-      total: line.subtotal,
-      quantity: line.quantity,
-      unitLabel: line.unitLabel,
-      unitPrice: line.unitPrice,
+        id: line.id,
+        title: line.label,
+        description: getTemplateDescription(templateGroup[line.type], [line]),
+        total: line.subtotal,
+        quantity: line.quantity,
+        unitLabel: line.unitLabel,
+        unitPrice: line.unitPrice,
       },
     ];
   });

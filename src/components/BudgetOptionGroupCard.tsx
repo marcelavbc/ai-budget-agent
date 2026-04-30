@@ -23,9 +23,6 @@ export function BudgetOptionGroupCard({
           <span className={styles.kicker}>Opcions alternatives</span>
           <span className={styles.title}>{group.title}</span>
         </div>
-        <p className={styles.hint}>
-          Escollir una opció. No sumar els imports.
-        </p>
       </div>
 
       <div className={styles.options}>
@@ -37,8 +34,6 @@ export function BudgetOptionGroupCard({
             <div className={styles.optionLine}>
               <DraggableLine
                 line={line}
-                isDragOver={false}
-                isDropCompatible={null}
                 onRemove={() => onRemoveLine(line.id)}
                 onUpdate={(patch) => onUpdateLine(line.id, patch)}
               />
@@ -49,4 +44,3 @@ export function BudgetOptionGroupCard({
     </div>
   );
 }
-

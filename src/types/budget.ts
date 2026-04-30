@@ -35,13 +35,6 @@ export interface BudgetDraftResponse {
   errors?: string[];
 }
 
-export interface BudgetGroup {
-  id: string;
-  zone: string;
-  lines: BudgetLine[];
-  subtotal: number;
-}
-
 export interface BudgetOptionGroup {
   /** Shared id across alternative options. */
   id: string;
@@ -50,16 +43,12 @@ export interface BudgetOptionGroup {
   options: BudgetLine[];
 }
 
-export type BudgetListItem = BudgetLine | BudgetGroup | BudgetOptionGroup;
-
-export function isBudgetGroup(item: BudgetListItem): item is BudgetGroup {
-  return "zone" in item && "lines" in item;
-}
+export type BudgetListItem = BudgetLine | BudgetOptionGroup;
 
 export function isBudgetOptionGroup(
   item: BudgetListItem
 ): item is BudgetOptionGroup {
-  return "options" in item && "id" in item && !("zone" in item);
+  return "options" in item && "id" in item;
 }
 
 export const templateGroup: Record<BudgetLineType, string> = {
@@ -71,12 +60,6 @@ export const templateGroup: Record<BudgetLineType, string> = {
   enamel_varnish: "enamel",
   custom: "custom",
 };
-
-export function canGroup(a: BudgetLine, b: BudgetLine): boolean {
-  const groupA = templateGroup[a.type];
-  const groupB = templateGroup[b.type];
-  return groupA === groupB && groupA !== "custom";
-}
 
 export interface BudgetClientItem {
   id: string;
