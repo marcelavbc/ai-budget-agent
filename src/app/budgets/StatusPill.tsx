@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { updateBudgetById } from "@/lib/budgetsClient";
 import {
   budgetStatusLabel,
@@ -30,6 +31,7 @@ export function StatusPill({
   initialStatus: string | null;
   onStatusChange?: (next: BudgetStatus) => void;
 }) {
+  const router = useRouter();
   const [status, setStatus] = useState<BudgetStatus>(
     normalizeBudgetStatus(initialStatus)
   );
@@ -44,6 +46,7 @@ export function StatusPill({
     setSaving(true);
     try {
       await updateBudgetById(budgetId, { status: next });
+      router.refresh();
     } catch {
       setStatus(prev);
       onStatusChange?.(prev);

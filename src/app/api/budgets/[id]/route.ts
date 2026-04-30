@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { revalidatePath } from "next/cache";
 import type { BudgetClientDetails, BudgetClientItem } from "@/types/budget";
 import type { BudgetStatus } from "@/lib/budgetStatus";
 import { deleteBudgetWithLines, updateBudgetById, updateBudgetWithLines } from "@/lib/budgets";
@@ -53,6 +54,7 @@ export async function PATCH(
       return NextResponse.json({ error: "Invalid request." }, { status: 400 });
     }
     await updateBudgetById(id, patch);
+    revalidatePath("/budgets");
     return NextResponse.json({ ok: true });
   } catch {
     return NextResponse.json({ error: "Update failed." }, { status: 500 });
