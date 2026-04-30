@@ -61,22 +61,28 @@ export function BudgetAIInput({
 
   return (
     <form className={styles.form} onSubmit={handleSubmit} noValidate>
-      <textarea
-        id="job-description"
-        className={styles.textarea}
-        name="description"
-        value={description}
-        disabled={loading}
-        onChange={(e) => setDescription(e.target.value)}
-        placeholder={placeholder}
-        aria-label="Descripció del treball"
-        autoComplete="off"
-        spellCheck
-        onKeyDown={handleKeyDown}
-        rows={4}
-      />
+      <div className={showSlider ? styles.inputRow : styles.inputStack}>
+        <div className={styles.textareaColumn}>
+          <textarea
+            id="job-description"
+            className={styles.textarea}
+            name="description"
+            value={description}
+            disabled={loading}
+            onChange={(e) => setDescription(e.target.value)}
+            placeholder={placeholder}
+            aria-label="Descripció del treball"
+            autoComplete="off"
+            spellCheck
+            onKeyDown={handleKeyDown}
+            rows={4}
+          />
 
-      <div className={styles.actions}>
+          <button className={styles.submit} type="submit" disabled={loading}>
+            {loading ? "Afegint…" : submitLabel}
+          </button>
+        </div>
+
         {showSlider ? (
           <div className={styles.priceBlock}>
             <div className={styles.priceRow}>
@@ -103,10 +109,6 @@ export function BudgetAIInput({
             </p>
           </div>
         ) : null}
-
-        <button className={styles.submit} type="submit" disabled={loading}>
-          {loading ? "Afegint…" : submitLabel}
-        </button>
       </div>
 
       {displayError ? <p className={styles.formError}>{displayError}</p> : null}
