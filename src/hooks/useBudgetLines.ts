@@ -140,6 +140,13 @@ export function useBudgetLines() {
     id: string,
     patch: Partial<Pick<BudgetLine, "label" | "quantity" | "unitPrice">>
   ) {
+    if (typeof patch.unitPrice === "number") {
+      const targetLine = getAllLines(items).find((l) => l.id === id);
+      if (targetLine?.type === "walls_and_ceilings" && targetLine.unitLabel === "m²") {
+        setPricePerSqm(patch.unitPrice);
+      }
+    }
+
     setItems((prev) =>
       prev.map((item) => {
         if (!isBudgetOptionGroup(item)) {

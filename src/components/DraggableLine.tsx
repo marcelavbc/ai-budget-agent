@@ -83,7 +83,7 @@ export function DraggableLine({
               />
             </label>
             <label className={styles.editLabel}>
-              <span className={styles.editLabelText}>Preu (€)</span>
+              <span className={styles.editLabelText}>Preu (€/{line.unitLabel})</span>
               <input
                 className={`${styles.editField} ${styles.editFieldNumber}`}
                 type="number"
