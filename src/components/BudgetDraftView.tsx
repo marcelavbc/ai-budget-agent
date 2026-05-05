@@ -147,7 +147,9 @@ export function BudgetDraftView({
   const segments = segmentDraftItems(items);
 
   return (
-    <section className={styles.root}>
+    <section
+      className={`${styles.root} ${mode === "edit" ? styles.rootEdit : ""}`}
+    >
       <div className={styles.topBar}>
         {mode !== "edit" ? (
           <button type="button" className={styles.backBtn} onClick={onBack}>
@@ -155,7 +157,9 @@ export function BudgetDraftView({
           </button>
         ) : null}
         {mode === "edit" ? (
-          <h2 className={styles.heading}>Editar pressupost</h2>
+          <h2 className={`${styles.heading} ${styles.headingEdit}`}>
+            Editar pressupost
+          </h2>
         ) : (
           <span className={styles.draftBadge}>ESBORRANY DEL PRESSUPOST</span>
         )}

@@ -1,6 +1,12 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import {
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  type ChangeEvent,
+} from "react";
 import Link from "next/link";
 import { Search } from "lucide-react";
 import { Brush } from "lucide-react";
@@ -81,6 +87,7 @@ export function BudgetsView({
   const [dateFrom, setDateFrom] = useState("");
   const [dateTo, setDateTo] = useState("");
   const [openMenu, setOpenMenu] = useState<"status" | "period" | null>(null);
+  const [filtersOpen, setFiltersOpen] = useState(false);
   const menusRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
@@ -163,7 +170,6 @@ export function BudgetsView({
       return true;
     });
   }, [items, query, selectedStatuses, dateFrom, dateTo]);
-  console.log(filtered);
 
   const customHasDates =
     period === "custom" && (dateFrom.trim() !== "" || dateTo.trim() !== "");
@@ -172,12 +178,17 @@ export function BudgetsView({
   const hasFilters =
     query.trim() !== "" || selectedStatuses.size > 0 || hasPeriodFilter;
 
+  const activeFilterCount =
+    selectedStatuses.size + (hasPeriodFilter ? 1 : 0);
+
   function reset() {
     setQuery("");
     setSelectedStatuses(new Set());
     setPeriod("all");
     setDateFrom("");
     setDateTo("");
+    setFiltersOpen(false);
+    setOpenMenu(null);
   }
 
   const resultsLabel = `${filtered.length} de ${items.length}`;
@@ -200,26 +211,78 @@ export function BudgetsView({
     });
   }
 
+  const searchInputProps = {
+    value: query,
+    onChange: (e: ChangeEvent<HTMLInputElement>) =>
+      setQuery(e.target.value),
+    placeholder: "Cerca per nom, número o adreça..." as const,
+    inputMode: "search" as const,
+    autoComplete: "off" as const,
+    "aria-label": "Cerca per nom, número o adreça",
+  };
+
   return (
     <div className={styles.viewRoot}>
-      <section className={styles.filters} aria-label="Filtres">
-        <div className={styles.filterRow} ref={menusRef}>
-          <div className={styles.search}>
+      <section
+        className={styles.filters}
+        aria-label="Filtres"
+        ref={menusRef}
+      >
+        <div
+          className={`${styles.filterCompactBar} ${filtersOpen ? styles.filterCompactBarOpen : ""}`}
+        >
+          <div className={`${styles.search} ${styles.mobileSearch}`}>
             <span className={styles.searchIcon} aria-hidden="true">
               <Search size={14} />
             </span>
             <input
               className={`${styles.input} ${styles.searchInput}`}
-              value={query}
-              onChange={(e) => setQuery(e.target.value)}
-              placeholder="Cerca per nom, número o adreça..."
-              inputMode="search"
-              autoComplete="off"
-              aria-label="Cerca per nom, número o adreça"
+              {...searchInputProps}
             />
           </div>
+          <button
+            type="button"
+            className={`${styles.filterExpandedToggleBtn} ${activeFilterCount > 0 ? styles.filterExpandedToggleActive : ""}`}
+            aria-expanded={filtersOpen}
+            aria-controls="budgets-filter-expanded"
+            aria-label={
+              activeFilterCount > 0
+                ? `Filtres, ${activeFilterCount} actius`
+                : "Filtres"
+            }
+            onClick={() => {
+              setFiltersOpen((v) => !v);
+              setOpenMenu(null);
+            }}
+          >
+            <span className={styles.filterExpandedToggleLabel}>Filtres</span>
+            {activeFilterCount > 0 ? (
+              <span className={styles.filterBadge} aria-hidden="true">
+                {activeFilterCount}
+              </span>
+            ) : null}
+            <span className={styles.chevron} aria-hidden="true">
+              {filtersOpen ? "▲" : "▾"}
+            </span>
+          </button>
+        </div>
 
-          <div className={styles.dropdownWrap}>
+        <div
+          id="budgets-filter-expanded"
+          className={`${styles.filterExpanded} ${filtersOpen ? styles.filterExpandedOpen : ""}`}
+        >
+          <div className={styles.filterRow}>
+            <div className={`${styles.search} ${styles.desktopSearch}`}>
+              <span className={styles.searchIcon} aria-hidden="true">
+                <Search size={14} />
+              </span>
+              <input
+                className={`${styles.input} ${styles.searchInput}`}
+                {...searchInputProps}
+              />
+            </div>
+
+            <div className={styles.dropdownWrap}>
             <button
               type="button"
               className={`${styles.dropdownBtn} ${statusIsActive ? styles.dropdownActive : ""}`}
@@ -258,9 +321,9 @@ export function BudgetsView({
                 );
               })}
             </div>
-          </div>
+            </div>
 
-          <div className={styles.dropdownWrap}>
+            <div className={styles.dropdownWrap}>
             <button
               type="button"
               className={`${styles.dropdownBtn} ${styles.dropdownBtnWide} ${periodIsActive ? styles.dropdownActive : ""}`}
@@ -337,18 +400,19 @@ export function BudgetsView({
                 </div>
               ) : null}
             </div>
-          </div>
+            </div>
 
-          <div className={styles.filterMeta}>
-            <span className={styles.results}>{resultsLabel}</span>
-            <button
-              type="button"
-              className={styles.resetLink}
-              onClick={reset}
-              disabled={!hasFilters}
-            >
-              Reset
-            </button>
+            <div className={styles.filterMeta}>
+              <span className={styles.results}>{resultsLabel}</span>
+              <button
+                type="button"
+                className={styles.resetLink}
+                onClick={reset}
+                disabled={!hasFilters}
+              >
+                Reset
+              </button>
+            </div>
           </div>
         </div>
       </section>
