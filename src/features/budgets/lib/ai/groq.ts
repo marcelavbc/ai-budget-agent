@@ -4,7 +4,7 @@ export function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null;
 }
 
-export function getGroqContent(data: unknown): string | null {
+function getGroqContent(data: unknown): string | null {
   if (!isRecord(data)) return null;
   const choices = data.choices;
   if (!Array.isArray(choices) || choices.length === 0) return null;

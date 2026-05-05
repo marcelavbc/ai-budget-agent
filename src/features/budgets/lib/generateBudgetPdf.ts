@@ -1,5 +1,8 @@
 import { jsPDF } from "jspdf";
-import type { BudgetClientDetails, BudgetClientItem } from "@/features/budgets/types/budget";
+import type {
+  BudgetClientDetails,
+  BudgetClientItem,
+} from "@/features/budgets/types/budget";
 import { formatEUR } from "@/shared/lib/formatCurrency";
 import { hexToRgb, theme } from "@/shared/theme/colors";
 import {
@@ -7,7 +10,10 @@ import {
   pdfFinalSectionCopyCa,
   pdfLabelsCa,
 } from "@/features/budgets/lib/pdfCopy.ca";
-import { pdfFinalSectionCopyEs, pdfLabelsEs } from "@/features/budgets/lib/pdfCopy.es";
+import {
+  pdfFinalSectionCopyEs,
+  pdfLabelsEs,
+} from "@/features/budgets/lib/pdfCopy.es";
 import { localizeAddress } from "@/shared/lib/addressLocale";
 
 export interface GenerateBudgetPdfInput {
@@ -76,8 +82,7 @@ function naturalSizeFromDataUrl(
 ): Promise<{ w: number; h: number }> {
   return new Promise((resolve, reject) => {
     const img = new Image();
-    img.onload = () =>
-      resolve({ w: img.naturalWidth, h: img.naturalHeight });
+    img.onload = () => resolve({ w: img.naturalWidth, h: img.naturalHeight });
     img.onerror = () => reject(new Error("No s'ha pogut llegir el logo"));
     img.src = dataUrl;
   });
@@ -157,7 +162,7 @@ export async function generateBudgetPdf({
   lang = "ca",
 }: GenerateBudgetPdfInput): Promise<Blob> {
   const doc = new jsPDF({ unit: "pt", format: "a4", compress: true });
-  const logoDataUrl = await loadOptimizedImageAsDataUrl("/logo-sanmarti.png");
+  const logoDataUrl = await loadOptimizedImageAsDataUrl("/logo-sanmarti2.png");
   const logoNatural = await naturalSizeFromDataUrl(logoDataUrl);
   const { w: logoW, h: logoH } = fitLogoSize(
     logoNatural.w,
@@ -191,9 +196,7 @@ export async function generateBudgetPdf({
   };
 
   const tableWidth =
-    tableCols.concept +
-    tableCols.description +
-    tableCols.amount;
+    tableCols.concept + tableCols.description + tableCols.amount;
 
   let y = 0;
 
@@ -390,7 +393,9 @@ export async function generateBudgetPdf({
     const amountX = marginX + tableWidth - padding;
 
     const concept =
-      opts?.conceptOverride?.trim() || item.title?.trim() || labels.fallbackConcept;
+      opts?.conceptOverride?.trim() ||
+      item.title?.trim() ||
+      labels.fallbackConcept;
     const description = item.description?.trim() || labels.fallbackDescription;
     const amount = formatEUR(item.total);
 
@@ -419,7 +424,10 @@ export async function generateBudgetPdf({
       ensureSpace(34 + 2);
 
       const available = contentBottomY - y;
-      const maxDescLines = Math.max(1, Math.floor((available - topPad - 8) / lineH));
+      const maxDescLines = Math.max(
+        1,
+        Math.floor((available - topPad - 8) / lineH)
+      );
       const descChunk = remainingDesc.slice(0, maxDescLines);
       remainingDesc = remainingDesc.slice(maxDescLines);
 
@@ -660,7 +668,11 @@ export async function generateBudgetPdf({
     }
 
     if (groupItems.length < 2) {
-      drawItemRow({ ...item, optionGroupId: undefined, optionLabel: undefined });
+      drawItemRow({
+        ...item,
+        optionGroupId: undefined,
+        optionLabel: undefined,
+      });
       idx = j;
       continue;
     }
@@ -693,7 +705,9 @@ export async function generateBudgetPdf({
   drawFinalTextSection(finalSectionInput, true);
   const contentHeight = y - pageContentStartY;
   const availableHeight = contentBottomY - pageContentStartY;
-  y = pageContentStartY + Math.max(0, Math.floor((availableHeight - contentHeight) / 2));
+  y =
+    pageContentStartY +
+    Math.max(0, Math.floor((availableHeight - contentHeight) / 2));
 
   drawFinalTextSection(finalSectionInput);
 

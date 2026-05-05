@@ -15,10 +15,3 @@ export type BudgetListRow = Pick<
   | "created_at"
 >;
 
-export type RecentBudgetActivityRow = {
-  id: string;
-  status: string | null;
-  created_at: string | null;
-  client: { name: string | null } | { name: string | null }[] | null;
-};
-

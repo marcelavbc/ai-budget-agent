@@ -17,7 +17,6 @@ import type {
   BudgetListRow,
   BudgetRow,
   ClientRow,
-  RecentBudgetActivityRow,
 } from "@/features/budgets/types/budgetsDb";
 
 export interface CreateBudgetInput {
@@ -246,20 +245,6 @@ export async function getBudgets(filter?: DateFilter): Promise<BudgetListRow[]> 
   const rows = data ?? [];
   if (!filter?.months?.length) return rows;
   return rows.filter((r) => matchesDateFilter(r.created_at ?? null, filter));
-}
-
-export async function getRecentBudgetActivity(
-  limit = 5
-): Promise<RecentBudgetActivityRow[]> {
-  const supabase = getSupabaseClient();
-  const { data, error } = await supabase
-    .from("budgets")
-    .select("id,status,created_at, client:clients(name)")
-    .order("created_at", { ascending: false })
-    .limit(limit);
-
-  if (error) throw new Error(error.message);
-  return (data ?? []) as RecentBudgetActivityRow[];
 }
 
 export async function deleteBudgetLines(budgetId: string): Promise<void> {

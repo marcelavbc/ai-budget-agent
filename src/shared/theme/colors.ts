@@ -24,8 +24,6 @@ export const theme = {
   },
 } as const;
 
-export type ThemeColors = typeof theme.colors;
-
 export function hexToRgb(hex: string): { r: number; g: number; b: number } {
   const raw = hex.replace("#", "");
   const expanded =

@@ -2,7 +2,7 @@ import Image from "next/image";
 import Link from "next/link";
 import styles from "./Logo.module.css";
 
-const LOGO_SRC = "/logo-sanmarti.png";
+const LOGO_SRC = "/logo-sanmarti2.png";
 const LOGO_W = 1536;
 const LOGO_H = 1024;
 

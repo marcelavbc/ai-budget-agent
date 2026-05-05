@@ -8,7 +8,7 @@ import {
   normalizeBudgetStatus,
   type BudgetStatus,
 } from "@/features/budgets/lib/budgetStatus";
-import styles from "@/app/budgets/page.module.css";
+import styles from "./BudgetsView.module.css";
 
 function nextStatus(value: BudgetStatus): BudgetStatus {
   if (value === "draft") return "sent";
