@@ -79,15 +79,17 @@ export function buildInterventionSummaryCa(items: BudgetClientItem[]): string {
 export const pdfFinalSectionCopyCa = {
   materials:
     "Els materials utilitzats seran els especificats a cada partida i seran de qualitat professional.",
-  payment:
-    "40% del pressupost a l'inici de les feines i 60% a la finalització dels treballs.",
+  paymentTitle: "Forma de pagament",
+  payment: [
+    "40% del pressupost a l'inici de les feines",
+    "60% a la finalització dels treballs",
+  ],
   validity:
     "Aquest pressupost no inclou l’IVA i té una validesa de 3 mesos des de la data d'emissió.",
   generalConditions: [
     "Els imports d’aquest pressupost s’han calculat segons les normes de medició d’ANSPI (Federació Nacional d’Empresaris de Pintura).",
-    "Aquest pressupost inclou únicament les partides descrites. Les partides no previstes que apareguin durant l’execució es pressupostaran i facturaran a part.",
+    "Aquest pressupost inclou únicament les partides descrites. Les partides no previstes que puguin sorgir durant l’execució es pressupostaran i facturaran a part.",
     "Els repassos o correccions que no siguin imputables al pintor aniran a càrrec del client.",
-    "L’empresa respon dels danys imputables a la seva responsabilitat civil i es reserva el dret d’emprendre les accions pertinents si és perjudicada pel mateix concepte.",
+    "L’empresa respon dels danys imputables a la seva responsabilitat civil i es reserva el dret d’emprendre les accions pertinents en cas de perjudici per aquest concepte.",
   ],
 };
-

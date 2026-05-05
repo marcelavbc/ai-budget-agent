@@ -109,6 +109,20 @@ function safeTrim(value: string | undefined | null): string {
   return (value ?? "").trim();
 }
 
+function asSentence(value: string): string {
+  const text = safeTrim(value);
+  if (!text) return "";
+  return /[.!?]$/.test(text) ? text : `${text}.`;
+}
+
+function copyValueToLines(value: string | string[]): string[] {
+  if (Array.isArray(value)) {
+    return value.map(asSentence).filter(Boolean);
+  }
+  const text = safeTrim(value);
+  return text ? [text] : [];
+}
+
 function compactLines(values: Array<string | undefined | null>): string[] {
   return values.map((v) => safeTrim(v)).filter((v) => v.length > 0);
 }
@@ -507,7 +521,8 @@ export async function generateBudgetPdf({
     input: {
       heading: string;
       materials: string;
-      payment: string;
+      paymentTitle?: string;
+      payment: string | string[];
       validity: string;
       generalConditions: string[];
     },
@@ -551,8 +566,8 @@ export async function generateBudgetPdf({
       y += 10;
     }
 
-    const paragraphs = [
-      `${safeTrim(input.materials)} ${safeTrim(input.payment)}`.trim(),
+    const bodyParagraphs = [
+      safeTrim(input.materials),
       `${safeTrim(validityRest)} ${safeTrim(input.generalConditions[0])}`.trim(),
       `${safeTrim(input.generalConditions[1])} ${safeTrim(
         input.generalConditions[2]
@@ -563,7 +578,7 @@ export async function generateBudgetPdf({
     doc.setFont("helvetica", "normal");
     doc.setFontSize(10);
 
-    for (const paragraph of paragraphs) {
+    function drawParagraph(paragraph: string) {
       const wrapped = doc.splitTextToSize(paragraph, bodyW) as string[];
       for (const line of wrapped) {
         if (!dryRun) {
@@ -575,6 +590,46 @@ export async function generateBudgetPdf({
       }
 
       y += 12;
+    }
+
+    if (bodyParagraphs[0]) {
+      drawParagraph(bodyParagraphs[0]);
+    }
+
+    const paymentTitle = safeTrim(input.paymentTitle);
+    const paymentLines = copyValueToLines(input.payment);
+    if (paymentTitle || paymentLines.length > 0) {
+      if (paymentTitle) {
+        doc.setFont("helvetica", "bold");
+        doc.setFontSize(10);
+        if (!dryRun) {
+          ensureSpace(13 + 6);
+          setTextColor(doc, COLORS.text);
+          doc.text(`${paymentTitle}:`, marginX, y);
+        }
+        y += 13;
+      }
+
+      doc.setFont("helvetica", "normal");
+      doc.setFontSize(10);
+
+      for (const line of paymentLines) {
+        const wrapped = doc.splitTextToSize(line, bodyW) as string[];
+        for (const wrappedLine of wrapped) {
+          if (!dryRun) {
+            ensureSpace(13 + 6);
+            setTextColor(doc, COLORS.muted);
+            doc.text(wrappedLine, marginX, y);
+          }
+          y += 13;
+        }
+      }
+
+      y += 12;
+    }
+
+    for (const paragraph of bodyParagraphs.slice(1)) {
+      drawParagraph(paragraph);
     }
   }
 
@@ -627,6 +682,7 @@ export async function generateBudgetPdf({
   const finalSectionInput = {
     heading: labels.finalSection.heading,
     materials: finalSectionCopy.materials,
+    paymentTitle: finalSectionCopy.paymentTitle,
     payment: finalSectionCopy.payment,
     validity: finalSectionCopy.validity,
     generalConditions: finalSectionCopy.generalConditions,

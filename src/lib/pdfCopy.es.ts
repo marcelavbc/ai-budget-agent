@@ -63,15 +63,17 @@ export function buildInterventionSummaryEs(items: BudgetClientItem[]): string {
 export const pdfFinalSectionCopyEs = {
   materials:
     "Los materiales utilizados serán los especificados en cada partida y serán de calidad profesional.",
-  payment:
-    "40% del presupuesto al inicio de los trabajos y 60% a la finalización de los mismos.",
+  paymentTitle: "Forma de pago",
+  payment: [
+    "40% del presupuesto al inicio de los trabajos",
+    "60% a la finalización de los mismos",
+  ],
   validity:
     "Este presupuesto no incluye el IVA y tiene una validez de 3 meses desde la fecha de emisión.",
   generalConditions: [
     "Los importes de este presupuesto se han calculado según las normas de medición de ANSPI (Federación Nacional de Empresarios de Pintura).",
-    "Este presupuesto incluye únicamente las partidas descritas. Las partidas no previstas que aparezcan durante la ejecución se presupuestarán y facturarán aparte.",
+    "Este presupuesto incluye únicamente las partidas descritas. Las partidas no previstas que puedan surgir durante la ejecución se presupuestarán y facturarán aparte.",
     "Los repasos o correcciones que no sean imputables al pintor correrán a cargo del cliente.",
-    "La empresa responde de los daños imputables a su responsabilidad civil y se reserva el derecho de emprender las acciones pertinentes si se viera perjudicada por el mismo concepto.",
+    "La empresa responde de los daños imputables a su responsabilidad civil y se reserva el derecho de emprender las acciones pertinentes en caso de perjuicio por este concepto.",
   ],
 };
-
