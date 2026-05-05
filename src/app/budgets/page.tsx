@@ -1,10 +1,13 @@
 import Link from "next/link";
+import { connection } from "next/server";
 import { getBudgets } from "@/lib/budgets";
 import { getInvoiceIdsByBudgetIds } from "@/lib/invoices";
 import { BudgetsView } from "./BudgetsView";
 import styles from "./page.module.css";
 
 export default async function BudgetsPage() {
+  await connection();
+
   const budgets = await getBudgets();
   const invoiceIdsByBudgetId = await getInvoiceIdsByBudgetIds(
     budgets.map((b) => b.id)

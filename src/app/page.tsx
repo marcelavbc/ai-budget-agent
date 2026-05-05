@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { connection } from "next/server";
 import { getBudgets } from "@/lib/budgets";
 import { getInvoiceDashboardStats } from "@/lib/invoices";
 import { formatEUR } from "@/lib/formatCurrency";
@@ -63,6 +64,8 @@ export default async function HomePage(props: {
     month: searchParams?.month,
     year: searchParams?.year,
   });
+
+  await connection();
 
   const [budgets, invoiceStats] = await Promise.all([
     getBudgets(filter),
