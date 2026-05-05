@@ -151,7 +151,7 @@ function formatDateDdMmYyyy(value: string): string {
   if (!m) return v;
 
   const [, yyyy, mm, dd] = m;
-  return `${dd}-${mm}-${yyyy}`;
+  return `${dd}/${mm}/${yyyy}`;
 }
 
 // Measurement column intentionally removed from the PDF table layout.

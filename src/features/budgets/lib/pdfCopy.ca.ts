@@ -1,4 +1,7 @@
-import type { BudgetClientDetails, BudgetClientItem } from "@/features/budgets/types/budget";
+import type {
+  BudgetClientDetails,
+  BudgetClientItem,
+} from "@/features/budgets/types/budget";
 
 export const pdfCompanyCopyCa = {
   brand: "SANMARTÍ",
@@ -11,7 +14,7 @@ export const pdfLabelsCa = {
   documentTitle: "PRESSUPOST DE PINTURA",
   client: "Client",
   date: (formattedDdMmYyyy: string) => `Data: ${formattedDdMmYyyy}`,
-  estimatedDurationLabel: "Durada estimada del treball",
+  estimatedDurationLabel: "Durada estimada dels treballs",
   table: {
     concept: "CONCEPTE",
     measure: "MESURA",

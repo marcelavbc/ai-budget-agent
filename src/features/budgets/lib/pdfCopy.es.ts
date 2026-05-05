@@ -1,11 +1,14 @@
-import type { BudgetClientDetails, BudgetClientItem } from "@/features/budgets/types/budget";
+import type {
+  BudgetClientDetails,
+  BudgetClientItem,
+} from "@/features/budgets/types/budget";
 
 export const pdfLabelsEs = {
   quoteNumber: (quoteNumber: string) => `Presupuesto núm. ${quoteNumber}`,
   documentTitle: "PRESUPUESTO DE PINTURA",
   client: "Cliente",
   date: (formattedDdMmYyyy: string) => `Fecha: ${formattedDdMmYyyy}`,
-  estimatedDurationLabel: "Duración estimada del trabajo",
+  estimatedDurationLabel: "Duración estimada de los trabajos",
   table: {
     concept: "CONCEPTO",
     measure: "MEDIDA",
