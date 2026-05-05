@@ -162,7 +162,7 @@ export async function generateBudgetPdf({
   lang = "ca",
 }: GenerateBudgetPdfInput): Promise<Blob> {
   const doc = new jsPDF({ unit: "pt", format: "a4", compress: true });
-  const logoDataUrl = await loadOptimizedImageAsDataUrl("/logo-sanmarti2.png");
+  const logoDataUrl = await loadOptimizedImageAsDataUrl("/logo-sanmarti3.png");
   const logoNatural = await naturalSizeFromDataUrl(logoDataUrl);
   const { w: logoW, h: logoH } = fitLogoSize(
     logoNatural.w,
