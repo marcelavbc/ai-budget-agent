@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
-import { createInvoiceFromBudget } from "@/lib/invoices";
-import { isInvoicePricingMode } from "@/types/invoice";
+import { createInvoiceFromBudget } from "@/features/invoices/lib/invoices";
+import { isInvoicePricingMode } from "@/features/invoices/types/invoice";
 
 type Body = { budgetId: string; pricingMode?: unknown };
 

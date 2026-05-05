@@ -1,8 +1,8 @@
 import Link from "next/link";
 import { connection } from "next/server";
-import { getBudgets } from "@/lib/budgets";
-import { getInvoiceIdsByBudgetIds } from "@/lib/invoices";
-import { BudgetsView } from "./BudgetsView";
+import { getBudgets } from "@/features/budgets/lib/budgets";
+import { getInvoiceIdsByBudgetIds } from "@/features/invoices/lib/invoices";
+import { BudgetsView } from "@/features/budgets/components/BudgetsView";
 import styles from "./page.module.css";
 
 export default async function BudgetsPage() {

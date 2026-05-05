@@ -1,18 +1,18 @@
 "use client";
 
 import { useState } from "react";
-import { useGenerateBudgetDraft } from "@/hooks/useGenerateBudgetDraft";
-import { useBudgetLines } from "@/hooks/useBudgetLines";
-import { useQuoteNumber } from "@/hooks/useQuoteNumber";
-import { BudgetForm } from "@/components/BudgetForm";
-import { BudgetLinesList } from "@/components/BudgetLinesList";
-import { BudgetDraftView } from "@/components/BudgetDraftView";
-import { generateBudgetDraft } from "@/lib/generateBudgetDraft";
+import { useGenerateBudgetDraft } from "@/features/budgets/hooks/useGenerateBudgetDraft";
+import { useBudgetLines } from "@/features/budgets/hooks/useBudgetLines";
+import { useQuoteNumber } from "@/features/budgets/hooks/useQuoteNumber";
+import { BudgetForm } from "@/features/budgets/components/BudgetForm";
+import { BudgetLinesList } from "@/features/budgets/components/BudgetLinesList";
+import { BudgetDraftView } from "@/features/budgets/components/BudgetDraftView";
+import { generateBudgetDraft } from "@/features/budgets/lib/generateBudgetDraft";
 import {
   defaultBudgetClientDetails,
   type BudgetClientDetails,
   type BudgetClientItem,
-} from "@/types/budget";
+} from "@/features/budgets/types/budget";
 
 import styles from "./page.module.css";
 

@@ -1,13 +1,13 @@
 import Link from "next/link";
 import { connection } from "next/server";
-import { getBudgets } from "@/lib/budgets";
-import { getInvoiceDashboardStats } from "@/lib/invoices";
-import { formatEUR } from "@/lib/formatCurrency";
-import { budgetStatusLabel, normalizeBudgetStatus } from "@/lib/budgetStatus";
-import { parseDateFilter, type DateFilter } from "@/lib/dateFilter";
+import { getBudgets } from "@/features/budgets/lib/budgets";
+import { getInvoiceDashboardStats } from "@/features/invoices/lib/invoices";
+import { formatEUR } from "@/shared/lib/formatCurrency";
+import { budgetStatusLabel, normalizeBudgetStatus } from "@/features/budgets/lib/budgetStatus";
+import { parseDateFilter, type DateFilter } from "@/shared/lib/dateFilter";
 
 import styles from "./page.module.css";
-import { FilterBar } from "@/components/FilterBar";
+import { FilterBar } from "@/shared/components/FilterBar";
 
 type SearchParams = Record<string, string | string[] | undefined>;
 

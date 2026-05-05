@@ -1,8 +1,8 @@
 import { NextResponse } from "next/server";
 import { revalidatePath } from "next/cache";
-import type { BudgetClientDetails, BudgetClientItem } from "@/types/budget";
-import type { BudgetStatus } from "@/lib/budgetStatus";
-import { deleteBudgetWithLines, updateBudgetById, updateBudgetWithLines } from "@/lib/budgets";
+import type { BudgetClientDetails, BudgetClientItem } from "@/features/budgets/types/budget";
+import type { BudgetStatus } from "@/features/budgets/lib/budgetStatus";
+import { deleteBudgetWithLines, updateBudgetById, updateBudgetWithLines } from "@/features/budgets/lib/budgets";
 
 type PutBody = {
   clientId: string | null;

@@ -1,10 +1,10 @@
-import { BudgetEditView } from "@/components/BudgetEditView";
+import { BudgetEditView } from "@/features/budgets/components/BudgetEditView";
 import {
   getBudgetById,
   getBudgetLinesByBudgetId,
   getClientById,
-} from "@/lib/budgets";
-import { getInvoicesForBudget } from "@/lib/invoices";
+} from "@/features/budgets/lib/budgets";
+import { getInvoicesForBudget } from "@/features/invoices/lib/invoices";
 import { notFound } from "next/navigation";
 
 import styles from "./page.module.css";

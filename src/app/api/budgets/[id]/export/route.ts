@@ -3,7 +3,7 @@ import {
   getBudgetById,
   getBudgetLinesByBudgetId,
   getClientById,
-} from "@/lib/budgets";
+} from "@/features/budgets/lib/budgets";
 
 export async function GET(
   _request: Request,

@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
-import type { BudgetClientItem } from "@/types/budget";
-import { translateBudgetItems } from "@/lib/translateBudgetItems";
+import type { BudgetClientItem } from "@/features/budgets/types/budget";
+import { translateBudgetItems } from "@/features/budgets/lib/translateBudgetItems";
 
 type Body = { items: BudgetClientItem[]; targetLang: "ca" | "es" };
 

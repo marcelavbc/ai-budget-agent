@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
-import { buildBudgetDraftFromAI } from "@/lib/buildBudgetDraftFromAI";
-import type { BudgetRequest } from "@/types/budget";
+import { buildBudgetDraftFromAI } from "@/features/budgets/lib/buildBudgetDraftFromAI";
+import type { BudgetRequest } from "@/features/budgets/types/budget";
 
 export async function POST(request: Request) {
   try {

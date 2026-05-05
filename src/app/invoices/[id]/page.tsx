@@ -1,10 +1,10 @@
 import { notFound } from "next/navigation";
-import { InvoiceView } from "@/components/InvoiceView";
+import { InvoiceView } from "@/features/invoices/components/InvoiceView";
 import {
   getInvoiceById,
   getInvoiceLinesByInvoiceId,
-} from "@/lib/invoices";
-import { getBudgetById, getClientById } from "@/lib/budgets";
+} from "@/features/invoices/lib/invoices";
+import { getBudgetById, getClientById } from "@/features/budgets/lib/budgets";
 import styles from "./page.module.css";
 
 export default async function InvoicePage({

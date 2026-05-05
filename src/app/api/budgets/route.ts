@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
-import type { BudgetClientDetails, BudgetClientItem } from "@/types/budget";
-import { saveBudgetWithLines } from "@/lib/budgets";
+import type { BudgetClientDetails, BudgetClientItem } from "@/features/budgets/types/budget";
+import { saveBudgetWithLines } from "@/features/budgets/lib/budgets";
 
 type Body = {
   client: BudgetClientDetails;
