@@ -21,28 +21,7 @@ export function BudgetsView({ budgets }: { budgets: BudgetListRow[] }) {
     <div className={styles.viewRoot}>
       <BudgetsFiltersSection
         styles={styles}
-        menusRef={filters.menusRef}
-        filtersOpen={filters.filtersOpen}
-        setFiltersOpen={filters.setFiltersOpen}
-        openMenu={filters.openMenu}
-        setOpenMenu={filters.setOpenMenu}
-        activeFilterCount={filters.activeFilterCount}
-        statusIsActive={filters.statusIsActive}
-        periodIsActive={filters.periodIsActive}
-        selectedStatuses={filters.selectedStatuses}
-        statusLabel={filters.statusLabel}
-        toggleStatus={filters.toggleStatus}
-        period={filters.period}
-        setPeriod={filters.setPeriod}
-        periodLabel={filters.periodLabel}
-        dateFrom={filters.dateFrom}
-        setDateFrom={filters.setDateFrom}
-        dateTo={filters.dateTo}
-        setDateTo={filters.setDateTo}
-        searchInputProps={filters.searchInputProps}
-        resultsLabel={filters.resultsLabel}
-        hasFilters={filters.hasFilters}
-        onReset={filters.reset}
+        filters={filters}
       />
 
       <div className={styles.resultsScroll}>

@@ -171,3 +171,4 @@ export function useBudgetsListFilters(items: BudgetListRow[]) {
   };
 }
 
+export type BudgetsListFilters = ReturnType<typeof useBudgetsListFilters>;
