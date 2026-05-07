@@ -2,7 +2,12 @@ import { NextResponse } from "next/server";
 import { createInvoiceFromBudget } from "@/features/invoices/lib/invoices";
 import { isInvoicePricingMode } from "@/features/invoices/types/invoice";
 
-type Body = { budgetId: string; pricingMode?: unknown };
+type Body = {
+  budgetId: string;
+  pricingMode?: unknown;
+  issueDate?: unknown;
+  dueDate?: unknown;
+};
 
 export async function POST(request: Request) {
   try {
@@ -25,7 +30,17 @@ export async function POST(request: Request) {
       );
     }
 
-    const { invoiceId } = await createInvoiceFromBudget(budgetId, pricingMode);
+    const issueDate =
+      typeof body.issueDate === "string" ? body.issueDate.trim() : undefined;
+    const dueDate =
+      typeof body.dueDate === "string" ? body.dueDate.trim() : undefined;
+
+    const { invoiceId } = await createInvoiceFromBudget(
+      budgetId,
+      pricingMode,
+      issueDate || undefined,
+      dueDate || undefined
+    );
     return NextResponse.json({ invoiceId });
   } catch (err) {
     const msg = err instanceof Error ? err.message : "";

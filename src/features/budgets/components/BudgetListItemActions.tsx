@@ -21,18 +21,25 @@ import {
   deleteBudgetWithLines,
   getBudgetExportData,
 } from "@/features/budgets/lib/budgetsClient";
-import { createInvoiceFromBudget } from "@/features/invoices/lib/invoicesClient";
+import {
+  createInvoiceFromBudget,
+  updateClientTaxId,
+} from "@/features/invoices/lib/invoicesClient";
 import { normalizeBudgetStatus } from "@/features/budgets/lib/budgetStatus";
 import type { InvoicePricingMode } from "@/features/invoices/types/invoice";
 
 export function BudgetListItemActions({
   budgetId,
   budgetStatus,
+  clientName,
+  clientTaxId,
   onInvoiceCreated,
   variant = "full",
 }: {
   budgetId: string;
   budgetStatus?: string | null;
+  clientName: string | null;
+  clientTaxId: string | null;
   onInvoiceCreated?: (
     pricingMode: InvoicePricingMode,
     invoiceId: string
@@ -47,6 +54,16 @@ export function BudgetListItemActions({
   const [invoiceModalOpen, setInvoiceModalOpen] = useState(false);
   const [isInvoicing, startInvoicing] = useTransition();
   const [invoiceError, setInvoiceError] = useState<string | null>(null);
+  const [invoiceStep, setInvoiceStep] = useState<1 | 2>(1);
+  const [selectedPricingMode, setSelectedPricingMode] =
+    useState<InvoicePricingMode | null>(null);
+  const [taxId, setTaxId] = useState<string>(clientTaxId ?? "");
+  const [issueDate, setIssueDate] = useState<string>(
+    new Date().toISOString().split("T")[0]
+  );
+  const [dueDate, setDueDate] = useState<string>(
+    new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split("T")[0]
+  );
   const router = useRouter();
 
   const isApproved = normalizeBudgetStatus(budgetStatus) === "approved";
@@ -143,15 +160,21 @@ export function BudgetListItemActions({
     }
   }
 
-  function handleCreateInvoice(pricingMode: InvoicePricingMode) {
+  async function handleCreateInvoice(pricingMode: InvoicePricingMode) {
     setInvoiceModalOpen(false);
     setInvoiceError(null);
     startInvoicing(() => {
       void (async () => {
         try {
+          // Guardar NIF al client si s'ha introduït
+          if (taxId.trim() && taxId.trim() !== (clientTaxId ?? "").trim()) {
+            await updateClientTaxId(budgetId, taxId.trim());
+          }
           const { invoiceId } = await createInvoiceFromBudget(
             budgetId,
-            pricingMode
+            pricingMode,
+            issueDate,
+            dueDate
           );
           onInvoiceCreated?.(pricingMode, invoiceId);
           router.push(`/invoices/${invoiceId}`);
@@ -165,6 +188,13 @@ export function BudgetListItemActions({
         }
       })();
     });
+  }
+
+  function handleCloseModal() {
+    setInvoiceModalOpen(false);
+    setInvoiceStep(1);
+    setSelectedPricingMode(null);
+    setTaxId(clientTaxId ?? "");
   }
 
   return (
@@ -307,7 +337,9 @@ export function BudgetListItemActions({
             : `${styles.btn} ${styles.danger}`
         }
         aria-label="Eliminar pressupost"
-        title={isInvoiced ? "No es pot eliminar un pressupost facturat" : "Eliminar"}
+        title={
+          isInvoiced ? "No es pot eliminar un pressupost facturat" : "Eliminar"
+        }
       >
         {variant === "icons" ? (
           deleting ? (
@@ -322,13 +354,30 @@ export function BudgetListItemActions({
         )}
       </button>
 
-      {invoiceModalOpen ? (
+      {invoiceModalOpen && (
         <InvoiceModal
           loading={isInvoicing}
-          onSelect={handleCreateInvoice}
-          onClose={() => setInvoiceModalOpen(false)}
+          clientName={clientName}
+          clientTaxId={clientTaxId}
+          taxId={taxId}
+          setTaxId={setTaxId}
+          issueDate={issueDate}
+          setIssueDate={setIssueDate}
+          dueDate={dueDate}
+          setDueDate={setDueDate}
+          step={invoiceStep}
+          selectedPricingMode={selectedPricingMode}
+          onSelectPricing={(mode) => {
+            setSelectedPricingMode(mode);
+            setInvoiceStep(2);
+          }}
+          onConfirm={() => {
+            if (selectedPricingMode) handleCreateInvoice(selectedPricingMode);
+          }}
+          onBack={() => setInvoiceStep(1)}
+          onClose={handleCloseModal}
         />
-      ) : null}
+      )}
 
       <ConfirmDialog
         open={confirmOpen}
@@ -358,15 +407,40 @@ export function BudgetListItemActions({
 
 function InvoiceModal({
   loading,
-  onSelect,
+  clientName,
+  clientTaxId,
+  taxId,
+  setTaxId,
+  issueDate,
+  setIssueDate,
+  dueDate,
+  setDueDate,
+  step,
+  selectedPricingMode,
+  onSelectPricing,
+  onConfirm,
+  onBack,
   onClose,
 }: {
   loading: boolean;
-  onSelect: (pricingMode: InvoicePricingMode) => void;
+  clientName?: string | null;
+  clientTaxId?: string | null;
+  taxId: string;
+  setTaxId: (v: string) => void;
+  issueDate: string;
+  setIssueDate: (v: string) => void;
+  dueDate: string;
+  setDueDate: (v: string) => void;
+  step: 1 | 2;
+  selectedPricingMode: InvoicePricingMode | null;
+  onSelectPricing: (mode: InvoicePricingMode) => void;
+  onConfirm: () => void;
+  onBack: () => void;
   onClose: () => void;
 }) {
   const dialogRef = useRef<HTMLDivElement | null>(null);
   const firstActionRef = useRef<HTMLButtonElement | null>(null);
+  const taxIdInputRef = useRef<HTMLInputElement | null>(null);
   const titleId = useRef(`invoice-title-${crypto.randomUUID()}`);
   const descId = useRef(`invoice-desc-${crypto.randomUUID()}`);
 
@@ -379,9 +453,12 @@ function InvoiceModal({
   }, []);
 
   useEffect(() => {
-    const t = window.setTimeout(() => firstActionRef.current?.focus(), 0);
+    const t = window.setTimeout(() => {
+      if (step === 1) firstActionRef.current?.focus();
+      else taxIdInputRef.current?.focus();
+    }, 0);
     return () => window.clearTimeout(t);
-  }, []);
+  }, [step]);
 
   useEffect(() => {
     function onKeyDown(e: KeyboardEvent) {
@@ -435,38 +512,125 @@ function InvoiceModal({
           Generar factura
         </h2>
         <p className={dialogStyles.body} id={descId.current}>
-          Selecciona el tipus de factura
+          {step === 1
+            ? "Selecciona el tipus de factura"
+            : "Completa les dades fiscals i les dates de la factura."}
         </p>
 
-        <div className={dialogStyles.actions}>
-          <button
-            type="button"
-            className={dialogStyles.btn}
-            onClick={onClose}
-            disabled={loading}
+        {step === 1 ? (
+          <div className={dialogStyles.actions}>
+            <button
+              type="button"
+              className={dialogStyles.btn}
+              onClick={onClose}
+              disabled={loading}
+            >
+              Cancel·lar
+            </button>
+            <button
+              ref={firstActionRef}
+              type="button"
+              className={dialogStyles.btn}
+              onClick={() => onSelectPricing("without_iva")}
+              disabled={loading}
+              aria-busy={loading || undefined}
+            >
+              {loading ? "…" : "Sense IVA"}
+            </button>
+            <button
+              type="button"
+              className={dialogStyles.btn}
+              onClick={() => onSelectPricing("with_iva")}
+              disabled={loading}
+              aria-busy={loading || undefined}
+            >
+              {loading ? "…" : "Amb IVA"}
+            </button>
+          </div>
+        ) : (
+          <form
+            className={dialogStyles.form}
+            onSubmit={(e) => {
+              e.preventDefault();
+              onConfirm();
+            }}
           >
-            Cancel·lar
-          </button>
-          <button
-            ref={firstActionRef}
-            type="button"
-            className={dialogStyles.btn}
-            onClick={() => onSelect("without_iva")}
-            disabled={loading}
-            aria-busy={loading || undefined}
-          >
-            {loading ? "…" : "Sense IVA"}
-          </button>
-          <button
-            type="button"
-            className={dialogStyles.btn}
-            onClick={() => onSelect("with_iva")}
-            disabled={loading}
-            aria-busy={loading || undefined}
-          >
-            {loading ? "…" : "Amb IVA"}
-          </button>
-        </div>
+            <div className={dialogStyles.fields}>
+              <label className={dialogStyles.field}>
+                <span className={`${dialogStyles.body} ${dialogStyles.label}`}>
+                  Client
+                </span>
+                <input
+                  value={clientName ?? ""}
+                  readOnly
+                  className={dialogStyles.input}
+                />
+              </label>
+              <label className={dialogStyles.field}>
+                <span className={`${dialogStyles.body} ${dialogStyles.label}`}>
+                  NIF/NIE
+                </span>
+                <input
+                  ref={taxIdInputRef}
+                  value={taxId}
+                  placeholder={clientTaxId ? undefined : "Introdueix el NIF/NIE"}
+                  onChange={(e) => setTaxId(e.target.value)}
+                  required
+                  className={dialogStyles.input}
+                />
+              </label>
+              <label className={dialogStyles.field}>
+                <span className={`${dialogStyles.body} ${dialogStyles.label}`}>
+                  Data d&apos;emissió
+                </span>
+                <input
+                  type="date"
+                  value={issueDate}
+                  onChange={(e) => setIssueDate(e.target.value)}
+                  className={dialogStyles.input}
+                />
+              </label>
+              <label className={dialogStyles.field}>
+                <span className={`${dialogStyles.body} ${dialogStyles.label}`}>
+                  Venciment
+                </span>
+                <input
+                  type="date"
+                  value={dueDate}
+                  onChange={(e) => setDueDate(e.target.value)}
+                  className={dialogStyles.input}
+                />
+              </label>
+            </div>
+
+            <div className={dialogStyles.actions}>
+              <button
+                type="button"
+                className={dialogStyles.btn}
+                onClick={onClose}
+                disabled={loading}
+              >
+                Cancel·lar
+              </button>
+              <button
+                type="button"
+                className={dialogStyles.btn}
+                onClick={onBack}
+                disabled={loading}
+              >
+                Enrere
+              </button>
+              <button
+                type="submit"
+                className={dialogStyles.btn}
+                disabled={loading || !selectedPricingMode || !taxId.trim()}
+                aria-busy={loading || undefined}
+              >
+                {loading ? "…" : "Generar factura"}
+              </button>
+            </div>
+          </form>
+        )}
       </div>
     </div>
   );

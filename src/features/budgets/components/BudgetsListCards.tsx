@@ -65,6 +65,8 @@ export function BudgetsListCards({
                   <BudgetListItemActions
                     budgetId={b.id}
                     budgetStatus={b.status}
+                    clientName={b.title}
+                    clientTaxId={null}
                     variant="icons"
                   />
                 </div>

@@ -19,7 +19,9 @@ function errorMessage(data: unknown, fallback: string): string {
 
 export async function createInvoiceFromBudget(
   budgetId: string,
-  pricingMode: InvoicePricingMode
+  pricingMode: InvoicePricingMode,
+  issueDate?: string,
+  dueDate?: string
 ): Promise<{ invoiceId: string }> {
   if (!isInvoicePricingMode(pricingMode)) {
     throw new Error("Mode de facturació no vàlid.");
@@ -28,7 +30,7 @@ export async function createInvoiceFromBudget(
   const res = await fetch("/api/invoices/from-budget", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ budgetId, pricingMode }),
+    body: JSON.stringify({ budgetId, pricingMode, issueDate, dueDate }),
   });
 
   const data = await readJson(res);
@@ -45,4 +47,23 @@ export async function createInvoiceFromBudget(
   }
 
   return { invoiceId };
+}
+
+export async function updateClientTaxId(
+  budgetId: string,
+  taxId: string
+): Promise<void> {
+  const res = await fetch(`/api/budgets/${budgetId}/client-tax-id`, {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ taxId }),
+  });
+  if (!res.ok) {
+    const data = await res.json().catch(() => null);
+    throw new Error(
+      typeof data?.error === "string"
+        ? data.error
+        : "No s'ha pogut guardar el NIF."
+    );
+  }
 }
