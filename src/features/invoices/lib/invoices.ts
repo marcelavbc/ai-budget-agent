@@ -1,13 +1,10 @@
 import "server-only";
 
 import { getSupabaseClient } from "@/core/lib/supabaseClient";
-import { normalizeBudgetStatus } from "@/features/budgets/lib/budgetStatus";
-import { getBudgetById, getBudgetLinesByBudgetId } from "@/features/budgets/lib/budgets";
-import { calcTotalsFromSubtotal } from "@/features/budgets/lib/helpers";
+import { getBudgetLinesByBudgetId } from "@/features/budgets/lib/budgets";
 import { dateFilterRange, matchesDateFilter, type DateFilter } from "@/shared/lib/dateFilter";
 import type { InvoicePricingMode } from "@/features/invoices/types/invoice";
 import { isInvoicePricingMode } from "@/features/invoices/types/invoice";
-import type { BudgetLineRow } from "@/features/budgets/types/budgetsDb";
 import type { Tables, TablesInsert } from "@/core/types/supabase";
 
 export type InvoiceRow = Tables<"invoices">;
@@ -27,31 +24,6 @@ export type InvoiceDashboardStats = {
 
 function round2(n: number) {
   return Math.round(n * 100) / 100;
-}
-
-function sumLineSubtotals(lines: BudgetLineRow[]): number {
-  return round2(
-    lines.reduce(
-      (s, l) =>
-        s + (l.line_total ?? (l.quantity ?? 1) * (l.unit_price ?? 0)),
-      0
-    )
-  );
-}
-
-export async function getInvoiceByBudgetIdAndPricing(
-  budgetId: string,
-  pricingMode: InvoicePricingMode
-): Promise<Pick<InvoiceRow, "id"> | null> {
-  const supabase = getSupabaseClient();
-  const { data, error } = await supabase
-    .from("invoices")
-    .select("id")
-    .eq("budget_id", budgetId)
-    .eq("pricing_mode", pricingMode)
-    .maybeSingle();
-  if (error) throw new Error(error.message);
-  return data ?? null;
 }
 
 export async function getInvoicesForBudget(
@@ -140,7 +112,7 @@ export async function getInvoiceById(id: string): Promise<InvoiceRow | null> {
   const { data, error } = await supabase
     .from("invoices")
     .select(
-      "id,budget_id,client_id,subtotal,tax_rate,tax_amount,total,pricing_mode,created_at"
+      "id,budget_id,client_id,subtotal,tax_rate,tax_amount,total,pricing_mode,invoice_number,status,issue_date,due_date,notes,job_address,created_at"
     )
     .eq("id", id)
     .maybeSingle();
@@ -174,91 +146,42 @@ export async function createInvoiceFromBudget(
   const budgetIdNormalized = budgetId.trim();
   if (!budgetIdNormalized) throw new Error("Invalid budgetId.");
 
-  const existing = await getInvoiceByBudgetIdAndPricing(
-    budgetIdNormalized,
-    pricingMode
-  );
-  if (existing?.id) return { invoiceId: String(existing.id) };
-
-  const [budget, lines] = await Promise.all([
-    getBudgetById(budgetIdNormalized),
-    getBudgetLinesByBudgetId(budgetIdNormalized),
-  ]);
-
-  if (!budget) throw new Error("No s'ha trobat el pressupost.");
-  if (normalizeBudgetStatus(budget.status) !== "approved") {
-    throw new Error("El pressupost no està aprovat.");
-  }
-
-  const subtotalBase = round2(sumLineSubtotals(lines));
-
-  let header: Omit<
-    TablesInsert<"invoices">,
-    "id" | "created_at"
-  >;
-
-  if (pricingMode === "without_iva") {
-    header = {
-      budget_id: budget.id,
-      client_id: budget.client_id,
-      subtotal: subtotalBase,
-      tax_rate: 0,
-      tax_amount: 0,
-      total: subtotalBase,
-      pricing_mode: "without_iva",
-    };
-  } else {
-    const taxRate = typeof budget.tax_rate === "number" ? budget.tax_rate : 0;
-    const derived = calcTotalsFromSubtotal(subtotalBase, taxRate);
-    const taxAmount = derived.tax_amount;
-    const total = derived.total;
-
-    header = {
-      budget_id: budget.id,
-      client_id: budget.client_id,
-      subtotal: subtotalBase,
-      tax_rate: taxRate,
-      tax_amount: taxAmount,
-      total,
-      pricing_mode: "with_iva",
-    };
-  }
-
   const supabase = getSupabaseClient();
 
-  const { data: created, error: createError } = await supabase
-    .from("invoices")
-    .insert([header])
-    .select("id")
-    .single();
+  const { data: invoiceId, error: rpcError } = await supabase.rpc(
+    "create_invoice_from_budget",
+    {
+      p_budget_id: budgetIdNormalized,
+      p_pricing_mode: pricingMode,
+    }
+  );
 
-  if (createError) throw new Error(createError.message);
-  if (!created?.id) throw new Error("Supabase did not return an invoice id.");
+  if (rpcError) throw new Error(rpcError.message);
+  if (!invoiceId) throw new Error("No s'ha pogut generar la factura.");
 
-  const invoiceId = String(created.id);
+  const invoiceIdStr = (invoiceId as unknown as string);
 
-  const invoiceLines: TablesInsert<"invoice_lines">[] = lines.map((l, idx) => {
-    const quantity = l.quantity ?? 1;
-    const unitPrice = l.unit_price ?? 0;
-    const lineSubtotal =
-      l.line_total ?? round2((l.quantity ?? 1) * (l.unit_price ?? 0));
+  const lines = await getBudgetLinesByBudgetId(budgetIdNormalized);
 
-    return {
-      invoice_id: invoiceId,
-      description: ((l.title ?? "").trim() || "Partida") as string,
-      quantity,
-      unit_price: unitPrice,
-      subtotal: lineSubtotal,
-      sort_order: l.sort_order ?? idx,
-    };
-  });
+  if (lines.length > 0) {
+    const invoiceLines: TablesInsert<"invoice_lines">[] = lines.map(
+      (l, idx) => ({
+        invoice_id: invoiceIdStr,
+        description: ((l.title ?? "").trim() || "Partida") as string,
+        quantity: l.quantity ?? 1,
+        unit_price: l.unit_price ?? 0,
+        subtotal:
+          l.line_total ?? round2((l.quantity ?? 1) * (l.unit_price ?? 0)),
+        sort_order: l.sort_order ?? idx,
+      })
+    );
 
-  if (invoiceLines.length) {
     const { error: linesError } = await supabase
       .from("invoice_lines")
       .insert(invoiceLines);
+
     if (linesError) throw new Error(linesError.message);
   }
 
-  return { invoiceId };
+  return { invoiceId: invoiceIdStr };
 }

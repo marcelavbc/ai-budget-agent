@@ -1,8 +1,6 @@
 "use client";
 
-import type { InvoicePricingMode } from "@/features/invoices/types/invoice";
 import type { BudgetListRow } from "@/features/budgets/types/budgetsDb";
-import type { BudgetInvoiceIds } from "@/features/invoices/lib/invoices";
 import styles from "./BudgetsView.module.css";
 import { useBodyOverflowHidden } from "@/features/budgets/hooks/useBodyOverflowHidden";
 import { useBudgetsListData } from "@/features/budgets/hooks/useBudgetsListData";
@@ -12,19 +10,11 @@ import { BudgetsFiltersSection } from "@/features/budgets/components/BudgetsFilt
 import { BudgetsListCards } from "@/features/budgets/components/BudgetsListCards";
 import { BudgetsListTable } from "@/features/budgets/components/BudgetsListTable";
 
-export function BudgetsView({
-  budgets,
-  invoiceIdsByBudgetId,
-}: {
-  budgets: BudgetListRow[];
-  invoiceIdsByBudgetId: Record<string, BudgetInvoiceIds>;
-}) {
+export function BudgetsView({ budgets }: { budgets: BudgetListRow[] }) {
   useBodyOverflowHidden("hidden");
-  const { items, setInvoiceOverrides, setBudgetStatus, getMergedInvoiceIds } =
-    useBudgetsListData({
-      budgets,
-      invoiceIdsByBudgetId,
-    });
+  const { items, setBudgetStatus } = useBudgetsListData({
+    budgets,
+  });
   const filters = useBudgetsListFilters(items);
 
   return (
@@ -63,49 +53,13 @@ export function BudgetsView({
             <BudgetsListCards
               styles={styles}
               budgets={filters.filtered}
-              getMergedInvoiceIds={getMergedInvoiceIds}
               onStatusChange={setBudgetStatus}
-              onInvoiceCreated={(
-                budgetId: string,
-                pricingMode: InvoicePricingMode,
-                invoiceId: string
-              ) =>
-                setInvoiceOverrides((prev) => {
-                  const cur = prev[budgetId] ?? {};
-                  return {
-                    ...prev,
-                    [budgetId]: {
-                      ...cur,
-                      [pricingMode === "without_iva" ? "withoutIva" : "withIva"]:
-                        invoiceId,
-                    },
-                  };
-                })
-              }
             />
 
             <BudgetsListTable
               styles={styles}
               budgets={filters.filtered}
-              getMergedInvoiceIds={getMergedInvoiceIds}
               onStatusChange={setBudgetStatus}
-              onInvoiceCreated={(
-                budgetId: string,
-                pricingMode: InvoicePricingMode,
-                invoiceId: string
-              ) =>
-                setInvoiceOverrides((prev) => {
-                  const cur = prev[budgetId] ?? {};
-                  return {
-                    ...prev,
-                    [budgetId]: {
-                      ...cur,
-                      [pricingMode === "without_iva" ? "withoutIva" : "withIva"]:
-                        invoiceId,
-                    },
-                  };
-                })
-              }
             />
           </>
         )}

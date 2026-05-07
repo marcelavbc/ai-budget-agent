@@ -50,6 +50,7 @@ export function BudgetListItemActions({
   const router = useRouter();
 
   const isApproved = normalizeBudgetStatus(budgetStatus) === "approved";
+  const isInvoiced = normalizeBudgetStatus(budgetStatus) === "invoiced";
 
   useEffect(() => {
     if (!pdfMenuOpen) return;
@@ -299,14 +300,14 @@ export function BudgetListItemActions({
       <button
         type="button"
         onClick={handleDeleteClick}
-        disabled={deleting}
+        disabled={deleting || isInvoiced}
         className={
           variant === "icons"
             ? `${styles.iconBtn} ${styles.iconBtnDanger}`
             : `${styles.btn} ${styles.danger}`
         }
         aria-label="Eliminar pressupost"
-        title="Eliminar"
+        title={isInvoiced ? "No es pot eliminar un pressupost facturat" : "Eliminar"}
       >
         {variant === "icons" ? (
           deleting ? (

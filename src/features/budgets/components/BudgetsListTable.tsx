@@ -1,27 +1,21 @@
 "use client";
 
 import Link from "next/link";
-import { BudgetListItemActions } from "@/features/budgets/components/BudgetListItemActions";
 import { StatusPill } from "@/features/budgets/components/StatusPill";
 import { formatBudgetListDate } from "@/features/budgets/lib/budgetsListFormatting";
 import type { BudgetStatus } from "@/features/budgets/lib/budgetStatus";
 import type { BudgetListRow } from "@/features/budgets/types/budgetsDb";
 import type { CssModuleStyles } from "@/features/budgets/types/styles";
-import type { BudgetInvoiceIds } from "@/features/invoices/lib/invoices";
-import type { InvoicePricingMode } from "@/features/invoices/types/invoice";
+import { BudgetListItemActions } from "./BudgetListItemActions";
 
 export function BudgetsListTable({
   styles,
   budgets,
-  getMergedInvoiceIds,
   onStatusChange,
-  onInvoiceCreated,
 }: {
   styles: CssModuleStyles;
   budgets: BudgetListRow[];
-  getMergedInvoiceIds: (budgetId: string) => BudgetInvoiceIds;
   onStatusChange: (budgetId: string, next: BudgetStatus) => void;
-  onInvoiceCreated: (budgetId: string, pricingMode: InvoicePricingMode, invoiceId: string) => void;
 }) {
   return (
     <div className={styles.tableWrap}>
@@ -44,7 +38,10 @@ export function BudgetsListTable({
             return (
               <tr key={b.id} className={styles.tr}>
                 <td className={`${styles.td} ${styles.colQuote}`}>
-                  <Link className={styles.quoteLink} href={`/budgets/${b.id}/edit`}>
+                  <Link
+                    className={styles.quoteLink}
+                    href={`/budgets/${b.id}/edit`}
+                  >
                     {quote}
                   </Link>
                 </td>
@@ -62,9 +59,6 @@ export function BudgetsListTable({
                     <BudgetListItemActions
                       budgetId={b.id}
                       budgetStatus={b.status}
-                      onInvoiceCreated={(pricingMode, invoiceId) =>
-                        onInvoiceCreated(b.id, pricingMode, invoiceId)
-                      }
                       variant="icons"
                     />
                   </div>
@@ -77,4 +71,3 @@ export function BudgetsListTable({
     </div>
   );
 }
-

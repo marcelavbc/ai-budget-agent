@@ -1,7 +1,6 @@
 import Link from "next/link";
 import { connection } from "next/server";
 import { getBudgets } from "@/features/budgets/lib/budgets";
-import { getInvoiceIdsByBudgetIds } from "@/features/invoices/lib/invoices";
 import { BudgetsView } from "@/features/budgets/components/BudgetsView";
 import styles from "./page.module.css";
 
@@ -9,9 +8,6 @@ export default async function BudgetsPage() {
   await connection();
 
   const budgets = await getBudgets();
-  const invoiceIdsByBudgetId = await getInvoiceIdsByBudgetIds(
-    budgets.map((b) => b.id)
-  );
 
   return (
     <div className={styles.wrap}>
@@ -40,10 +36,7 @@ export default async function BudgetsPage() {
           </section>
         ) : (
           <div className={styles.viewMount}>
-            <BudgetsView
-              budgets={budgets}
-              invoiceIdsByBudgetId={invoiceIdsByBudgetId}
-            />
+            <BudgetsView budgets={budgets} />
           </div>
         )}
       </div>

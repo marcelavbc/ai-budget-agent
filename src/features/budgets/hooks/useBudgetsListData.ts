@@ -2,21 +2,10 @@
 
 import { useEffect, useState } from "react";
 import type { BudgetListRow } from "@/features/budgets/types/budgetsDb";
-import type { BudgetInvoiceIds } from "@/features/invoices/lib/invoices";
 import type { BudgetStatus } from "@/features/budgets/lib/budgetStatus";
-import { mergeBudgetInvoiceIds } from "@/features/budgets/lib/mergeBudgetInvoiceIds";
 
-export function useBudgetsListData({
-  budgets,
-  invoiceIdsByBudgetId,
-}: {
-  budgets: BudgetListRow[];
-  invoiceIdsByBudgetId: Record<string, BudgetInvoiceIds>;
-}) {
+export function useBudgetsListData({ budgets }: { budgets: BudgetListRow[] }) {
   const [items, setItems] = useState<BudgetListRow[]>(() => budgets);
-  const [invoiceOverrides, setInvoiceOverrides] = useState<
-    Partial<Record<string, Partial<BudgetInvoiceIds>>>
-  >({});
 
   useEffect(() => {
     setItems(budgets);
@@ -28,17 +17,5 @@ export function useBudgetsListData({
     );
   }
 
-  function getMergedInvoiceIds(budgetId: string): BudgetInvoiceIds {
-    return mergeBudgetInvoiceIds(budgetId, invoiceIdsByBudgetId, invoiceOverrides);
-  }
-
-  return {
-    items,
-    setItems,
-    invoiceOverrides,
-    setInvoiceOverrides,
-    setBudgetStatus,
-    getMergedInvoiceIds,
-  };
+  return { items, setItems, setBudgetStatus };
 }
-

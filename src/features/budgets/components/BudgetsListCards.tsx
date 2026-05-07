@@ -7,21 +7,15 @@ import { formatBudgetListDate } from "@/features/budgets/lib/budgetsListFormatti
 import type { BudgetStatus } from "@/features/budgets/lib/budgetStatus";
 import type { BudgetListRow } from "@/features/budgets/types/budgetsDb";
 import type { CssModuleStyles } from "@/features/budgets/types/styles";
-import type { BudgetInvoiceIds } from "@/features/invoices/lib/invoices";
-import type { InvoicePricingMode } from "@/features/invoices/types/invoice";
 
 export function BudgetsListCards({
   styles,
   budgets,
-  getMergedInvoiceIds,
   onStatusChange,
-  onInvoiceCreated,
 }: {
   styles: CssModuleStyles;
   budgets: BudgetListRow[];
-  getMergedInvoiceIds: (budgetId: string) => BudgetInvoiceIds;
   onStatusChange: (budgetId: string, next: BudgetStatus) => void;
-  onInvoiceCreated: (budgetId: string, pricingMode: InvoicePricingMode, invoiceId: string) => void;
 }) {
   return (
     <ul className={`${styles.list} ${styles.listMobile}`}>
@@ -35,7 +29,10 @@ export function BudgetsListCards({
             <div className={styles.card}>
               <div className={styles.cardTop}>
                 <div className={styles.cardTopLeft}>
-                  <Link className={styles.cardTitleLink} href={`/budgets/${b.id}/edit`}>
+                  <Link
+                    className={styles.cardTitleLink}
+                    href={`/budgets/${b.id}/edit`}
+                  >
                     <h3 className={styles.cardTitle}>{title}</h3>
                   </Link>
                 </div>
@@ -68,9 +65,6 @@ export function BudgetsListCards({
                   <BudgetListItemActions
                     budgetId={b.id}
                     budgetStatus={b.status}
-                    onInvoiceCreated={(pricingMode, invoiceId) =>
-                      onInvoiceCreated(b.id, pricingMode, invoiceId)
-                    }
                     variant="icons"
                   />
                 </div>
@@ -82,4 +76,3 @@ export function BudgetsListCards({
     </ul>
   );
 }
-

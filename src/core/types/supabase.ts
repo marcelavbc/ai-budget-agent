@@ -16,6 +16,7 @@ export type Database = {
           email: string | null;
           phone: string | null;
           address: string | null;
+          tax_id: string | null;
           created_at: string | null;
         };
         Insert: {
@@ -24,6 +25,7 @@ export type Database = {
           email?: string | null;
           phone?: string | null;
           address?: string | null;
+          tax_id?: string | null;
           created_at?: string | null;
         };
         Update: {
@@ -32,6 +34,7 @@ export type Database = {
           email?: string | null;
           phone?: string | null;
           address?: string | null;
+          tax_id?: string | null;
           created_at?: string | null;
         };
         Relationships: [];
@@ -140,6 +143,12 @@ export type Database = {
           id: string;
           budget_id: string | null;
           client_id: string | null;
+          invoice_number: string | null;
+          status: string;
+          issue_date: string | null;
+          due_date: string | null;
+          notes: string | null;
+          job_address: string | null;
           subtotal: number;
           tax_rate: number;
           tax_amount: number;
@@ -151,6 +160,12 @@ export type Database = {
           id?: string;
           budget_id?: string | null;
           client_id?: string | null;
+          invoice_number?: string | null;
+          status?: string;
+          issue_date?: string | null;
+          due_date?: string | null;
+          notes?: string | null;
+          job_address?: string | null;
           subtotal?: number;
           tax_rate?: number;
           tax_amount?: number;
@@ -162,12 +177,48 @@ export type Database = {
           id?: string;
           budget_id?: string | null;
           client_id?: string | null;
+          invoice_number?: string | null;
+          status?: string;
+          issue_date?: string | null;
+          due_date?: string | null;
+          notes?: string | null;
+          job_address?: string | null;
           subtotal?: number;
           tax_rate?: number;
           tax_amount?: number;
           total?: number;
           pricing_mode?: string;
           created_at?: string | null;
+        };
+        Relationships: [];
+      };
+      settings: {
+        Row: {
+          id: boolean;
+          owner_name: string | null;
+          owner_address: string | null;
+          owner_postal_city: string | null;
+          owner_nif: string | null;
+          bank_iban: string | null;
+          bank_name: string | null;
+        };
+        Insert: {
+          id?: boolean;
+          owner_name?: string | null;
+          owner_address?: string | null;
+          owner_postal_city?: string | null;
+          owner_nif?: string | null;
+          bank_iban?: string | null;
+          bank_name?: string | null;
+        };
+        Update: {
+          id?: boolean;
+          owner_name?: string | null;
+          owner_address?: string | null;
+          owner_postal_city?: string | null;
+          owner_nif?: string | null;
+          bank_iban?: string | null;
+          bank_name?: string | null;
         };
         Relationships: [];
       };
@@ -206,7 +257,15 @@ export type Database = {
       };
     };
     Views: Record<string, never>;
-    Functions: Record<string, never>;
+    Functions: {
+      create_invoice_from_budget: {
+        Args: {
+          p_budget_id: string;
+          p_pricing_mode: string;
+        };
+        Returns: string;
+      };
+    };
     Enums: Record<string, never>;
     CompositeTypes: Record<string, never>;
   };
