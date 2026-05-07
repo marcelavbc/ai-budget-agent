@@ -3,8 +3,9 @@
 import { useEffect, useRef, useState, useTransition } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { FileDown, Pencil, Percent, Receipt, Trash2, ChevronDown } from "lucide-react";
+import { FileDown, Pencil, Trash2, ChevronDown } from "lucide-react";
 import { ConfirmDialog } from "@/shared/components/ConfirmDialog";
+import dialogStyles from "@/shared/components/ConfirmDialog.module.css";
 import styles from "./BudgetListItemActions.module.css";
 import { usePdfExport } from "@/features/budgets/hooks/usePdfExport";
 import type { BudgetClientDetails, BudgetClientItem } from "@/features/budgets/types/budget";
@@ -17,13 +18,11 @@ import type { InvoicePricingMode } from "@/features/invoices/types/invoice";
 export function BudgetListItemActions({
   budgetId,
   budgetStatus,
-  invoices,
   onInvoiceCreated,
   variant = "full",
 }: {
   budgetId: string;
   budgetStatus?: string | null;
-  invoices?: { withoutIva: string | null; withIva: string | null };
   onInvoiceCreated?: (pricingMode: InvoicePricingMode, invoiceId: string) => void;
   variant?: "full" | "icons";
 }) {
@@ -32,14 +31,12 @@ export function BudgetListItemActions({
   const pdfMenuRef = useRef<HTMLDivElement | null>(null);
   const [deleting, setDeleting] = useState(false);
   const [confirmOpen, setConfirmOpen] = useState(false);
-  const [invoiceError, setInvoiceError] = useState<string | null>(null);
+  const [invoiceModalOpen, setInvoiceModalOpen] = useState(false);
   const [isInvoicing, startInvoicing] = useTransition();
-  const [invoicePricingBusy, setInvoicePricingBusy] =
-    useState<InvoicePricingMode | null>(null);
+  const [invoiceError, setInvoiceError] = useState<string | null>(null);
   const router = useRouter();
 
   const isApproved = normalizeBudgetStatus(budgetStatus) === "approved";
-  const inv = invoices ?? { withoutIva: null, withIva: null };
 
   useEffect(() => {
     if (!pdfMenuOpen) return;
@@ -126,19 +123,18 @@ export function BudgetListItemActions({
     }
   }
 
-  function startCreateInvoice(pricingMode: InvoicePricingMode) {
-    if (isInvoicing || invoicePricingBusy) return;
+  function handleCreateInvoice(pricingMode: InvoicePricingMode) {
+    setInvoiceModalOpen(false);
     setInvoiceError(null);
-    setInvoicePricingBusy(pricingMode);
     startInvoicing(() => {
       void (async () => {
         try {
-          const { invoiceId: createdId } = await createInvoiceFromBudget(
+          const { invoiceId } = await createInvoiceFromBudget(
             budgetId,
             pricingMode
           );
-          onInvoiceCreated?.(pricingMode, createdId);
-          router.push(`/invoices/${createdId}`);
+          onInvoiceCreated?.(pricingMode, invoiceId);
+          router.push(`/invoices/${invoiceId}`);
           router.refresh();
         } catch (err) {
           setInvoiceError(
@@ -146,78 +142,58 @@ export function BudgetListItemActions({
               ? err.message
               : "No s'ha pogut generar la factura."
           );
-        } finally {
-          setInvoicePricingBusy(null);
         }
       })();
     });
   }
 
-  function renderInvoiceControl(pricingMode: InvoicePricingMode) {
-    const id =
-      pricingMode === "without_iva" ? inv.withoutIva : inv.withIva;
-    const resolved = id?.trim() ? id : null;
-    const busy = invoicePricingBusy === pricingMode;
-    const Icon = pricingMode === "without_iva" ? Receipt : Percent;
-    const shortTitle =
-      pricingMode === "without_iva" ? "Sense IVA" : "Amb IVA";
-
-    if (resolved) {
-      return (
-        <Link
-          key={pricingMode}
-          href={`/invoices/${resolved}`}
-          onClick={(e) => e.stopPropagation()}
-          className={variant === "icons" ? styles.iconBtn : styles.btn}
-          aria-label={`Veure factura ${shortTitle}`}
-          title={`Veure factura (${shortTitle})`}
-        >
-          {variant === "icons" ? (
-            <Icon size={18} aria-hidden="true" />
-          ) : (
-            `Veure · ${shortTitle}`
-          )}
-        </Link>
-      );
-    }
-
-    return (
-      <button
-        key={pricingMode}
-        type="button"
-        className={variant === "icons" ? styles.iconBtn : styles.btn}
-        disabled={busy || isInvoicing}
-        aria-busy={busy || undefined}
-        aria-label={`Generar factura ${shortTitle}`}
-        title={`Generar factura (${shortTitle})`}
-        onClick={(e) => {
-          e.preventDefault();
-          e.stopPropagation();
-          startCreateInvoice(pricingMode);
-        }}
-      >
-        {variant === "icons" ? (
-          busy ? (
-            "…"
-          ) : (
-            <Icon size={18} aria-hidden="true" />
-          )
-        ) : busy ? (
-          "…"
-        ) : (
-          `Factura · ${shortTitle}`
-        )}
-      </button>
-    );
-  }
-
   return (
     <div className={`${styles.root} ${variant === "icons" ? styles.rootIcons : ""}`}>
       {isApproved ? (
-        <div className={styles.invoicePair}>
-          {renderInvoiceControl("without_iva")}
-          {renderInvoiceControl("with_iva")}
-        </div>
+        <>
+          <Link
+            href={`/budgets/${budgetId}/edit`}
+            onClick={(e) => e.stopPropagation()}
+            className={variant === "icons" ? styles.iconBtn : styles.btn}
+            aria-label="Editar pressupost"
+            title="Editar"
+          >
+            {variant === "icons" ? (
+              <Pencil size={18} aria-hidden="true" />
+            ) : (
+              "Editar"
+            )}
+          </Link>
+          <button
+            type="button"
+            className={
+              variant === "icons"
+                ? styles.iconBtn
+                : `${styles.btn} ${styles.primary}`
+            }
+            disabled={isInvoicing}
+            aria-busy={isInvoicing || undefined}
+            aria-label="Generar factura"
+            title="Generar factura"
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              setInvoiceModalOpen(true);
+            }}
+          >
+            {variant === "icons" ? (
+              isInvoicing ? (
+                "…"
+              ) : (
+                <FileDown size={18} aria-hidden="true" />
+              )
+            ) : isInvoicing ? (
+              "…"
+            ) : (
+              "Facturar"
+            )}
+          </button>
+        </>
       ) : (
         <Link
           href={`/budgets/${budgetId}/edit`}
@@ -324,6 +300,14 @@ export function BudgetListItemActions({
         )}
       </button>
 
+      {invoiceModalOpen ? (
+        <InvoiceModal
+          loading={isInvoicing}
+          onSelect={handleCreateInvoice}
+          onClose={() => setInvoiceModalOpen(false)}
+        />
+      ) : null}
+
       <ConfirmDialog
         open={confirmOpen}
         title="Eliminar pressupost?"
@@ -346,6 +330,122 @@ export function BudgetListItemActions({
           {invoiceError}
         </p>
       ) : null}
+    </div>
+  );
+}
+
+function InvoiceModal({
+  loading,
+  onSelect,
+  onClose,
+}: {
+  loading: boolean;
+  onSelect: (pricingMode: InvoicePricingMode) => void;
+  onClose: () => void;
+}) {
+  const dialogRef = useRef<HTMLDivElement | null>(null);
+  const firstActionRef = useRef<HTMLButtonElement | null>(null);
+  const titleId = useRef(`invoice-title-${crypto.randomUUID()}`);
+  const descId = useRef(`invoice-desc-${crypto.randomUUID()}`);
+
+  useEffect(() => {
+    const prevOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.body.style.overflow = prevOverflow;
+    };
+  }, []);
+
+  useEffect(() => {
+    const t = window.setTimeout(() => firstActionRef.current?.focus(), 0);
+    return () => window.clearTimeout(t);
+  }, []);
+
+  useEffect(() => {
+    function onKeyDown(e: KeyboardEvent) {
+      if (e.key === "Escape") {
+        onClose();
+        return;
+      }
+      if (e.key === "Tab") {
+        const root = dialogRef.current;
+        if (!root) return;
+        const focusables = Array.from(
+          root.querySelectorAll<HTMLElement>(
+            'button,[href],input,select,textarea,[tabindex]:not([tabindex="-1"])'
+          )
+        ).filter(
+          (el) =>
+            !el.hasAttribute("disabled") && !el.getAttribute("aria-disabled")
+        );
+        if (focusables.length === 0) return;
+        const first = focusables[0];
+        const last = focusables[focusables.length - 1];
+        const active = document.activeElement;
+        if (e.shiftKey) {
+          if (active === first || active === root) {
+            e.preventDefault();
+            last.focus();
+          }
+        } else if (active === last) {
+          e.preventDefault();
+          first.focus();
+        }
+      }
+    }
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, [onClose]);
+
+  return (
+    <div
+      className={dialogStyles.overlay}
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby={titleId.current}
+      aria-describedby={descId.current}
+      onMouseDown={(e) => {
+        if (e.target === e.currentTarget) onClose();
+      }}
+    >
+      <div className={dialogStyles.dialog} ref={dialogRef} tabIndex={-1}>
+        <h2 className={dialogStyles.title} id={titleId.current}>
+          Generar factura
+        </h2>
+        <p className={dialogStyles.body} id={descId.current}>
+          Selecciona el tipus de factura
+        </p>
+
+        <div className={dialogStyles.actions}>
+          <button
+            type="button"
+            className={dialogStyles.btn}
+            onClick={onClose}
+            disabled={loading}
+          >
+            Cancel·lar
+          </button>
+          <button
+            ref={firstActionRef}
+            type="button"
+            className={dialogStyles.btn}
+            onClick={() => onSelect("without_iva")}
+            disabled={loading}
+            aria-busy={loading || undefined}
+          >
+            {loading ? "…" : "Sense IVA"}
+          </button>
+          <button
+            type="button"
+            className={dialogStyles.btn}
+            onClick={() => onSelect("with_iva")}
+            disabled={loading}
+            aria-busy={loading || undefined}
+          >
+            {loading ? "…" : "Amb IVA"}
+          </button>
+        </div>
+      </div>
     </div>
   );
 }

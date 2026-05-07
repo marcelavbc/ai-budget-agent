@@ -13,12 +13,14 @@ import styles from "./BudgetsView.module.css";
 function nextStatus(value: BudgetStatus): BudgetStatus {
   if (value === "draft") return "sent";
   if (value === "sent") return "approved";
+  if (value === "approved") return "sent";
   return "draft";
 }
 
 function pillClass(value: BudgetStatus): string {
   if (value === "sent") return styles.pillSent;
   if (value === "approved") return styles.pillApproved;
+  if (value === "invoiced") return styles.pillInvoiced;
   return styles.pillDraft;
 }
 
@@ -60,12 +62,15 @@ export function StatusPill({
       type="button"
       className={`${styles.pill} ${pillClass(status)} ${styles.pillButton}`}
       onClick={handleClick}
-      disabled={saving}
-      title="Clica per canviar l’estat"
+      disabled={saving || status === "invoiced"}
+      title={
+        status === "invoiced"
+          ? "Pressupost facturat"
+          : "Clica per canviar l’estat"
+      }
       aria-label="Canviar estat del pressupost"
     >
       {budgetStatusLabel(status)}
     </button>
   );
 }
-

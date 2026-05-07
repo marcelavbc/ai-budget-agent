@@ -665,6 +665,12 @@
   color: var(--state-approved);
 }
 
+.pillInvoiced {
+  background: var(--state-invoiced-bg);
+  border-color: transparent;
+  color: var(--state-invoiced);
+}
+
 .k {
   font-size: 0.78rem;
   font-weight: 500;

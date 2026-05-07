@@ -65,6 +65,8 @@
   --state-sent-bg: #ebf3ee;
   --state-approved: #8a6a1a;
   --state-approved-bg: #fbf4e4;
+  --state-invoiced: #2d5a7a;
+  --state-invoiced-bg: #e8f2f8;
 
   /* Gold reserved for totals & rare highlights */
   --total-figure: var(--color-gold-dark);

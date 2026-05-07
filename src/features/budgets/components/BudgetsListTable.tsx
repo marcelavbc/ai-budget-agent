@@ -62,7 +62,6 @@ export function BudgetsListTable({
                     <BudgetListItemActions
                       budgetId={b.id}
                       budgetStatus={b.status}
-                      invoices={getMergedInvoiceIds(b.id)}
                       onInvoiceCreated={(pricingMode, invoiceId) =>
                         onInvoiceCreated(b.id, pricingMode, invoiceId)
                       }
