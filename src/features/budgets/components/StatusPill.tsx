@@ -13,7 +13,7 @@ import styles from "./BudgetsView.module.css";
 function nextStatus(value: BudgetStatus): BudgetStatus {
   if (value === "draft") return "sent";
   if (value === "sent") return "approved";
-  if (value === "approved") return "sent";
+  if (value === "approved") return "draft";
   return "draft";
 }
 

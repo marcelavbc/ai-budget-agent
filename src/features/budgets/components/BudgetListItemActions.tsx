@@ -3,14 +3,24 @@
 import { useEffect, useRef, useState, useTransition } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { FileDown, Pencil, Trash2, ChevronDown } from "lucide-react";
+import { FileDown, Pencil, Trash2, ChevronDown, Receipt } from "lucide-react";
 import { ConfirmDialog } from "@/shared/components/ConfirmDialog";
 import dialogStyles from "@/shared/components/ConfirmDialog.module.css";
 import styles from "./BudgetListItemActions.module.css";
 import { usePdfExport } from "@/features/budgets/hooks/usePdfExport";
-import type { BudgetClientDetails, BudgetClientItem } from "@/features/budgets/types/budget";
-import type { BudgetLineRow, BudgetRow, ClientRow } from "@/features/budgets/types/budgetsDb";
-import { deleteBudgetWithLines, getBudgetExportData } from "@/features/budgets/lib/budgetsClient";
+import type {
+  BudgetClientDetails,
+  BudgetClientItem,
+} from "@/features/budgets/types/budget";
+import type {
+  BudgetLineRow,
+  BudgetRow,
+  ClientRow,
+} from "@/features/budgets/types/budgetsDb";
+import {
+  deleteBudgetWithLines,
+  getBudgetExportData,
+} from "@/features/budgets/lib/budgetsClient";
 import { createInvoiceFromBudget } from "@/features/invoices/lib/invoicesClient";
 import { normalizeBudgetStatus } from "@/features/budgets/lib/budgetStatus";
 import type { InvoicePricingMode } from "@/features/invoices/types/invoice";
@@ -23,7 +33,10 @@ export function BudgetListItemActions({
 }: {
   budgetId: string;
   budgetStatus?: string | null;
-  onInvoiceCreated?: (pricingMode: InvoicePricingMode, invoiceId: string) => void;
+  onInvoiceCreated?: (
+    pricingMode: InvoicePricingMode,
+    invoiceId: string
+  ) => void;
   variant?: "full" | "icons";
 }) {
   const { exportPdf, generating, pdfError, setPdfError } = usePdfExport();
@@ -64,9 +77,15 @@ export function BudgetListItemActions({
       if (typeof data !== "object" || data === null) {
         throw new Error("No s'ha pogut generar el PDF. Torna-ho a provar.");
       }
-      const budget = (data as { budget?: unknown }).budget as BudgetRow | undefined;
-      const client = (data as { client?: unknown }).client as ClientRow | undefined;
-      const lines = (data as { lines?: unknown }).lines as BudgetLineRow[] | undefined;
+      const budget = (data as { budget?: unknown }).budget as
+        | BudgetRow
+        | undefined;
+      const client = (data as { client?: unknown }).client as
+        | ClientRow
+        | undefined;
+      const lines = (data as { lines?: unknown }).lines as
+        | BudgetLineRow[]
+        | undefined;
       if (!budget || !client || !Array.isArray(lines)) {
         throw new Error("No s'ha pogut generar el PDF. Torna-ho a provar.");
       }
@@ -148,7 +167,9 @@ export function BudgetListItemActions({
   }
 
   return (
-    <div className={`${styles.root} ${variant === "icons" ? styles.rootIcons : ""}`}>
+    <div
+      className={`${styles.root} ${variant === "icons" ? styles.rootIcons : ""}`}
+    >
       {isApproved ? (
         <>
           <Link
@@ -185,7 +206,7 @@ export function BudgetListItemActions({
               isInvoicing ? (
                 "…"
               ) : (
-                <FileDown size={18} aria-hidden="true" />
+                <Receipt size={18} aria-hidden="true" />
               )
             ) : isInvoicing ? (
               "…"
