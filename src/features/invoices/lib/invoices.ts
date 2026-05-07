@@ -10,11 +10,6 @@ import type { Tables, TablesInsert } from "@/core/types/supabase";
 export type InvoiceRow = Tables<"invoices">;
 export type InvoiceLineRow = Tables<"invoice_lines">;
 
-export type BudgetInvoiceIds = {
-  withoutIva: string | null;
-  withIva: string | null;
-};
-
 export type InvoiceDashboardStats = {
   countWithoutIva: number;
   countWithIva: number;
@@ -24,50 +19,6 @@ export type InvoiceDashboardStats = {
 
 function round2(n: number) {
   return Math.round(n * 100) / 100;
-}
-
-export async function getInvoicesForBudget(
-  budgetId: string
-): Promise<BudgetInvoiceIds> {
-  const supabase = getSupabaseClient();
-  const { data, error } = await supabase
-    .from("invoices")
-    .select("id,pricing_mode")
-    .eq("budget_id", budgetId);
-  if (error) throw new Error(error.message);
-
-  const out: BudgetInvoiceIds = { withoutIva: null, withIva: null };
-  for (const row of data ?? []) {
-    if (row.pricing_mode === "with_iva") out.withIva = row.id;
-    else if (row.pricing_mode === "without_iva") out.withoutIva = row.id;
-  }
-  return out;
-}
-
-/** One query for list UIs: budget_id → invoice ids per pricing mode. */
-export async function getInvoiceIdsByBudgetIds(
-  budgetIds: string[]
-): Promise<Record<string, BudgetInvoiceIds>> {
-  const uniq = [...new Set(budgetIds.map((id) => id.trim()).filter(Boolean))];
-  const map = Object.fromEntries(
-    uniq.map((id) => [id, { withoutIva: null, withIva: null }])
-  ) as Record<string, BudgetInvoiceIds>;
-  if (uniq.length === 0) return map;
-
-  const supabase = getSupabaseClient();
-  const { data, error } = await supabase
-    .from("invoices")
-    .select("id,budget_id,pricing_mode")
-    .in("budget_id", uniq);
-  if (error) throw new Error(error.message);
-
-  for (const row of data ?? []) {
-    const bid = row.budget_id;
-    if (!bid || !map[bid]) continue;
-    if (row.pricing_mode === "with_iva") map[bid].withIva = row.id;
-    else if (row.pricing_mode === "without_iva") map[bid].withoutIva = row.id;
-  }
-  return map;
 }
 
 export async function getInvoiceDashboardStats(

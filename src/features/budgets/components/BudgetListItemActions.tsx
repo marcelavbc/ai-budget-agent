@@ -33,17 +33,12 @@ export function BudgetListItemActions({
   budgetStatus,
   clientName,
   clientTaxId,
-  onInvoiceCreated,
   variant = "full",
 }: {
   budgetId: string;
   budgetStatus?: string | null;
   clientName: string | null;
   clientTaxId: string | null;
-  onInvoiceCreated?: (
-    pricingMode: InvoicePricingMode,
-    invoiceId: string
-  ) => void;
   variant?: "full" | "icons";
 }) {
   const { exportPdf, generating, pdfError, setPdfError } = usePdfExport();
@@ -176,7 +171,6 @@ export function BudgetListItemActions({
             issueDate,
             dueDate
           );
-          onInvoiceCreated?.(pricingMode, invoiceId);
           router.push(`/invoices/${invoiceId}`);
           router.refresh();
         } catch (err) {
