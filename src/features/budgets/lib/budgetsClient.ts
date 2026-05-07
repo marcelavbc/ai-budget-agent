@@ -53,7 +53,7 @@ export async function updateBudgetWithLines(args: {
     body: JSON.stringify(body),
   });
   const data = await readJson(res);
-  if (!res.ok) throw new Error(errorMessage(data, "Update failed."));
+  if (!res.ok) throw new Error(errorMessage(data, "No s'ha pogut actualitzar el pressupost."));
 }
 
 export async function updateBudgetById(
@@ -66,19 +66,19 @@ export async function updateBudgetById(
     body: JSON.stringify(patch),
   });
   const data = await readJson(res);
-  if (!res.ok) throw new Error(errorMessage(data, "Update failed."));
+  if (!res.ok) throw new Error(errorMessage(data, "No s'ha pogut actualitzar el pressupost."));
 }
 
 export async function deleteBudgetWithLines(budgetId: string): Promise<void> {
   const res = await fetch(`/api/budgets/${budgetId}`, { method: "DELETE" });
   const data = await readJson(res);
-  if (!res.ok) throw new Error(errorMessage(data, "Delete failed."));
+  if (!res.ok) throw new Error(errorMessage(data, "No s'ha pogut eliminar el pressupost."));
 }
 
 export async function getBudgetExportData(budgetId: string): Promise<unknown> {
   const res = await fetch(`/api/budgets/${budgetId}/export`, { method: "GET" });
   const data = await readJson(res);
-  if (!res.ok) throw new Error(errorMessage(data, "Export failed."));
+  if (!res.ok) throw new Error(errorMessage(data, "No s'ha pogut exportar el pressupost."));
   return data;
 }
 
