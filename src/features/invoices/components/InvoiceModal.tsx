@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useId } from "react";
 import dialogStyles from "@/shared/components/ConfirmDialog.module.css";
+import { useFocusTrap } from "@/shared/hooks/useFocusTrap";
 import type { InvoicePricingMode } from "@/features/invoices/types/invoice";
 
 export type InvoiceModalProps = {
@@ -47,14 +48,6 @@ export function InvoiceModal({
   const descId = `${baseId}-desc`;
 
   useEffect(() => {
-    const prevOverflow = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
-    return () => {
-      document.body.style.overflow = prevOverflow;
-    };
-  }, []);
-
-  useEffect(() => {
     const t = window.setTimeout(() => {
       if (step === 1) firstActionRef.current?.focus();
       else taxIdInputRef.current?.focus();
@@ -62,41 +55,7 @@ export function InvoiceModal({
     return () => window.clearTimeout(t);
   }, [step]);
 
-  useEffect(() => {
-    function onKeyDown(e: KeyboardEvent) {
-      if (e.key === "Escape") {
-        onClose();
-        return;
-      }
-      if (e.key === "Tab") {
-        const root = dialogRef.current;
-        if (!root) return;
-        const focusables = Array.from(
-          root.querySelectorAll<HTMLElement>(
-            'button,[href],input,select,textarea,[tabindex]:not([tabindex="-1"])'
-          )
-        ).filter(
-          (el) =>
-            !el.hasAttribute("disabled") && !el.getAttribute("aria-disabled")
-        );
-        if (focusables.length === 0) return;
-        const first = focusables[0];
-        const last = focusables[focusables.length - 1];
-        const active = document.activeElement;
-        if (e.shiftKey) {
-          if (active === first || active === root) {
-            e.preventDefault();
-            last.focus();
-          }
-        } else if (active === last) {
-          e.preventDefault();
-          first.focus();
-        }
-      }
-    }
-    window.addEventListener("keydown", onKeyDown);
-    return () => window.removeEventListener("keydown", onKeyDown);
-  }, [onClose]);
+  useFocusTrap(dialogRef, true, onClose);
 
   return (
     <div

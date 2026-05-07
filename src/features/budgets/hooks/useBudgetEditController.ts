@@ -1,7 +1,6 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { useRouter } from "next/navigation";
 import type {
   BudgetClientDetails,
   BudgetClientItem,
@@ -28,7 +27,6 @@ export function useBudgetEditController(args: {
   lines: BudgetLineRow[];
 }) {
   const { budget, client, lines } = args;
-  const router = useRouter();
   const { submit, loading, formError } = useGenerateBudgetDraft();
 
   const initialClient: BudgetClientDetails = useMemo(
@@ -67,13 +65,11 @@ export function useBudgetEditController(args: {
       taxRate: budget.tax_rate ?? 0,
       status: normalizeBudgetStatus(budget.status),
     });
-    router.push(`/budgets/${budget.id}`);
   }
 
   const status = normalizeBudgetStatus(budget.status);
 
   return {
-    router,
     budgetId: budget.id,
 
     // AI
@@ -92,7 +88,6 @@ export function useBudgetEditController(args: {
 
     // save/back
     handleSave,
-    onBack: () => router.push(`/budgets/${budget.id}`),
 
     // status
     status,

@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useId } from "react";
 import styles from "./ConfirmDialog.module.css";
+import { useFocusTrap } from "@/shared/hooks/useFocusTrap";
 
 type ConfirmDialogProps = {
   open: boolean;
@@ -34,52 +35,11 @@ export function ConfirmDialog({
 
   useEffect(() => {
     if (!open) return;
-    const prevOverflow = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
-    return () => {
-      document.body.style.overflow = prevOverflow;
-    };
-  }, [open]);
-
-  useEffect(() => {
-    if (!open) return;
     const t = window.setTimeout(() => confirmRef.current?.focus(), 0);
     return () => window.clearTimeout(t);
   }, [open]);
 
-  useEffect(() => {
-    if (!open) return;
-    function onKeyDown(e: KeyboardEvent) {
-      if (e.key === "Escape") onClose();
-      if (e.key === "Tab") {
-        const root = contentRef.current;
-        if (!root) return;
-        const focusables = Array.from(
-          root.querySelectorAll<HTMLElement>(
-            'button,[href],input,select,textarea,[tabindex]:not([tabindex="-1"])'
-          )
-        ).filter(
-          (el) =>
-            !el.hasAttribute("disabled") && !el.getAttribute("aria-disabled")
-        );
-        if (focusables.length === 0) return;
-        const first = focusables[0];
-        const last = focusables[focusables.length - 1];
-        const active = document.activeElement;
-        if (e.shiftKey) {
-          if (active === first || active === root) {
-            e.preventDefault();
-            last.focus();
-          }
-        } else if (active === last) {
-          e.preventDefault();
-          first.focus();
-        }
-      }
-    }
-    window.addEventListener("keydown", onKeyDown);
-    return () => window.removeEventListener("keydown", onKeyDown);
-  }, [open, onClose]);
+  useFocusTrap(contentRef, open, onClose);
 
   if (!open) return null;
 
