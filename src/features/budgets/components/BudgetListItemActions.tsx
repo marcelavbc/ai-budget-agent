@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useRef, useState, useTransition } from "react";
+import { useCallback, useRef, useState, useTransition } from "react";
+import { useClickOutside } from "@/shared/hooks/useClickOutside";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { FileDown, Pencil, Trash2, ChevronDown, Receipt } from "lucide-react";
@@ -57,19 +58,8 @@ export function BudgetListItemActions({
   const isApproved = normalizeBudgetStatus(budgetStatus) === "approved";
   const isInvoiced = normalizeBudgetStatus(budgetStatus) === "invoiced";
 
-  useEffect(() => {
-    if (!pdfMenuOpen) return;
-
-    function onPointerDown(e: PointerEvent) {
-      const root = pdfMenuRef.current;
-      if (!root) return;
-      if (e.target instanceof Node && root.contains(e.target)) return;
-      setPdfMenuOpen(false);
-    }
-
-    window.addEventListener("pointerdown", onPointerDown);
-    return () => window.removeEventListener("pointerdown", onPointerDown);
-  }, [pdfMenuOpen]);
+  const closePdfMenu = useCallback(() => setPdfMenuOpen(false), []);
+  useClickOutside(pdfMenuRef, pdfMenuOpen, closePdfMenu);
 
   async function handleGeneratePdfLang(
     e: React.MouseEvent<HTMLButtonElement>,

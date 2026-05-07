@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { useClickOutside } from "@/shared/hooks/useClickOutside";
 import { useRouter } from "next/navigation";
 import { ChevronDown, FileDown, Trash2 } from "lucide-react";
 import type { BudgetClientDetails, BudgetClientItem } from "@/features/budgets/types/budget";
@@ -94,15 +95,8 @@ export function BudgetDraftView({
   const pdfDropdownRef = useRef<HTMLDivElement>(null);
   const router = useRouter();
 
-  useEffect(() => {
-    if (!pdfMenuOpen) return;
-    function onPointerDown(e: PointerEvent) {
-      if (pdfDropdownRef.current?.contains(e.target as Node)) return;
-      setPdfMenuOpen(false);
-    }
-    window.addEventListener("pointerdown", onPointerDown);
-    return () => window.removeEventListener("pointerdown", onPointerDown);
-  }, [pdfMenuOpen]);
+  const closePdfMenu = useCallback(() => setPdfMenuOpen(false), []);
+  useClickOutside(pdfDropdownRef, pdfMenuOpen, closePdfMenu);
 
   useEffect(() => {
     if (showPdf) return;
