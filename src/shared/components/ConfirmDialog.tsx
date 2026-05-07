@@ -1,9 +1,9 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useId } from "react";
 import styles from "./ConfirmDialog.module.css";
 
-type Props = {
+type ConfirmDialogProps = {
   open: boolean;
   title: string;
   description?: string;
@@ -25,11 +25,12 @@ export function ConfirmDialog({
   loading = false,
   onConfirm,
   onClose,
-}: Props) {
+}: ConfirmDialogProps) {
   const confirmRef = useRef<HTMLButtonElement | null>(null);
   const contentRef = useRef<HTMLDivElement | null>(null);
-  const titleId = useRef(`confirm-title-${crypto.randomUUID()}`);
-  const descId = useRef(`confirm-desc-${crypto.randomUUID()}`);
+  const baseId = useId();
+  const titleId = `${baseId}-title`;
+  const descId = `${baseId}-desc`;
 
   useEffect(() => {
     if (!open) return;
@@ -57,7 +58,10 @@ export function ConfirmDialog({
           root.querySelectorAll<HTMLElement>(
             'button,[href],input,select,textarea,[tabindex]:not([tabindex="-1"])'
           )
-        ).filter((el) => !el.hasAttribute("disabled") && !el.getAttribute("aria-disabled"));
+        ).filter(
+          (el) =>
+            !el.hasAttribute("disabled") && !el.getAttribute("aria-disabled")
+        );
         if (focusables.length === 0) return;
         const first = focusables[0];
         const last = focusables[focusables.length - 1];
@@ -84,18 +88,18 @@ export function ConfirmDialog({
       className={styles.overlay}
       role="dialog"
       aria-modal="true"
-      aria-labelledby={titleId.current}
-      aria-describedby={description ? descId.current : undefined}
+      aria-labelledby={titleId}
+      aria-describedby={description ? descId : undefined}
       onMouseDown={(e) => {
         if (e.target === e.currentTarget) onClose();
       }}
     >
       <div className={styles.dialog} ref={contentRef} tabIndex={-1}>
-        <h2 className={styles.title} id={titleId.current}>
+        <h2 className={styles.title} id={titleId}>
           {title}
         </h2>
         {description ? (
-          <p className={styles.body} id={descId.current}>
+          <p className={styles.body} id={descId}>
             {description}
           </p>
         ) : null}
@@ -126,4 +130,3 @@ export function ConfirmDialog({
     </div>
   );
 }
-

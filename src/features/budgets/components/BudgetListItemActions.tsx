@@ -46,6 +46,8 @@ export function BudgetListItemActions({
   const [pdfMenuOpen, setPdfMenuOpen] = useState(false);
   const pdfMenuRef = useRef<HTMLDivElement | null>(null);
   const [deleting, setDeleting] = useState(false);
+  const [deleteError, setDeleteError] = useState<string | null>(null);
+
   const [confirmOpen, setConfirmOpen] = useState(false);
   const modal = useInvoiceModal(clientTaxId);
   const [isInvoicing, startInvoicing] = useTransition();
@@ -137,9 +139,16 @@ export function BudgetListItemActions({
 
   async function handleConfirmDelete() {
     setDeleting(true);
+    setDeleteError(null);
     try {
       await deleteBudgetWithLines(budgetId);
       router.refresh();
+    } catch (err) {
+      setDeleteError(
+        err instanceof Error
+          ? err.message
+          : "No s'ha pogut eliminar el pressupost."
+      );
     } finally {
       setDeleting(false);
       setConfirmOpen(false);
@@ -182,6 +191,11 @@ export function BudgetListItemActions({
     <div
       className={`${styles.root} ${variant === "icons" ? styles.rootIcons : ""}`}
     >
+      {deleteError ? (
+        <p className={styles.error} role="alert">
+          {deleteError}
+        </p>
+      ) : null}
       {isApproved ? (
         <>
           <Link

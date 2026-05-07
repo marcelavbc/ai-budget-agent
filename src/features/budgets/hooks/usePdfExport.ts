@@ -1,4 +1,4 @@
-import { useCallback, useState } from "react";
+import { useCallback, useRef, useState } from "react";
 import type { BudgetClientDetails, BudgetClientItem } from "@/features/budgets/types/budget";
 
 function buildPdfFilename(
@@ -46,6 +46,7 @@ async function translateItemsForPdf(
 
 export function usePdfExport() {
   const [generating, setGenerating] = useState(false);
+  const generatingRef = useRef(false);
   const [pdfError, setPdfError] = useState<string | null>(null);
 
   const exportPdf = useCallback(
@@ -54,7 +55,8 @@ export function usePdfExport() {
       items: BudgetClientItem[];
       lang: "ca" | "es";
     }) => {
-      if (generating) return;
+      if (generatingRef.current) return;
+      generatingRef.current = true;
       setGenerating(true);
       setPdfError(null);
       try {
@@ -78,10 +80,11 @@ export function usePdfExport() {
             : "No s'ha pogut generar el PDF. Torna-ho a provar."
         );
       } finally {
+        generatingRef.current = false;
         setGenerating(false);
       }
     },
-    [generating]
+    []
   );
 
   return { exportPdf, generating, pdfError, setPdfError };

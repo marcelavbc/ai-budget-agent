@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useId } from "react";
 import dialogStyles from "@/shared/components/ConfirmDialog.module.css";
 import type { InvoicePricingMode } from "@/features/invoices/types/invoice";
 
@@ -42,8 +42,9 @@ export function InvoiceModal({
   const dialogRef = useRef<HTMLDivElement | null>(null);
   const firstActionRef = useRef<HTMLButtonElement | null>(null);
   const taxIdInputRef = useRef<HTMLInputElement | null>(null);
-  const titleId = useRef(`invoice-title-${crypto.randomUUID()}`);
-  const descId = useRef(`invoice-desc-${crypto.randomUUID()}`);
+  const baseId = useId();
+  const titleId = `${baseId}-title`;
+  const descId = `${baseId}-desc`;
 
   useEffect(() => {
     const prevOverflow = document.body.style.overflow;
@@ -102,17 +103,17 @@ export function InvoiceModal({
       className={dialogStyles.overlay}
       role="dialog"
       aria-modal="true"
-      aria-labelledby={titleId.current}
-      aria-describedby={descId.current}
+      aria-labelledby={titleId}
+      aria-describedby={descId}
       onMouseDown={(e) => {
         if (e.target === e.currentTarget) onClose();
       }}
     >
       <div className={dialogStyles.dialog} ref={dialogRef} tabIndex={-1}>
-        <h2 className={dialogStyles.title} id={titleId.current}>
+        <h2 className={dialogStyles.title} id={titleId}>
           Generar factura
         </h2>
-        <p className={dialogStyles.body} id={descId.current}>
+        <p className={dialogStyles.body} id={descId}>
           {step === 1
             ? "Selecciona el tipus de factura"
             : "Completa les dades fiscals i les dates de la factura."}
@@ -174,7 +175,9 @@ export function InvoiceModal({
                 <input
                   ref={taxIdInputRef}
                   value={taxId}
-                  placeholder={clientTaxId ? undefined : "Introdueix el NIF/NIE"}
+                  placeholder={
+                    clientTaxId ? undefined : "Introdueix el NIF/NIE"
+                  }
                   onChange={(e) => setTaxId(e.target.value)}
                   required
                   className={dialogStyles.input}

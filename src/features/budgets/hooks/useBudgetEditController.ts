@@ -2,8 +2,16 @@
 
 import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
-import type { BudgetClientDetails, BudgetClientItem } from "@/features/budgets/types/budget";
-import type { BudgetLineRow, BudgetRow, ClientRow } from "@/features/budgets/types/budgetsDb";
+import type {
+  BudgetClientDetails,
+  BudgetClientItem,
+  BudgetLine,
+} from "@/features/budgets/types/budget";
+import type {
+  BudgetLineRow,
+  BudgetRow,
+  ClientRow,
+} from "@/features/budgets/types/budgetsDb";
 import { normalizeBudgetStatus } from "@/features/budgets/lib/budgetStatus";
 import { updateBudgetWithLines } from "@/features/budgets/lib/budgetsClient";
 import { useGenerateBudgetDraft } from "@/features/budgets/hooks/useGenerateBudgetDraft";
@@ -91,9 +99,8 @@ export function useBudgetEditController(args: {
 
     // UI helpers
     showPdf: status !== "approved",
-    appendAiLines: (lines: unknown) => {
-      // keep behavior identical: BudgetAIInput only calls this after submit() returns lines
-      setItems((prev) => [...prev, ...budgetLinesToClientItems(lines as never)]);
+    appendAiLines: (lines: BudgetLine[]) => {
+      setItems((prev) => [...prev, ...budgetLinesToClientItems(lines)]);
     },
     updateItem: (id: string, patch: Partial<BudgetClientItem>) => {
       setItems((prev) =>
@@ -105,4 +112,3 @@ export function useBudgetEditController(args: {
     },
   };
 }
-
