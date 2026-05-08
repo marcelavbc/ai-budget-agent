@@ -4,7 +4,10 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { useClickOutside } from "@/shared/hooks/useClickOutside";
 import { useRouter } from "next/navigation";
 import { ChevronDown, FileDown, Trash2 } from "lucide-react";
-import type { BudgetClientDetails, BudgetClientItem } from "@/features/budgets/types/budget";
+import type {
+  BudgetClientDetails,
+  BudgetClientItem,
+} from "@/features/budgets/types/budget";
 import { isBudgetDraftComplete } from "@/features/budgets/lib/budgetDraft";
 import { saveBudgetWithLines } from "@/features/budgets/lib/budgetsClient";
 import { usePdfExport } from "@/features/budgets/hooks/usePdfExport";

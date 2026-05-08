@@ -265,6 +265,12 @@ export type Database = {
         };
         Returns: string;
       };
+      emit_invoice: {
+        Args: {
+          p_invoice_id: string;
+        };
+        Returns: void;
+      };
     };
     Enums: Record<string, never>;
     CompositeTypes: Record<string, never>;

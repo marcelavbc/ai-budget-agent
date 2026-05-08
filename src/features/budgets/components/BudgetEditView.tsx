@@ -8,7 +8,7 @@ import type {
 import { BudgetDraftView } from "@/features/budgets/components/BudgetDraftView";
 import { BudgetAIInput } from "@/features/budgets/components/BudgetAIInput";
 import { useBudgetEditController } from "@/features/budgets/hooks/useBudgetEditController";
-import { useRouter } from "next/router";
+import { useRouter } from "next/navigation";
 
 export function BudgetEditView({
   budget,

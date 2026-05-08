@@ -140,3 +140,13 @@ export async function createInvoiceFromBudget(
 
   return { invoiceId: invoiceIdStr };
 }
+
+export async function emitInvoice(invoiceId: string): Promise<void> {
+  const supabase = getSupabaseClient();
+
+  const { error: rpcError } = await supabase.rpc("emit_invoice", {
+    p_invoice_id: invoiceId,
+  });
+
+  if (rpcError) throw new Error(rpcError.message);
+}
