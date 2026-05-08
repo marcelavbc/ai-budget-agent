@@ -6,7 +6,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
   FileDown,
-  FileText,
+  Eye,
   Pencil,
   Trash2,
   ChevronDown,
@@ -202,26 +202,9 @@ export function BudgetListItemActions({
               aria-label="Veure factura"
               title="Veure factura"
             >
-              <FileText size={18} aria-hidden="true" />
+              <Eye size={18} aria-hidden="true" />
             </Link>
           ) : null}
-          <button
-            type="button"
-            disabled
-            className={
-              variant === "icons"
-                ? `${styles.iconBtn} ${styles.iconBtnDanger}`
-                : `${styles.btn} ${styles.danger}`
-            }
-            aria-label="Eliminar pressupost"
-            title="No es pot eliminar un pressupost facturat"
-          >
-            {variant === "icons" ? (
-              <Trash2 size={18} aria-hidden="true" />
-            ) : (
-              "Eliminar"
-            )}
-          </button>
         </>
       ) : (
         <>
