@@ -7,16 +7,19 @@ import type { InvoiceListRow } from "@/features/invoices/lib/invoices";
 import { formatEUR } from "@/shared/lib/formatCurrency";
 import { useClickOutside } from "@/shared/hooks/useClickOutside";
 import styles from "./InvoicesView.module.css";
+import InvoiceStatusPill from "./InvoiceStatusPill";
 
-type InvoiceStatus = "emesa" | "cobrada";
+type InvoiceStatus = "draft" | "issued" | "paid";
 
-const STATUS_OPTIONS: InvoiceStatus[] = ["emesa", "cobrada"];
+const STATUS_OPTIONS: InvoiceStatus[] = ["issued", "paid"];
 
 const statusLabel = (s: string): string => {
   switch (s) {
-    case "emesa":
+    case "draft":
+      return "Esborrany";
+    case "issued":
       return "Emesa";
-    case "cobrada":
+    case "paid":
       return "Cobrada";
     default:
       return s;
@@ -24,8 +27,8 @@ const statusLabel = (s: string): string => {
 };
 
 function pillClass(s: string): string {
-  if (s === "emesa") return styles.pillSent;
-  if (s === "cobrada") return styles.pillApproved;
+  if (s === "issued") return styles.pillSent;
+  if (s === "paid") return styles.pillApproved;
   return styles.pillDraft;
 }
 
@@ -34,6 +37,9 @@ type Props = {
 };
 
 export function InvoicesView({ invoices }: Props) {
+  const [statusOverrides, setStatusOverrides] = useState<Map<string, string>>(
+    () => new Map()
+  );
   const [query, setQuery] = useState("");
   const [selectedStatus, setSelectedStatus] = useState<InvoiceStatus | null>(
     null
@@ -165,11 +171,17 @@ export function InvoicesView({ invoices }: Props) {
                 </td>
                 <td className={styles.td}>{formatEUR(invoice.total ?? 0)}</td>
                 <td className={`${styles.td} ${styles.colStatus}`}>
-                  <span
-                    className={`${styles.pill} ${pillClass(invoice.status)}`}
-                  >
-                    {statusLabel(invoice.status)}
-                  </span>
+                  <InvoiceStatusPill
+                    invoiceId={invoice.id}
+                    initialStatus={
+                      statusOverrides.get(invoice.id) ?? invoice.status
+                    }
+                    onStatusChange={(next) =>
+                      setStatusOverrides((prev) =>
+                        new Map(prev).set(invoice.id, next)
+                      )
+                    }
+                  />
                 </td>
                 <td className={`${styles.td} ${styles.colActions}`}>
                   <span className={styles.rowActions}>
