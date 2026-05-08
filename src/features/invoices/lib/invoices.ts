@@ -2,13 +2,27 @@ import "server-only";
 
 import { getSupabaseClient } from "@/core/lib/supabaseClient";
 import { getBudgetLinesByBudgetId } from "@/features/budgets/lib/budgets";
-import { dateFilterRange, matchesDateFilter, type DateFilter } from "@/shared/lib/dateFilter";
+import {
+  dateFilterRange,
+  matchesDateFilter,
+  type DateFilter,
+} from "@/shared/lib/dateFilter";
 import type { InvoicePricingMode } from "@/features/invoices/types/invoice";
 import { isInvoicePricingMode } from "@/features/invoices/types/invoice";
 import type { Tables, TablesInsert } from "@/core/types/supabase";
 
 export type InvoiceRow = Tables<"invoices">;
 export type InvoiceLineRow = Tables<"invoice_lines">;
+
+export type InvoiceListRow = {
+  id: string;
+  invoice_number: string | null;
+  status: string;
+  issue_date: string | null;
+  total: number;
+  pricing_mode: string;
+  client_name: string | null;
+};
 
 export type InvoiceDashboardStats = {
   countWithoutIva: number;
@@ -26,9 +40,7 @@ export async function getInvoiceDashboardStats(
 ): Promise<InvoiceDashboardStats> {
   const supabase = getSupabaseClient();
   const range = dateFilterRange(filter ?? null);
-  let q = supabase
-    .from("invoices")
-    .select("pricing_mode,total,created_at");
+  let q = supabase.from("invoices").select("pricing_mode,total,created_at");
   if (range) {
     q = q.gte("created_at", range.gte).lte("created_at", range.lte);
   }
@@ -114,7 +126,7 @@ export async function createInvoiceFromBudget(
   if (rpcError) throw new Error(rpcError.message);
   if (!invoiceId) throw new Error("No s'ha pogut generar la factura.");
 
-  const invoiceIdStr = (invoiceId as unknown as string);
+  const invoiceIdStr = invoiceId as unknown as string;
 
   const lines = await getBudgetLinesByBudgetId(budgetIdNormalized);
 
@@ -141,12 +153,23 @@ export async function createInvoiceFromBudget(
   return { invoiceId: invoiceIdStr };
 }
 
-export async function emitInvoice(invoiceId: string): Promise<void> {
+export async function getInvoiceList(): Promise<InvoiceListRow[]> {
   const supabase = getSupabaseClient();
-
-  const { error: rpcError } = await supabase.rpc("emit_invoice", {
-    p_invoice_id: invoiceId,
-  });
-
-  if (rpcError) throw new Error(rpcError.message);
+  const { data, error } = await supabase
+    .from("invoices")
+    .select(
+      "id, invoice_number, status, issue_date, total, pricing_mode, clients(name)"
+    )
+    .order("issue_date", { ascending: false });
+  if (error) throw new Error(error.message);
+  return (data ?? []).map((row) => ({
+    id: row.id,
+    invoice_number: row.invoice_number,
+    status: row.status,
+    issue_date: row.issue_date,
+    total: row.total,
+    pricing_mode: row.pricing_mode,
+    client_name:
+      (row.clients as unknown as { name: string | null } | null)?.name ?? null,
+  }));
 }

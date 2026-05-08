@@ -1,12 +1,38 @@
-export default function InvoicesPage() {
+import { connection } from "next/server";
+import { getInvoiceList } from "@/features/invoices/lib/invoices";
+import styles from "./page.module.css";
+import { InvoicesView } from "@/features/invoices/components/InvoicesView";
+
+export default async function InvoicesPage() {
+  await connection();
+
+  const invoices = await getInvoiceList();
+
   return (
-    <main style={{ maxWidth: 860, margin: "0 auto", padding: "2rem 1rem" }}>
-      <h1 style={{ fontFamily: "var(--font-display)", fontWeight: 500, fontSize: "1.8rem", marginBottom: "1rem" }}>
-        Factures
-      </h1>
-      <p style={{ color: "var(--text-muted)" }}>
-        Aquí apareixeran totes les factures generades.
-      </p>
-    </main>
+    <div className={styles.wrap}>
+      <div className={styles.inner}>
+        <div className={styles.top}>
+          <header className={styles.header}>
+            <h1 className={styles.title}>Factures</h1>
+            <p className={styles.subtitle}>
+              Totes les factures generades, ordenades per data d'emissió del més
+              recent al més antic.
+            </p>
+          </header>
+
+          <div className={styles.actions} />
+        </div>
+
+        {invoices.length === 0 ? (
+          <section className={styles.empty}>
+            <h2 className={styles.emptyTitle}>Encara no hi ha factures.</h2>
+          </section>
+        ) : (
+          <div className={styles.viewMount}>
+            <InvoicesView invoices={invoices} />
+          </div>
+        )}
+      </div>
+    </div>
   );
 }

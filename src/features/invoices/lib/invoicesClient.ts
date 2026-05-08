@@ -49,17 +49,6 @@ export async function createInvoiceFromBudget(
   return { invoiceId };
 }
 
-export async function emitInvoice(invoiceId: string): Promise<void> {
-  const res = await fetch(`/api/invoices/${invoiceId}/emit`, {
-    method: "POST",
-  });
-
-  if (!res.ok) {
-    const data = await readJson(res);
-    throw new Error(errorMessage(data, "No s'ha pogut emetre la factura."));
-  }
-}
-
 export async function updateClientTaxId(
   budgetId: string,
   taxId: string

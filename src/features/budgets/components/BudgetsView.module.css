@@ -129,7 +129,6 @@
   gap: 10px;
   align-items: center;
   padding: 0 0 14px;
-  border-bottom: 1px solid var(--border-soft);
   margin-bottom: 24px;
 }
 
@@ -447,7 +446,8 @@
 .quoteLink {
   color: inherit;
   text-decoration: none;
-  border-bottom: 1px solid color-mix(in srgb, var(--text-muted) 45%, transparent);
+  border-bottom: 1px solid
+    color-mix(in srgb, var(--text-muted) 45%, transparent);
   padding-bottom: 1px;
 }
 
@@ -772,4 +772,3 @@
     display: block;
   }
 }
-

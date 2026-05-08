@@ -1,8 +1,10 @@
 import { formatEUR } from "@/shared/lib/formatCurrency";
 import type { ClientRow } from "@/features/budgets/types/budgetsDb";
-import type { InvoiceLineRow, InvoiceRow } from "@/features/invoices/lib/invoices";
+import type {
+  InvoiceLineRow,
+  InvoiceRow,
+} from "@/features/invoices/lib/invoices";
 import { invoicePricingLabel } from "@/features/invoices/types/invoice";
-import { EmitInvoiceButton } from "./EmitInvoiceButton";
 import styles from "./InvoiceView.module.css";
 
 function formatDate(value: string | null) {
@@ -115,7 +117,6 @@ export function InvoiceView({
           <span className={styles.grandTotalValue}>{formatEUR(total)}</span>
         </div>
       </div>
-      <EmitInvoiceButton invoiceId={invoice.id} status={invoice.status ?? ""} />
     </section>
   );
 }

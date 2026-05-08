@@ -1,0 +1,354 @@
+/* ── Layout ──────────────────────────────────────────── */
+.viewRoot {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.resultsScroll {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-gutter: stable;
+  padding-right: 2px;
+  margin-right: -2px;
+}
+
+/* ── Filter row ──────────────────────────────────────── */
+.filterRow {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  padding: 0 0 14px;
+  margin-bottom: 24px;
+}
+
+.search {
+  position: relative;
+  flex: 1 1 auto;
+  min-width: 280px;
+  max-width: 280px;
+}
+
+.searchIcon {
+  position: absolute;
+  left: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  display: flex;
+  align-items: center;
+  opacity: 0.65;
+  pointer-events: none;
+  color: var(--text-muted);
+}
+
+.input {
+  height: 44px;
+  border-radius: 999px;
+  border: 1px solid var(--border-soft);
+  background: var(--surface);
+  padding: 0 14px;
+  font-size: 13px;
+  color: var(--text);
+  outline: none;
+  box-sizing: border-box;
+}
+
+.input:focus-visible {
+  border-color: var(--color-gold-medium);
+  box-shadow: none;
+}
+
+.searchInput {
+  width: 100%;
+  padding-left: 34px;
+}
+
+/* ── Dropdown ────────────────────────────────────────── */
+.dropdownWrap {
+  position: relative;
+  flex: 0 0 auto;
+}
+
+.dropdownBtn {
+  height: 44px;
+  border-radius: 999px;
+  border: 1px solid var(--border-soft);
+  background: var(--surface);
+  color: var(--text);
+  padding: 0 14px 0 16px;
+  font-size: 0.875rem;
+  font-family: inherit;
+  font-weight: 650;
+  letter-spacing: -0.01em;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  white-space: nowrap;
+  box-sizing: border-box;
+  transition:
+    background 120ms ease,
+    border-color 120ms ease;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .dropdownBtn:hover {
+    background: var(--bg-subtle);
+    border-color: var(--border);
+  }
+}
+
+.dropdownActive {
+  border-color: color-mix(in srgb, var(--brand-accent) 45%, var(--border));
+  box-shadow: inset 0 0 0 1px
+    color-mix(in srgb, var(--brand-accent) 25%, transparent);
+}
+
+.dropdownLabel {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.chevron {
+  font-size: 12px;
+  opacity: 0.65;
+}
+
+.goldDot {
+  width: 6px;
+  height: 6px;
+  border-radius: 999px;
+  background: var(--brand-accent, var(--color-gold-medium));
+  display: inline-block;
+  flex-shrink: 0;
+}
+
+.menu {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  background: var(--surface);
+  border: 1px solid var(--border-soft);
+  border-radius: 12px;
+  box-shadow: var(--shadow-card);
+  padding: 8px;
+  min-width: 160px;
+  z-index: 50;
+  opacity: 0;
+  transform: translateY(-4px);
+  pointer-events: none;
+  transition:
+    opacity 100ms ease,
+    transform 100ms ease;
+}
+
+.menuOpen {
+  opacity: 1;
+  transform: translateY(0);
+  pointer-events: auto;
+}
+
+.menuRow {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 12px;
+  border-radius: 6px;
+  font-size: 14px;
+  color: var(--text);
+  cursor: pointer;
+  user-select: none;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .menuRow:hover {
+    background: var(--bg-subtle);
+  }
+}
+
+.radio {
+  accent-color: var(--color-black);
+}
+
+/* ── Filter meta (results count) ─────────────────────── */
+.filterMeta {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  margin-left: auto;
+}
+
+.results {
+  font-size: 13px;
+  color: var(--text-muted);
+  white-space: nowrap;
+}
+
+/* ── Table ───────────────────────────────────────────── */
+.tableWrap {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.th {
+  text-align: center;
+  font-size: 12px;
+  text-transform: none;
+  letter-spacing: 0;
+  color: var(--text-secondary);
+  font-weight: 600;
+  padding: 10px 16px;
+  border-bottom: 1px solid var(--border);
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  background: var(--surface);
+  box-shadow: 0 1px 0 var(--border-soft);
+}
+
+.td {
+  padding: 14px 16px;
+  border-bottom: 1px solid var(--border-soft);
+  vertical-align: middle;
+}
+
+.tr {
+  background: var(--surface);
+  transition: background 120ms ease;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .tr:hover {
+    background: var(--bg-subtle);
+  }
+}
+
+.colInvoiceNum {
+  font-family:
+    ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono",
+    "Courier New", monospace;
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
+.invoiceLink {
+  color: inherit;
+  text-decoration: none;
+  border-bottom: 1px solid
+    color-mix(in srgb, var(--text-muted) 45%, transparent);
+  padding-bottom: 1px;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .invoiceLink:hover {
+    color: var(--text);
+    border-bottom-color: color-mix(in srgb, var(--text) 35%, transparent);
+  }
+}
+
+.colClient {
+  font-family: var(--font-body);
+  font-size: 13px;
+  font-weight: 500;
+  line-height: 1.35;
+  color: var(--text-secondary);
+  max-width: 200px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.colDate {
+  font-size: 13px;
+  color: var(--text-muted);
+  white-space: nowrap;
+}
+
+.colStatus {
+  text-align: center;
+}
+
+.colActions {
+  text-align: right;
+  width: 1%;
+  white-space: nowrap;
+}
+
+.th.colActions {
+  text-align: center;
+}
+
+.rowActions {
+  opacity: 0.7;
+  transition: opacity 120ms ease;
+}
+
+.tr:hover .rowActions {
+  opacity: 1;
+}
+
+/* ── Status pill ─────────────────────────────────────── */
+.pill {
+  display: inline-flex;
+  align-items: center;
+  padding: 6px 10px;
+  border-radius: 999px;
+  border: 1px solid transparent;
+  font-size: 0.85rem;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  white-space: nowrap;
+}
+
+.pillDraft {
+  background: var(--state-draft-bg);
+  color: var(--state-draft);
+}
+
+.pillSent {
+  background: var(--state-sent-bg);
+  color: var(--state-sent);
+}
+
+.pillApproved {
+  background: var(--state-approved-bg);
+  color: var(--state-approved);
+}
+
+/* ── Action icon button ──────────────────────────────── */
+.iconBtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  border-radius: 8px;
+  border: 1px solid transparent;
+  background: transparent;
+  color: var(--text-muted);
+  cursor: pointer;
+  transition:
+    background 120ms ease,
+    border-color 120ms ease,
+    color 120ms ease;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .iconBtn:hover {
+    background: var(--bg-subtle);
+    border-color: var(--border-soft);
+    color: var(--text);
+  }
+}
