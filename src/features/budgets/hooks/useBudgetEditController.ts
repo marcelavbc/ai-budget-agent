@@ -67,8 +67,6 @@ export function useBudgetEditController(args: {
     });
   }
 
-  const status = normalizeBudgetStatus(budget.status);
-
   return {
     budgetId: budget.id,
 
@@ -89,11 +87,6 @@ export function useBudgetEditController(args: {
     // save/back
     handleSave,
 
-    // status
-    status,
-
-    // UI helpers
-    showPdf: status !== "approved",
     appendAiLines: (lines: BudgetLine[]) => {
       setItems((prev) => [...prev, ...budgetLinesToClientItems(lines)]);
     },

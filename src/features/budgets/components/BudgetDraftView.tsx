@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useRef, useState } from "react";
 import { useClickOutside } from "@/shared/hooks/useClickOutside";
 import { useRouter } from "next/navigation";
 import { ChevronDown, FileDown, Trash2 } from "lucide-react";
@@ -10,6 +10,11 @@ import type {
 } from "@/features/budgets/types/budget";
 import { isBudgetDraftComplete } from "@/features/budgets/lib/budgetDraft";
 import { saveBudgetWithLines } from "@/features/budgets/lib/budgetsClient";
+import {
+  budgetStatusLabel,
+  normalizeBudgetStatus,
+  type BudgetStatus,
+} from "@/features/budgets/lib/budgetStatus";
 import { usePdfExport } from "@/features/budgets/hooks/usePdfExport";
 import { BudgetClientForm } from "@/features/budgets/components/BudgetClientForm";
 import styles from "./BudgetDraftView.module.css";
@@ -50,8 +55,16 @@ function segmentDraftItems(items: BudgetClientItem[]): DraftSegment[] {
   return segments;
 }
 
+function statusPillClass(value: BudgetStatus): string {
+  if (value === "sent") return styles.statusPillSent;
+  if (value === "approved") return styles.statusPillApproved;
+  if (value === "invoiced") return styles.statusPillInvoiced;
+  return styles.statusPillDraft;
+}
+
 interface Props {
   mode?: "create" | "edit";
+  budgetStatus?: string | null;
   items: BudgetClientItem[];
   clientDetails: BudgetClientDetails;
   onClientDetailsChange: React.Dispatch<
@@ -60,7 +73,6 @@ interface Props {
   onItemChange: (id: string, patch: Partial<BudgetClientItem>) => void;
   onItemRemove?: (id: string) => void;
   itemsFooter?: React.ReactNode;
-  footerActions?: React.ReactNode;
   footerNotice?: React.ReactNode;
   onSave?: (args: {
     client: BudgetClientDetails;
@@ -70,47 +82,35 @@ interface Props {
   onQuoteNumberChange: (value: string) => void;
   onResetQuoteAutomation: () => void;
   onBack: () => void;
-  /** Hide PDF export (e.g. approved budgets where invoicing is the next step). */
-  showPdf?: boolean;
 }
 
 export function BudgetDraftView({
   mode = "create",
+  budgetStatus,
   items,
   clientDetails: client,
   onClientDetailsChange: setClient,
   onItemChange,
   onItemRemove,
   itemsFooter,
-  footerActions,
   footerNotice,
   onSave,
   quoteManuallyEdited,
   onQuoteNumberChange,
   onResetQuoteAutomation,
   onBack,
-  showPdf = true,
 }: Props) {
   const [isSaving, setIsSaving] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
   const [pdfMenuOpen, setPdfMenuOpen] = useState(false);
   const { exportPdf, generating, pdfError } = usePdfExport();
-  const pdfDropdownRef = useRef<HTMLDivElement>(null);
+  const pdfMenuRef = useRef<HTMLDivElement | null>(null);
   const router = useRouter();
 
-  const closePdfMenu = useCallback(() => setPdfMenuOpen(false), []);
-  useClickOutside(pdfDropdownRef, pdfMenuOpen, closePdfMenu);
-
-  useEffect(() => {
-    if (showPdf) return;
-    setPdfMenuOpen(false);
-  }, [showPdf]);
-
-  async function handleGeneratePdfLang(lang: "ca" | "es") {
-    setPdfMenuOpen(false);
-    await exportPdf({ client, items, lang });
-  }
   const draftComplete = isBudgetDraftComplete({ client, items });
+  const status = normalizeBudgetStatus(budgetStatus);
+  const closePdfMenu = useCallback(() => setPdfMenuOpen(false), []);
+  useClickOutside(pdfMenuRef, pdfMenuOpen, closePdfMenu);
 
   function handleDescriptionChange(id: string, value: string) {
     onItemChange(id, { description: value });
@@ -124,12 +124,12 @@ export function BudgetDraftView({
       if (onSave) {
         await onSave({ client, items });
       } else {
-        const { budgetId } = await saveBudgetWithLines({
+        await saveBudgetWithLines({
           client,
           items,
         });
-        router.push(`/budgets/${budgetId}`);
       }
+      router.push("/budgets");
     } catch (e) {
       setSaveError(
         e instanceof Error
@@ -139,6 +139,11 @@ export function BudgetDraftView({
     } finally {
       setIsSaving(false);
     }
+  }
+
+  async function handleGenerateBudgetPdf(lang: "ca" | "es") {
+    setPdfMenuOpen(false);
+    await exportPdf({ client, items, lang });
   }
 
   const segments = segmentDraftItems(items);
@@ -154,9 +159,68 @@ export function BudgetDraftView({
           </button>
         ) : null}
         {mode === "edit" ? (
-          <h2 className={`${styles.heading} ${styles.headingEdit}`}>
-            Editar pressupost
-          </h2>
+          <>
+            <h2 className={`${styles.heading} ${styles.headingEdit}`}>
+              Editar pressupost
+            </h2>
+            <div className={styles.editHeaderActions}>
+              <span
+                className={`${styles.statusPill} ${statusPillClass(status)}`}
+              >
+                {budgetStatusLabel(status)}
+              </span>
+              <div
+                className={styles.generateBudgetDropdown}
+                ref={pdfMenuRef}
+                onKeyDown={(e) => {
+                  if (e.key === "Escape") setPdfMenuOpen(false);
+                }}
+              >
+                <button
+                  type="button"
+                  className={styles.generateBudgetBtn}
+                  disabled={generating}
+                  aria-busy={generating || undefined}
+                  aria-haspopup="menu"
+                  aria-expanded={pdfMenuOpen}
+                  onClick={() => setPdfMenuOpen((v) => !v)}
+                >
+                  {generating ? (
+                    "Generant…"
+                  ) : (
+                    <>
+                      <FileDown size={16} aria-hidden="true" />
+                      Generar pressupost
+                      <ChevronDown size={14} aria-hidden="true" />
+                    </>
+                  )}
+                </button>
+                {pdfMenuOpen ? (
+                  <div className={styles.generateBudgetMenu} role="menu">
+                    <button
+                      type="button"
+                      className={styles.generateBudgetMenuItem}
+                      role="menuitem"
+                      disabled={generating}
+                      onClick={() => handleGenerateBudgetPdf("ca")}
+                    >
+                      Català <span className={styles.generateBudgetMenuHint}>PDF</span>
+                    </button>
+                    <button
+                      type="button"
+                      className={styles.generateBudgetMenuItem}
+                      role="menuitem"
+                      disabled={generating}
+                      onClick={() => handleGenerateBudgetPdf("es")}
+                    >
+                      Castellano{" "}
+                      <span className={styles.generateBudgetMenuHint}>PDF</span>
+                    </button>
+                  </div>
+                ) : null}
+              </div>
+            </div>
+          </>
         ) : (
           <span className={styles.draftBadge}>ESBORRANY DEL PRESSUPOST</span>
         )}
@@ -324,59 +388,13 @@ export function BudgetDraftView({
             {saveError}
           </p>
         ) : null}
-        {showPdf && pdfError ? (
+        {mode === "edit" && pdfError ? (
           <p className={styles.saveError} role="alert">
             {pdfError}
           </p>
         ) : null}
         {footerNotice}
         <div className={styles.footerBtns}>
-          {footerActions}
-          {showPdf ? (
-            <div className={styles.pdfDropdown} ref={pdfDropdownRef}>
-              <button
-                type="button"
-                className={styles.pdfBtn}
-                disabled={generating}
-                aria-busy={generating || undefined}
-                aria-haspopup="menu"
-                aria-expanded={pdfMenuOpen}
-                onClick={() => setPdfMenuOpen((v) => !v)}
-              >
-                {generating ? (
-                  "PDF…"
-                ) : (
-                  <>
-                    <FileDown size={16} aria-hidden="true" />
-                    PDF
-                    <ChevronDown size={14} aria-hidden="true" />
-                  </>
-                )}
-              </button>
-              {pdfMenuOpen ? (
-                <div className={styles.pdfMenu} role="menu">
-                  <button
-                    type="button"
-                    className={styles.pdfMenuItem}
-                    role="menuitem"
-                    disabled={generating}
-                    onClick={() => handleGeneratePdfLang("ca")}
-                  >
-                    Català <span className={styles.pdfMenuHint}>PDF</span>
-                  </button>
-                  <button
-                    type="button"
-                    className={styles.pdfMenuItem}
-                    role="menuitem"
-                    disabled={generating}
-                    onClick={() => handleGeneratePdfLang("es")}
-                  >
-                    Castellano <span className={styles.pdfMenuHint}>PDF</span>
-                  </button>
-                </div>
-              ) : null}
-            </div>
-          ) : null}
           <button
             type="button"
             className={styles.saveBtn}

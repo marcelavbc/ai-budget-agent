@@ -25,6 +25,7 @@ export function BudgetEditView({
   return (
     <BudgetDraftView
       mode="edit"
+      budgetStatus={budget.status}
       items={c.items}
       clientDetails={c.clientDetails}
       onClientDetailsChange={c.setClientWithAutoQuote}
@@ -49,7 +50,6 @@ export function BudgetEditView({
       onResetQuoteAutomation={c.resetAutomation}
       onBack={() => router.push(`/budgets/${budget.id}`)}
       onSave={c.handleSave}
-      showPdf={c.showPdf}
     />
   );
 }
