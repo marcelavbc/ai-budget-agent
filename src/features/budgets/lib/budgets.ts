@@ -37,6 +37,10 @@ export interface CreateClientInput {
   address?: string | null;
 }
 
+type BudgetListQueryRow = BudgetListRow & {
+  invoices?: { id: string | null } | { id: string | null }[] | null;
+};
+
 export async function createClient({
   name,
   phone = null,
@@ -231,7 +235,9 @@ export async function getBudgets(filter?: DateFilter): Promise<BudgetListRow[]> 
   const range = dateFilterRange(filter ?? null);
   let q = supabase
     .from("budgets")
-    .select("id,title,job_address,status,document_date,quote_number,created_at")
+    .select(
+      "id,title,job_address,status,document_date,quote_number,created_at,invoices!budget_id(id)"
+    )
     .order("document_date", { ascending: false, nullsFirst: false })
     .order("created_at", { ascending: false });
 
@@ -242,7 +248,14 @@ export async function getBudgets(filter?: DateFilter): Promise<BudgetListRow[]> 
   const { data, error } = await q;
 
   if (error) throw new Error(error.message);
-  const rows = data ?? [];
+  const rows = ((data ?? []) as unknown as BudgetListQueryRow[]).map((row) => {
+    const { invoices, ...budget } = row;
+    const invoice = Array.isArray(invoices) ? invoices[0] : invoices;
+    return {
+      ...budget,
+      invoice_id: invoice?.id ?? null,
+    };
+  });
   if (!filter?.months?.length) return rows;
   return rows.filter((r) => matchesDateFilter(r.created_at ?? null, filter));
 }

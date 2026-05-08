@@ -59,6 +59,7 @@ export function BudgetsListTable({
                     <BudgetListItemActions
                       budgetId={b.id}
                       budgetStatus={b.status}
+                      invoiceId={b.invoice_id ?? null}
                       clientName={b.title}
                       clientTaxId={null}
                       variant="icons"

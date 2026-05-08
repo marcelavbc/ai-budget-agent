@@ -4,7 +4,14 @@ import { useCallback, useRef, useState, useTransition } from "react";
 import { useClickOutside } from "@/shared/hooks/useClickOutside";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { FileDown, Pencil, Trash2, ChevronDown, Receipt } from "lucide-react";
+import {
+  FileDown,
+  FileText,
+  Pencil,
+  Trash2,
+  ChevronDown,
+  Receipt,
+} from "lucide-react";
 import { ConfirmDialog } from "@/shared/components/ConfirmDialog";
 import styles from "./BudgetListItemActions.module.css";
 import { usePdfExport } from "@/features/budgets/hooks/usePdfExport";
@@ -33,12 +40,14 @@ import type { InvoicePricingMode } from "@/features/invoices/types/invoice";
 export function BudgetListItemActions({
   budgetId,
   budgetStatus,
+  invoiceId,
   clientName,
   clientTaxId,
   variant = "full",
 }: {
   budgetId: string;
   budgetStatus?: string | null;
+  invoiceId?: string | null;
   clientName: string | null;
   clientTaxId: string | null;
   variant?: "full" | "icons";
@@ -177,169 +186,204 @@ export function BudgetListItemActions({
     });
   }
 
+  const nonEmptyInvoiceId = (invoiceId ?? "").trim();
+
   return (
     <div
       className={`${styles.root} ${variant === "icons" ? styles.rootIcons : ""}`}
     >
-      {deleteError ? (
-        <p className={styles.error} role="alert">
-          {deleteError}
-        </p>
-      ) : null}
-      {isApproved ? (
+      {isInvoiced ? (
         <>
-          <Link
-            href={`/budgets/${budgetId}/edit`}
-            onClick={(e) => e.stopPropagation()}
-            className={variant === "icons" ? styles.iconBtn : styles.btn}
-            aria-label="Editar pressupost"
-            title="Editar"
-          >
-            {variant === "icons" ? (
-              <Pencil size={18} aria-hidden="true" />
-            ) : (
-              "Editar"
-            )}
-          </Link>
+          {nonEmptyInvoiceId ? (
+            <Link
+              href={`/invoices/${nonEmptyInvoiceId}`}
+              onClick={(e) => e.stopPropagation()}
+              className={variant === "icons" ? styles.iconBtn : styles.btn}
+              aria-label="Veure factura"
+              title="Veure factura"
+            >
+              <FileText size={18} aria-hidden="true" />
+            </Link>
+          ) : null}
           <button
             type="button"
+            disabled
             className={
               variant === "icons"
-                ? styles.iconBtn
-                : `${styles.btn} ${styles.primary}`
+                ? `${styles.iconBtn} ${styles.iconBtnDanger}`
+                : `${styles.btn} ${styles.danger}`
             }
-            disabled={isInvoicing}
-            aria-busy={isInvoicing || undefined}
-            aria-label="Generar factura"
-            title="Generar factura"
-            onClick={(e) => {
-              e.preventDefault();
-              e.stopPropagation();
-              modal.openModal();
-            }}
+            aria-label="Eliminar pressupost"
+            title="No es pot eliminar un pressupost facturat"
           >
             {variant === "icons" ? (
-              isInvoicing ? (
-                "…"
-              ) : (
-                <Receipt size={18} aria-hidden="true" />
-              )
-            ) : isInvoicing ? (
-              "…"
+              <Trash2 size={18} aria-hidden="true" />
             ) : (
-              "Facturar"
+              "Eliminar"
             )}
           </button>
         </>
       ) : (
-        <Link
-          href={`/budgets/${budgetId}/edit`}
-          onClick={(e) => e.stopPropagation()}
-          className={variant === "icons" ? styles.iconBtn : styles.btn}
-          aria-label="Editar pressupost"
-          title="Editar"
-        >
-          {variant === "icons" ? (
-            <Pencil size={18} aria-hidden="true" />
+        <>
+          {deleteError ? (
+            <p className={styles.error} role="alert">
+              {deleteError}
+            </p>
+          ) : null}
+          {isApproved ? (
+            <>
+              <Link
+                href={`/budgets/${budgetId}/edit`}
+                onClick={(e) => e.stopPropagation()}
+                className={variant === "icons" ? styles.iconBtn : styles.btn}
+                aria-label="Editar pressupost"
+                title="Editar"
+              >
+                {variant === "icons" ? (
+                  <Pencil size={18} aria-hidden="true" />
+                ) : (
+                  "Editar"
+                )}
+              </Link>
+              <button
+                type="button"
+                className={
+                  variant === "icons"
+                    ? styles.iconBtn
+                    : `${styles.btn} ${styles.primary}`
+                }
+                disabled={isInvoicing}
+                aria-busy={isInvoicing || undefined}
+                aria-label="Generar factura"
+                title="Generar factura"
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  modal.openModal();
+                }}
+              >
+                {variant === "icons" ? (
+                  isInvoicing ? (
+                    "…"
+                  ) : (
+                    <Receipt size={18} aria-hidden="true" />
+                  )
+                ) : isInvoicing ? (
+                  "…"
+                ) : (
+                  "Facturar"
+                )}
+              </button>
+            </>
           ) : (
-            "Editar"
-          )}
-        </Link>
-      )}
-      {!isApproved ? (
-        <div
-          ref={pdfMenuRef}
-          className={styles.dropdown}
-          onClick={(e) => e.stopPropagation()}
-          onKeyDown={(e) => {
-            if (e.key === "Escape") setPdfMenuOpen(false);
-          }}
-        >
-          <button
-            type="button"
-            disabled={generating}
-            className={
-              variant === "icons"
-                ? styles.iconBtn
-                : `${styles.btn} ${styles.primary}`
-            }
-            aria-busy={generating || undefined}
-            aria-haspopup="menu"
-            aria-expanded={pdfMenuOpen}
-            onClick={(e) => {
-              e.preventDefault();
-              setPdfMenuOpen((v) => !v);
-            }}
-            title="PDF"
-          >
-            {variant === "icons" ? (
-              generating ? (
-                "…"
+            <Link
+              href={`/budgets/${budgetId}/edit`}
+              onClick={(e) => e.stopPropagation()}
+              className={variant === "icons" ? styles.iconBtn : styles.btn}
+              aria-label="Editar pressupost"
+              title="Editar"
+            >
+              {variant === "icons" ? (
+                <Pencil size={18} aria-hidden="true" />
               ) : (
-                <FileDown size={18} aria-hidden="true" />
-              )
-            ) : generating ? (
-              "PDF…"
-            ) : (
-              <>
-                PDF <ChevronDown size={16} aria-hidden="true" />
-              </>
-            )}
-          </button>
+                "Editar"
+              )}
+            </Link>
+          )}
+          {!isApproved ? (
+            <div
+              ref={pdfMenuRef}
+              className={styles.dropdown}
+              onClick={(e) => e.stopPropagation()}
+              onKeyDown={(e) => {
+                if (e.key === "Escape") setPdfMenuOpen(false);
+              }}
+            >
+              <button
+                type="button"
+                disabled={generating}
+                className={
+                  variant === "icons"
+                    ? styles.iconBtn
+                    : `${styles.btn} ${styles.primary}`
+                }
+                aria-busy={generating || undefined}
+                aria-haspopup="menu"
+                aria-expanded={pdfMenuOpen}
+                onClick={(e) => {
+                  e.preventDefault();
+                  setPdfMenuOpen((v) => !v);
+                }}
+                title="PDF"
+              >
+                {variant === "icons" ? (
+                  generating ? (
+                    "…"
+                  ) : (
+                    <FileDown size={18} aria-hidden="true" />
+                  )
+                ) : generating ? (
+                  "PDF…"
+                ) : (
+                  <>
+                    PDF <ChevronDown size={16} aria-hidden="true" />
+                  </>
+                )}
+              </button>
 
-          {pdfMenuOpen ? (
-            <div className={styles.dropdownMenu} role="menu">
-              <button
-                type="button"
-                className={styles.menuItem}
-                role="menuitem"
-                disabled={generating}
-                onClick={(e) => handleGeneratePdfLang(e, "ca")}
-              >
-                Català <span className={styles.menuHint}>PDF</span>
-              </button>
-              <button
-                type="button"
-                className={styles.menuItem}
-                role="menuitem"
-                disabled={generating}
-                onClick={(e) => handleGeneratePdfLang(e, "es")}
-              >
-                Castellano <span className={styles.menuHint}>PDF</span>
-              </button>
+              {pdfMenuOpen ? (
+                <div className={styles.dropdownMenu} role="menu">
+                  <button
+                    type="button"
+                    className={styles.menuItem}
+                    role="menuitem"
+                    disabled={generating}
+                    onClick={(e) => handleGeneratePdfLang(e, "ca")}
+                  >
+                    Català <span className={styles.menuHint}>PDF</span>
+                  </button>
+                  <button
+                    type="button"
+                    className={styles.menuItem}
+                    role="menuitem"
+                    disabled={generating}
+                    onClick={(e) => handleGeneratePdfLang(e, "es")}
+                  >
+                    Castellano <span className={styles.menuHint}>PDF</span>
+                  </button>
+                </div>
+              ) : null}
             </div>
           ) : null}
-        </div>
-      ) : null}
 
-      <button
-        type="button"
-        onClick={handleDeleteClick}
-        disabled={deleting || isInvoiced}
-        className={
-          variant === "icons"
-            ? `${styles.iconBtn} ${styles.iconBtnDanger}`
-            : `${styles.btn} ${styles.danger}`
-        }
-        aria-label="Eliminar pressupost"
-        title={
-          isInvoiced ? "No es pot eliminar un pressupost facturat" : "Eliminar"
-        }
-      >
-        {variant === "icons" ? (
-          deleting ? (
-            "…"
-          ) : (
-            <Trash2 size={18} aria-hidden="true" />
-          )
-        ) : deleting ? (
-          "…"
-        ) : (
-          "Eliminar"
-        )}
-      </button>
+          <button
+            type="button"
+            onClick={handleDeleteClick}
+            disabled={deleting}
+            className={
+              variant === "icons"
+                ? `${styles.iconBtn} ${styles.iconBtnDanger}`
+                : `${styles.btn} ${styles.danger}`
+            }
+            aria-label="Eliminar pressupost"
+            title="Eliminar"
+          >
+            {variant === "icons" ? (
+              deleting ? (
+                "…"
+              ) : (
+                <Trash2 size={18} aria-hidden="true" />
+              )
+            ) : deleting ? (
+              "…"
+            ) : (
+              "Eliminar"
+            )}
+          </button>
+        </>
+      )}
 
-      {modal.open && (
+      {!isInvoiced && modal.open ? (
         <InvoiceModal
           loading={isInvoicing}
           clientName={clientName}
@@ -360,7 +404,7 @@ export function BudgetListItemActions({
           onBack={modal.goBack}
           onClose={modal.closeModal}
         />
-      )}
+      ) : null}
 
       <ConfirmDialog
         open={confirmOpen}
@@ -374,12 +418,12 @@ export function BudgetListItemActions({
         onConfirm={handleConfirmDelete}
       />
 
-      {!isApproved && pdfError ? (
+      {!isInvoiced && !isApproved && pdfError ? (
         <p className={styles.error} role="alert">
           {pdfError}
         </p>
       ) : null}
-      {invoiceError ? (
+      {!isInvoiced && invoiceError ? (
         <p className={styles.error} role="alert">
           {invoiceError}
         </p>
