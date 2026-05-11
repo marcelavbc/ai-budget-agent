@@ -25,7 +25,6 @@ export function InvoiceView({
   lines: InvoiceLineRow[];
   quoteNumber: string | null;
 }) {
-  const createdAt = formatDate(invoice.created_at ?? null);
   const subtotal =
     typeof invoice.subtotal === "number"
       ? invoice.subtotal
@@ -34,6 +33,7 @@ export function InvoiceView({
   const taxAmount =
     typeof invoice.tax_amount === "number" ? invoice.tax_amount : 0;
   const taxRate = typeof invoice.tax_rate === "number" ? invoice.tax_rate : 0;
+  const withIva = invoice.pricing_mode === "with_iva" && taxRate > 0;
 
   const quoteDisplay = (quoteNumber ?? "").trim() || "—";
 
@@ -41,12 +41,18 @@ export function InvoiceView({
     <section className={styles.root}>
       <header className={styles.header}>
         <h1 className={styles.title}>Factura</h1>
+        <p className={styles.invoiceNumber}>
+          {(invoice.invoice_number ?? "").trim() || "—"}
+        </p>
         <div className={styles.meta}>
           <span className={styles.pricingBadge} title="Tipus de factura">
             {invoicePricingLabel(invoice.pricing_mode)}
           </span>
           <span>Pressupost núm.: {quoteDisplay}</span>
-          {createdAt ? <span>Data: {createdAt}</span> : null}
+          <span>
+            Data d'emissió: {formatDate(invoice.issue_date ?? null) ?? "—"}
+          </span>
+          <span>Venciment: {formatDate(invoice.due_date ?? null) ?? "—"}</span>
         </div>
       </header>
 
@@ -107,12 +113,14 @@ export function InvoiceView({
         </table>
 
         <div className={styles.totals}>
-          <span className={styles.totalLabel}>Subtotal</span>
-          <span className={styles.totalValue}>{formatEUR(subtotal)}</span>
-          <span className={styles.totalLabel}>
-            {taxRate > 0 ? `IVA (${taxRate}%)` : "IVA"}
-          </span>
-          <span className={styles.totalValue}>{formatEUR(taxAmount)}</span>
+          {withIva && (
+            <>
+              <span className={styles.totalLabel}>Subtotal</span>
+              <span className={styles.totalValue}>{formatEUR(subtotal)}</span>
+              <span className={styles.totalLabel}>IVA ({taxRate}%)</span>
+              <span className={styles.totalValue}>{formatEUR(taxAmount)}</span>
+            </>
+          )}
           <span className={styles.grandTotalLabel}>Total</span>
           <span className={styles.grandTotalValue}>{formatEUR(total)}</span>
         </div>
