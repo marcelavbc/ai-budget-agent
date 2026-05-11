@@ -332,6 +332,12 @@
   align-items: start;
 }
 
+@media (min-width: 521px) {
+  .estimatedDaysField {
+    width: 50%;
+  }
+}
+
 @media (max-width: 520px) {
   .topBar {
     align-items: flex-start;

@@ -74,11 +74,10 @@ export function BudgetClientForm({
             />
           </label>
         </div>
-        <label className={styles.field}>
+        <label className={`${styles.field} ${styles.estimatedDaysField}`}>
           <span className={styles.fieldLabel}>Durada estimada del treball</span>
-          <textarea
+          <input
             className={styles.fieldTextarea}
-            rows={2}
             value={client.estimatedTime}
             onChange={(e) => setClientField("estimatedTime", e.target.value)}
             placeholder="Ex: 5-7 dies hàbils"
