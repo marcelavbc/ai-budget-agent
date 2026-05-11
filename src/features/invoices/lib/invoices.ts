@@ -173,3 +173,18 @@ export async function getInvoiceList(): Promise<InvoiceListRow[]> {
       (row.clients as unknown as { name: string | null } | null)?.name ?? null,
   }));
 }
+
+export type SettingsRow = Tables<"settings">;
+
+export async function getSettings(): Promise<SettingsRow | null> {
+  const supabase = getSupabaseClient();
+  const { data, error } = await supabase
+    .from("settings")
+    .select(
+      "id,owner_name,owner_address,owner_postal_city,owner_city,owner_nif,bank_iban,bank_name,default_tax_rate"
+    )
+    .limit(1)
+    .maybeSingle();
+  if (error) throw new Error(error.message);
+  return data ?? null;
+}

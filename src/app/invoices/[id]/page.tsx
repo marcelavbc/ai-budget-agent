@@ -3,6 +3,7 @@ import { InvoiceView } from "@/features/invoices/components/InvoiceView";
 import {
   getInvoiceById,
   getInvoiceLinesByInvoiceId,
+  getSettings,
 } from "@/features/invoices/lib/invoices";
 import { getBudgetById, getClientById } from "@/features/budgets/lib/budgets";
 import styles from "./page.module.css";
@@ -16,10 +17,13 @@ export default async function InvoicePage({
   const invoice = await getInvoiceById(id);
   if (!invoice) notFound();
 
-  const [client, lines, budget] = await Promise.all([
+  const [client, lines, budget, settings] = await Promise.all([
     getClientById(invoice.client_id),
     getInvoiceLinesByInvoiceId(invoice.id),
-    invoice.budget_id ? getBudgetById(invoice.budget_id) : Promise.resolve(null),
+    invoice.budget_id
+      ? getBudgetById(invoice.budget_id)
+      : Promise.resolve(null),
+    getSettings(),
   ]);
 
   const quoteNumber = budget?.quote_number ?? null;
@@ -31,6 +35,7 @@ export default async function InvoicePage({
         client={client}
         lines={lines}
         quoteNumber={quoteNumber}
+        settings={settings}
       />
     </main>
   );

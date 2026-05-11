@@ -198,6 +198,8 @@ export type Database = {
           owner_name: string | null;
           owner_address: string | null;
           owner_postal_city: string | null;
+          owner_city: string | null;
+          default_tax_rate: number | null;
           owner_nif: string | null;
           bank_iban: string | null;
           bank_name: string | null;
@@ -207,6 +209,8 @@ export type Database = {
           owner_name?: string | null;
           owner_address?: string | null;
           owner_postal_city?: string | null;
+          owner_city?: string | null;
+          default_tax_rate?: number | null;
           owner_nif?: string | null;
           bank_iban?: string | null;
           bank_name?: string | null;
@@ -216,6 +220,8 @@ export type Database = {
           owner_name?: string | null;
           owner_address?: string | null;
           owner_postal_city?: string | null;
+          owner_city?: string | null;
+          default_tax_rate?: number | null;
           owner_nif?: string | null;
           bank_iban?: string | null;
           bank_name?: string | null;
@@ -277,15 +283,11 @@ export type Database = {
   };
 };
 
-export type Tables<
-  TableName extends keyof Database["public"]["Tables"],
-> = Database["public"]["Tables"][TableName]["Row"];
+export type Tables<TableName extends keyof Database["public"]["Tables"]> =
+  Database["public"]["Tables"][TableName]["Row"];
 
-export type TablesInsert<
-  TableName extends keyof Database["public"]["Tables"],
-> = Database["public"]["Tables"][TableName]["Insert"];
+export type TablesInsert<TableName extends keyof Database["public"]["Tables"]> =
+  Database["public"]["Tables"][TableName]["Insert"];
 
-export type TablesUpdate<
-  TableName extends keyof Database["public"]["Tables"],
-> = Database["public"]["Tables"][TableName]["Update"];
-
+export type TablesUpdate<TableName extends keyof Database["public"]["Tables"]> =
+  Database["public"]["Tables"][TableName]["Update"];
