@@ -46,7 +46,6 @@ export function BudgetClientForm({
             type="text"
             value={client.addressStreet ?? ""}
             onChange={(e) => setClientField("addressStreet", e.target.value)}
-            placeholder="Ex: Carrer de Provença 123, 4t 2a"
           />
         </label>
         <div className={styles.fieldRow}>
@@ -60,7 +59,6 @@ export function BudgetClientForm({
               onChange={(e) =>
                 setClientField("addressPostalCode", e.target.value)
               }
-              placeholder="Ex: 08001"
             />
           </label>
           <label className={styles.field}>
@@ -70,7 +68,6 @@ export function BudgetClientForm({
               type="text"
               value={client.addressCity ?? ""}
               onChange={(e) => setClientField("addressCity", e.target.value)}
-              placeholder="Ex: Barcelona"
             />
           </label>
         </div>

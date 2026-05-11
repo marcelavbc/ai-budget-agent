@@ -30,6 +30,7 @@ import {
 } from "@/features/budgets/lib/budgetsClient";
 import {
   createInvoiceFromBudget,
+  updateClientAddress,
   updateClientTaxId,
 } from "@/features/invoices/lib/invoicesClient";
 import { InvoiceModal } from "@/features/invoices/components/InvoiceModal";
@@ -59,7 +60,7 @@ export function BudgetListItemActions({
   const [deleteError, setDeleteError] = useState<string | null>(null);
 
   const [confirmOpen, setConfirmOpen] = useState(false);
-  const modal = useInvoiceModal(clientTaxId);
+  const modal = useInvoiceModal(clientTaxId, budgetId);
   const [isInvoicing, startInvoicing] = useTransition();
   const [invoiceError, setInvoiceError] = useState<string | null>(null);
   const router = useRouter();
@@ -167,6 +168,11 @@ export function BudgetListItemActions({
           ) {
             await updateClientTaxId(budgetId, modal.taxId.trim());
           }
+          await updateClientAddress(budgetId, {
+            address_street: modal.addressStreet,
+            address_postal_code: modal.addressPostalCode,
+            address_city: modal.addressCity,
+          });
           const { invoiceId } = await createInvoiceFromBudget(
             budgetId,
             pricingMode,
@@ -386,6 +392,13 @@ export function BudgetListItemActions({
           }}
           onBack={modal.goBack}
           onClose={modal.closeModal}
+          addressStreet={modal.addressStreet}
+          setAddressStreet={modal.setAddressStreet}
+          addressPostalCode={modal.addressPostalCode}
+          setAddressPostalCode={modal.setAddressPostalCode}
+          addressCity={modal.addressCity}
+          setAddressCity={modal.setAddressCity}
+          clientDataLoading={modal.clientDataLoading}
         />
       ) : null}
 

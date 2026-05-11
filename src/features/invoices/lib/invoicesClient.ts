@@ -49,6 +49,22 @@ export async function createInvoiceFromBudget(
   return { invoiceId };
 }
 
+export async function getClientByBudgetId(budgetId: string): Promise<{
+  tax_id: string | null;
+  address_street: string | null;
+  address_postal_code: string | null;
+  address_city: string | null;
+} | null> {
+  const res = await fetch(`/api/budgets/${budgetId}/client-data`);
+  if (!res.ok) return null;
+  return res.json() as Promise<{
+    tax_id: string | null;
+    address_street: string | null;
+    address_postal_code: string | null;
+    address_city: string | null;
+  } | null>;
+}
+
 export async function updateClientTaxId(
   budgetId: string,
   taxId: string
@@ -66,6 +82,23 @@ export async function updateClientTaxId(
         : "No s'ha pogut guardar el NIF."
     );
   }
+}
+
+export async function updateClientAddress(
+  budgetId: string,
+  data: {
+    address_street?: string;
+    address_postal_code?: string;
+    address_city?: string;
+  }
+): Promise<void> {
+  const res = await fetch(`/api/budgets/${budgetId}/client-address`, {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(data),
+  });
+  if (!res.ok)
+    throw new Error("No s'ha pogut actualitzar l'adreça del client.");
 }
 
 export async function updateInvoiceStatus(

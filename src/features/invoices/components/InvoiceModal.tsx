@@ -15,6 +15,13 @@ export type InvoiceModalProps = {
   setIssueDate: (v: string) => void;
   dueDate: string;
   setDueDate: (v: string) => void;
+  addressStreet: string;
+  setAddressStreet: (v: string) => void;
+  addressPostalCode: string;
+  setAddressPostalCode: (v: string) => void;
+  addressCity: string;
+  setAddressCity: (v: string) => void;
+  clientDataLoading: boolean;
   step: 1 | 2;
   selectedPricingMode: InvoicePricingMode | null;
   onSelectPricing: (mode: InvoicePricingMode) => void;
@@ -33,6 +40,13 @@ export function InvoiceModal({
   setIssueDate,
   dueDate,
   setDueDate,
+  addressStreet,
+  setAddressStreet,
+  addressPostalCode,
+  setAddressPostalCode,
+  addressCity,
+  setAddressCity,
+  clientDataLoading,
   step,
   selectedPricingMode,
   onSelectPricing,
@@ -142,6 +156,46 @@ export function InvoiceModal({
                   className={dialogStyles.input}
                 />
               </label>
+              <label className={dialogStyles.field}>
+                <span className={`${dialogStyles.body} ${dialogStyles.label}`}>
+                  Carrer i número
+                </span>
+                <input
+                  value={addressStreet}
+                  onChange={(e) => setAddressStreet(e.target.value)}
+                  className={dialogStyles.input}
+                  disabled={clientDataLoading}
+                />
+              </label>
+              <div className={dialogStyles.fieldRow}>
+                <label className={dialogStyles.field}>
+                  <span
+                    className={`${dialogStyles.body} ${dialogStyles.label}`}
+                  >
+                    Codi postal
+                  </span>
+                  <input
+                    value={addressPostalCode}
+                    onChange={(e) => setAddressPostalCode(e.target.value)}
+                    inputMode="numeric"
+                    className={dialogStyles.input}
+                    disabled={clientDataLoading}
+                  />
+                </label>
+                <label className={dialogStyles.field}>
+                  <span
+                    className={`${dialogStyles.body} ${dialogStyles.label}`}
+                  >
+                    Població
+                  </span>
+                  <input
+                    value={addressCity}
+                    onChange={(e) => setAddressCity(e.target.value)}
+                    className={dialogStyles.input}
+                    disabled={clientDataLoading}
+                  />
+                </label>
+              </div>
               <label className={dialogStyles.field}>
                 <span className={`${dialogStyles.body} ${dialogStyles.label}`}>
                   Data d&apos;emissió
