@@ -2,10 +2,11 @@ import { getSupabaseClient } from "@/core/lib/supabaseClient";
 
 export async function PATCH(
   request: Request,
-  { params }: { params: { id?: string } }
+  { params }: { params: Promise<{ id?: string }> }
 ) {
   try {
-    const id = params?.id ?? "";
+    const { id: rawId } = await params;
+    const id = rawId ?? "";
     const body = await request.json().catch(() => ({}));
     const status = typeof body?.status === "string" ? body.status : "";
 
