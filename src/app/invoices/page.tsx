@@ -15,8 +15,8 @@ export default async function InvoicesPage() {
           <header className={styles.header}>
             <h1 className={styles.title}>Factures</h1>
             <p className={styles.subtitle}>
-              Totes les factures generades, ordenades per data d'emissió del més
-              recent al més antic.
+              Totes les factures generades, ordenades per data d&apos;emissió
+              del més
             </p>
           </header>
 

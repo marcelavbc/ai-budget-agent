@@ -26,12 +26,6 @@ const statusLabel = (s: string): string => {
   }
 };
 
-function pillClass(s: string): string {
-  if (s === "issued") return styles.pillSent;
-  if (s === "paid") return styles.pillApproved;
-  return styles.pillDraft;
-}
-
 type Props = {
   invoices: InvoiceListRow[];
 };
