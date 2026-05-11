@@ -40,16 +40,40 @@ export function BudgetClientForm({
         </label>
 
         <label className={styles.field}>
-          <span className={styles.fieldLabel}>Adreça</span>
-          <textarea
-            className={styles.fieldTextarea}
-            rows={2}
-            value={client.address}
-            onChange={(e) => setClientField("address", e.target.value)}
-            autoComplete="street-address"
-            placeholder="Carrer, número, pis, codi postal, població"
+          <span className={styles.fieldLabel}>Carrer i número</span>
+          <input
+            className={styles.fieldInput}
+            type="text"
+            value={client.addressStreet ?? ""}
+            onChange={(e) => setClientField("addressStreet", e.target.value)}
+            placeholder="Ex: Carrer de Provença 123, 4t 2a"
           />
         </label>
+        <div className={styles.fieldRow}>
+          <label className={styles.field}>
+            <span className={styles.fieldLabel}>Codi postal</span>
+            <input
+              className={styles.fieldInput}
+              type="text"
+              inputMode="numeric"
+              value={client.addressPostalCode ?? ""}
+              onChange={(e) =>
+                setClientField("addressPostalCode", e.target.value)
+              }
+              placeholder="Ex: 08001"
+            />
+          </label>
+          <label className={styles.field}>
+            <span className={styles.fieldLabel}>Població</span>
+            <input
+              className={styles.fieldInput}
+              type="text"
+              value={client.addressCity ?? ""}
+              onChange={(e) => setClientField("addressCity", e.target.value)}
+              placeholder="Ex: Barcelona"
+            />
+          </label>
+        </div>
         <label className={styles.field}>
           <span className={styles.fieldLabel}>Durada estimada del treball</span>
           <textarea

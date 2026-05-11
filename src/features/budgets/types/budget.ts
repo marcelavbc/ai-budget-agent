@@ -77,6 +77,9 @@ export interface BudgetClientItem {
 export interface BudgetClientDetails {
   nameOrCompany: string;
   address: string;
+  addressStreet?: string;
+  addressPostalCode?: string;
+  addressCity?: string;
   quoteNumber: string;
   /** ISO YYYY-MM-DD (compatible with input type="date"). */
   date: string;
@@ -93,6 +96,9 @@ export function defaultBudgetClientDetails(): BudgetClientDetails {
   return {
     nameOrCompany: "",
     address: "",
+    addressStreet: "",
+    addressPostalCode: "",
+    addressCity: "",
     quoteNumber: buildAutoQuoteNumber("", date),
     date,
     estimatedTime: "",

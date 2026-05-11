@@ -78,9 +78,21 @@ export function InvoiceView({
         {client.tax_id && (
           <p className={styles.clientDetail}>{client.tax_id}</p>
         )}
-        {client.address && (
+        {/* Show new structured fields if available, fallback to legacy address */}
+        {client.address_street ? (
+          <>
+            <p className={styles.clientDetail}>{client.address_street}</p>
+            {(client.address_postal_code || client.address_city) && (
+              <p className={styles.clientDetail}>
+                {[client.address_postal_code, client.address_city]
+                  .filter(Boolean)
+                  .join(" ")}
+              </p>
+            )}
+          </>
+        ) : client.address ? (
           <p className={styles.clientDetail}>{client.address}</p>
-        )}
+        ) : null}
         {invoice.job_address && (
           <p className={styles.clientDetail}>Obra: {invoice.job_address}</p>
         )}

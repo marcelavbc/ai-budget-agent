@@ -16,6 +16,9 @@ export type Database = {
           email: string | null;
           phone: string | null;
           address: string | null;
+          address_street: string | null;
+          address_postal_code: string | null;
+          address_city: string | null;
           tax_id: string | null;
           created_at: string | null;
         };
@@ -25,6 +28,9 @@ export type Database = {
           email?: string | null;
           phone?: string | null;
           address?: string | null;
+          address_street?: string | null;
+          address_postal_code?: string | null;
+          address_city?: string | null;
           tax_id?: string | null;
           created_at?: string | null;
         };
@@ -34,6 +40,9 @@ export type Database = {
           email?: string | null;
           phone?: string | null;
           address?: string | null;
+          address_street?: string | null;
+          address_postal_code?: string | null;
+          address_city?: string | null;
           tax_id?: string | null;
           created_at?: string | null;
         };

@@ -1,6 +1,9 @@
 import { describe, expect, it } from "vitest";
 import { isBudgetDraftComplete } from "../budgetDraft";
-import type { BudgetClientDetails, BudgetClientItem } from "@/features/budgets/types/budget";
+import type {
+  BudgetClientDetails,
+  BudgetClientItem,
+} from "@/features/budgets/types/budget";
 
 function baseClient(): BudgetClientDetails {
   return {
@@ -28,35 +31,43 @@ describe("isBudgetDraftComplete", () => {
     const items = baseItems();
 
     expect(
-      isBudgetDraftComplete({ client: { ...baseClient(), nameOrCompany: "" }, items }),
+      isBudgetDraftComplete({
+        client: { ...baseClient(), nameOrCompany: "" },
+        items,
+      })
     ).toBe(false);
     expect(
-      isBudgetDraftComplete({ client: { ...baseClient(), address: "   " }, items }),
+      isBudgetDraftComplete({
+        client: { ...baseClient(), quoteNumber: "" },
+        items,
+      })
     ).toBe(false);
     expect(
-      isBudgetDraftComplete({ client: { ...baseClient(), quoteNumber: "" }, items }),
+      isBudgetDraftComplete({ client: { ...baseClient(), date: "" }, items })
     ).toBe(false);
     expect(
-      isBudgetDraftComplete({ client: { ...baseClient(), date: "" }, items }),
-    ).toBe(false);
-    expect(
-      isBudgetDraftComplete({ client: { ...baseClient(), estimatedTime: "" }, items }),
+      isBudgetDraftComplete({
+        client: { ...baseClient(), estimatedTime: "" },
+        items,
+      })
     ).toBe(false);
   });
 
   it("retorna false si no hi ha partides o falta descripció", () => {
-    expect(isBudgetDraftComplete({ client: baseClient(), items: [] })).toBe(false);
+    expect(isBudgetDraftComplete({ client: baseClient(), items: [] })).toBe(
+      false
+    );
     expect(
       isBudgetDraftComplete({
         client: baseClient(),
         items: [{ ...baseItems()[0], description: "  " }],
-      }),
+      })
     ).toBe(false);
   });
 
   it("retorna true quan tot és complet", () => {
-    expect(isBudgetDraftComplete({ client: baseClient(), items: baseItems() })).toBe(
-      true,
-    );
+    expect(
+      isBudgetDraftComplete({ client: baseClient(), items: baseItems() })
+    ).toBe(true);
   });
 });

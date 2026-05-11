@@ -1,8 +1,15 @@
 import "server-only";
 
 import { getSupabaseClient } from "@/core/lib/supabaseClient";
-import { dateFilterRange, matchesDateFilter, type DateFilter } from "@/shared/lib/dateFilter";
-import type { BudgetClientDetails, BudgetClientItem } from "@/features/budgets/types/budget";
+import {
+  dateFilterRange,
+  matchesDateFilter,
+  type DateFilter,
+} from "@/shared/lib/dateFilter";
+import type {
+  BudgetClientDetails,
+  BudgetClientItem,
+} from "@/features/budgets/types/budget";
 import type { TablesInsert } from "@/core/types/supabase";
 import {
   calcBudgetHeaderAmounts,
@@ -35,6 +42,9 @@ export interface CreateClientInput {
   name: string;
   phone?: string | null;
   address?: string | null;
+  address_street?: string | null;
+  address_postal_code?: string | null;
+  address_city?: string | null;
 }
 
 type BudgetListQueryRow = BudgetListRow & {
@@ -45,6 +55,9 @@ export async function createClient({
   name,
   phone = null,
   address = null,
+  address_street = null,
+  address_postal_code = null,
+  address_city = null,
 }: CreateClientInput): Promise<{ id: string }> {
   const supabase = getSupabaseClient();
   const normalizedName = name.trim();
@@ -58,6 +71,11 @@ export async function createClient({
         name: normalizedName,
         phone: normalizeOptionalString(normalizedPhone),
         address: normalizeOptionalString(normalizedAddress),
+        address_street: normalizeOptionalString((address_street ?? "").trim()),
+        address_postal_code: normalizeOptionalString(
+          (address_postal_code ?? "").trim()
+        ),
+        address_city: normalizeOptionalString((address_city ?? "").trim()),
       },
     ])
     .select("id")
@@ -70,7 +88,17 @@ export async function createClient({
 
 export async function updateClientById(
   id: string,
-  patch: Partial<Pick<ClientRow, "name" | "phone" | "address">>
+  patch: Partial<
+    Pick<
+      ClientRow,
+      | "name"
+      | "phone"
+      | "address"
+      | "address_street"
+      | "address_postal_code"
+      | "address_city"
+    >
+  >
 ): Promise<void> {
   const supabase = getSupabaseClient();
   const normalized = {
@@ -78,9 +106,24 @@ export async function updateClientById(
     phone: typeof patch.phone === "string" ? patch.phone.trim() : patch.phone,
     address:
       typeof patch.address === "string" ? patch.address.trim() : patch.address,
+    address_street:
+      typeof patch.address_street === "string"
+        ? patch.address_street.trim()
+        : patch.address_street,
+    address_postal_code:
+      typeof patch.address_postal_code === "string"
+        ? patch.address_postal_code.trim()
+        : patch.address_postal_code,
+    address_city:
+      typeof patch.address_city === "string"
+        ? patch.address_city.trim()
+        : patch.address_city,
   };
 
-  const { error } = await supabase.from("clients").update(normalized).eq("id", id);
+  const { error } = await supabase
+    .from("clients")
+    .update(normalized)
+    .eq("id", id);
   if (error) throw new Error(error.message);
 }
 
@@ -93,13 +136,18 @@ export async function getClientById(id: string | null): Promise<ClientRow> {
       name: null,
       phone: null,
       address: null,
+      address_street: null,
+      address_postal_code: null,
+      address_city: null,
       created_at: null,
     } as ClientRow;
   }
 
   const { data, error } = await supabase
     .from("clients")
-    .select("id,name,phone,address,created_at")
+    .select(
+      "id,name,phone,address,address_street,address_postal_code,address_city,tax_id,created_at"
+    )
     .eq("id", normalizedId)
     .maybeSingle();
   if (error) {
@@ -110,6 +158,9 @@ export async function getClientById(id: string | null): Promise<ClientRow> {
         name: null,
         phone: null,
         address: null,
+        address_street: null,
+        address_postal_code: null,
+        address_city: null,
         created_at: null,
       } as ClientRow;
     }
@@ -121,6 +172,9 @@ export async function getClientById(id: string | null): Promise<ClientRow> {
       name: null,
       phone: null,
       address: null,
+      address_street: null,
+      address_postal_code: null,
+      address_city: null,
       created_at: null,
     } as ClientRow;
   }
@@ -147,8 +201,7 @@ export async function createBudget({
         job_address: normalizeOptionalString(client.address),
         quote_number: normalizeOptionalString(client.quoteNumber),
         document_date: normalizeOptionalString(client.date),
-        estimated_time:
-          normalizeOptionalString(client.estimatedTime),
+        estimated_time: normalizeOptionalString(client.estimatedTime),
         status,
         notes: null,
         subtotal,
@@ -220,17 +273,23 @@ export async function updateBudgetById(
       typeof patch.estimated_time === "string"
         ? patch.estimated_time.trim()
         : patch.estimated_time,
-    status: typeof patch.status === "string" ? patch.status.trim() : patch.status,
+    status:
+      typeof patch.status === "string" ? patch.status.trim() : patch.status,
     subtotal: patch.subtotal,
     tax_rate: patch.tax_rate,
     tax_amount: patch.tax_amount,
   };
 
-  const { error } = await supabase.from("budgets").update(normalized).eq("id", id);
+  const { error } = await supabase
+    .from("budgets")
+    .update(normalized)
+    .eq("id", id);
   if (error) throw new Error(error.message);
 }
 
-export async function getBudgets(filter?: DateFilter): Promise<BudgetListRow[]> {
+export async function getBudgets(
+  filter?: DateFilter
+): Promise<BudgetListRow[]> {
   const supabase = getSupabaseClient();
   const range = dateFilterRange(filter ?? null);
   let q = supabase
@@ -262,7 +321,10 @@ export async function getBudgets(filter?: DateFilter): Promise<BudgetListRow[]> 
 
 export async function deleteBudgetLines(budgetId: string): Promise<void> {
   const supabase = getSupabaseClient();
-  const { error } = await supabase.from("budget_lines").delete().eq("budget_id", budgetId);
+  const { error } = await supabase
+    .from("budget_lines")
+    .delete()
+    .eq("budget_id", budgetId);
   if (error) throw new Error(error.message);
 }
 
@@ -282,7 +344,10 @@ export async function replaceBudgetLines(
   items: BudgetClientItem[]
 ): Promise<void> {
   const supabase = getSupabaseClient();
-  const rows: TablesInsert<"budget_lines">[] = toBudgetLineRows(budgetId, items);
+  const rows: TablesInsert<"budget_lines">[] = toBudgetLineRows(
+    budgetId,
+    items
+  );
 
   await deleteBudgetLines(budgetId);
   const { error } = await supabase.from("budget_lines").insert(rows);
@@ -297,7 +362,14 @@ export async function updateBudgetWithLines(args: {
   taxRate?: number;
   status?: BudgetStatus;
 }): Promise<void> {
-  const { budgetId, clientId, client, items, taxRate = 0, status = "draft" } = args;
+  const {
+    budgetId,
+    clientId,
+    client,
+    items,
+    taxRate = 0,
+    status = "draft",
+  } = args;
   const normalizedClientId = (clientId ?? "").trim();
 
   const { subtotal, tax_amount } = calcBudgetHeaderAmounts(items, taxRate);
@@ -310,6 +382,9 @@ export async function updateBudgetWithLines(args: {
           await createClient({
             name: client.nameOrCompany,
             address: client.address,
+            address_street: client.addressStreet,
+            address_postal_code: client.addressPostalCode,
+            address_city: client.addressCity,
           })
         ).id;
 
@@ -318,6 +393,9 @@ export async function updateBudgetWithLines(args: {
     await updateClientById(ensuredClientId, {
       name: client.nameOrCompany,
       address: client.address,
+      address_street: client.addressStreet,
+      address_postal_code: client.addressPostalCode,
+      address_city: client.addressCity,
     });
   }
 
@@ -347,7 +425,10 @@ export async function createBudgetLines({
   items,
 }: CreateBudgetLinesInput): Promise<void> {
   const supabase = getSupabaseClient();
-  const rows: TablesInsert<"budget_lines">[] = toBudgetLineRows(budgetId, items);
+  const rows: TablesInsert<"budget_lines">[] = toBudgetLineRows(
+    budgetId,
+    items
+  );
 
   const { error } = await supabase.from("budget_lines").insert(rows);
   if (error) {
@@ -384,10 +465,17 @@ export async function saveBudgetWithLines({
   const { id: clientId } = await createClient({
     name: client.nameOrCompany,
     address: client.address,
+    address_street: client.addressStreet,
+    address_postal_code: client.addressPostalCode,
+    address_city: client.addressCity,
   });
   const { subtotal } = calcBudgetHeaderAmounts(items, 0);
-  const { id } = await createBudget({ client, clientId, subtotal, status: "draft" });
+  const { id } = await createBudget({
+    client,
+    clientId,
+    subtotal,
+    status: "draft",
+  });
   await createBudgetLines({ budgetId: id, items });
   return { budgetId: id };
 }
-
