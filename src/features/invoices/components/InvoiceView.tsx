@@ -1,4 +1,11 @@
+"use client";
+
+import { useState } from "react";
 import { formatEUR } from "@/shared/lib/formatCurrency";
+import {
+  generateInvoicePdf,
+  buildInvoicePdfFilename,
+} from "@/features/invoices/lib/generateInvoicePdf";
 import type { ClientRow } from "@/features/budgets/types/budgetsDb";
 import type {
   InvoiceLineRow,
@@ -27,6 +34,46 @@ export function InvoiceView({
   quoteNumber: string | null;
   settings: SettingsRow | null;
 }) {
+  const [generatingPdf, setGeneratingPdf] = useState(false);
+
+  async function handleDownloadPdf(lang: "ca" | "es") {
+    setGeneratingPdf(true);
+    try {
+      const blob = await generateInvoicePdf({
+        invoice,
+        owner: settings ?? {
+          owner_name: null,
+          owner_address: null,
+          owner_postal_city: null,
+          owner_city: null,
+          owner_nif: null,
+          bank_iban: null,
+        },
+        client: {
+          name: client.name,
+          tax_id: client.tax_id ?? null,
+          address_street: client.address_street ?? null,
+          address_postal_code: client.address_postal_code ?? null,
+          address_city: client.address_city ?? null,
+        },
+        lines,
+        lang,
+      });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = buildInvoicePdfFilename(
+        invoice.invoice_number,
+        client.name,
+        lang
+      );
+      a.click();
+      URL.revokeObjectURL(url);
+    } finally {
+      setGeneratingPdf(false);
+    }
+  }
+
   const subtotal =
     typeof invoice.subtotal === "number"
       ? invoice.subtotal
@@ -43,13 +90,13 @@ export function InvoiceView({
       <div className={styles.docHeader}>
         <div className={styles.issuer}>
           <p className={styles.issuerName}>{settings?.owner_name ?? "—"}</p>
+          <p className={styles.issuerDetail}>{settings?.owner_nif ?? ""}</p>
           <p className={styles.issuerDetail}>{settings?.owner_address ?? ""}</p>
           <p className={styles.issuerDetail}>
             {[settings?.owner_postal_city, settings?.owner_city]
               .filter(Boolean)
               .join(" ")}
           </p>
-          <p className={styles.issuerDetail}>{settings?.owner_nif ?? ""}</p>
         </div>
         <div className={styles.invoiceMeta}>
           <p className={styles.invoiceNumber}>
@@ -103,9 +150,7 @@ export function InvoiceView({
         <thead>
           <tr>
             <th className={styles.th}>Descripció</th>
-            <th className={`${styles.th} ${styles.num}`}>Quant.</th>
-            <th className={`${styles.th} ${styles.num}`}>Preu unit.</th>
-            <th className={`${styles.th} ${styles.num}`}>Total</th>
+            <th className={`${styles.th} ${styles.num}`}>Import</th>
           </tr>
         </thead>
         <tbody>
@@ -113,14 +158,6 @@ export function InvoiceView({
             <tr key={l.id}>
               <td className={styles.td}>
                 {(l.description ?? "").trim() || "—"}
-              </td>
-              <td className={`${styles.td} ${styles.num}`}>
-                {typeof l.quantity === "number" ? l.quantity : "—"}
-              </td>
-              <td className={`${styles.td} ${styles.num}`}>
-                {typeof l.unit_price === "number"
-                  ? formatEUR(l.unit_price)
-                  : "—"}
               </td>
               <td className={`${styles.td} ${styles.num}`}>
                 {typeof l.subtotal === "number" ? formatEUR(l.subtotal) : "—"}
@@ -159,6 +196,28 @@ export function InvoiceView({
           <p className={styles.referenceText}>Pressupost núm.: {quoteNumber}</p>
         </div>
       )}
+
+      {/* DOWNLOAD PDF */}
+      <div className={styles.actions}>
+        <button
+          type="button"
+          className={styles.downloadBtn}
+          onClick={() => handleDownloadPdf("ca")}
+          disabled={generatingPdf}
+          aria-busy={generatingPdf || undefined}
+        >
+          {generatingPdf ? "Generant PDF…" : "Descarregar PDF (CA)"}
+        </button>
+        <button
+          type="button"
+          className={styles.downloadBtn}
+          onClick={() => handleDownloadPdf("es")}
+          disabled={generatingPdf}
+          aria-busy={generatingPdf || undefined}
+        >
+          {generatingPdf ? "Generant PDF…" : "Descargar PDF (ES)"}
+        </button>
+      </div>
     </section>
   );
 }
