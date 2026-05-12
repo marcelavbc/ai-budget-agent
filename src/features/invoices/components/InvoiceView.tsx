@@ -1,11 +1,13 @@
 "use client";
 
-import { useState } from "react";
+import { useCallback, useRef, useState } from "react";
 import { formatEUR } from "@/shared/lib/formatCurrency";
 import {
   generateInvoicePdf,
   buildInvoicePdfFilename,
 } from "@/features/invoices/lib/generateInvoicePdf";
+import { useClickOutside } from "@/shared/hooks/useClickOutside";
+import { ChevronDown } from "lucide-react";
 import type { ClientRow } from "@/features/budgets/types/budgetsDb";
 import type {
   InvoiceLineRow,
@@ -35,9 +37,15 @@ export function InvoiceView({
   settings: SettingsRow | null;
 }) {
   const [generatingPdf, setGeneratingPdf] = useState(false);
+  const [pdfMenuOpen, setPdfMenuOpen] = useState(false);
+  const pdfMenuRef = useRef<HTMLDivElement | null>(null);
+  const closePdfMenu = useCallback(() => setPdfMenuOpen(false), []);
+  useClickOutside(pdfMenuRef, pdfMenuOpen, closePdfMenu);
 
   async function handleDownloadPdf(lang: "ca" | "es") {
+    setPdfMenuOpen(false);
     setGeneratingPdf(true);
+
     try {
       const blob = await generateInvoicePdf({
         invoice,
@@ -114,6 +122,56 @@ export function InvoiceView({
             <span className={styles.pricingBadge}>AMB IVA</span>
           )}
         </div>
+        <div
+          className={styles.topActions}
+          ref={pdfMenuRef}
+          onKeyDown={(e) => {
+            if (e.key === "Escape") setPdfMenuOpen(false);
+          }}
+        >
+          <button
+            type="button"
+            className={styles.generateBudgetBtn}
+            disabled={generatingPdf}
+            aria-busy={generatingPdf || undefined}
+            aria-haspopup="menu"
+            aria-expanded={pdfMenuOpen}
+            onClick={() => setPdfMenuOpen((v) => !v)}
+          >
+            {generatingPdf ? (
+              "Generant…"
+            ) : (
+              <>
+                Descarregar PDF
+                <ChevronDown size={14} aria-hidden="true" />
+              </>
+            )}
+          </button>
+          {pdfMenuOpen ? (
+            <div className={styles.generateBudgetMenu} role="menu">
+              <button
+                type="button"
+                className={styles.generateBudgetMenuItem}
+                role="menuitem"
+                disabled={generatingPdf}
+                onClick={() => handleDownloadPdf("ca")}
+              >
+                Català{" "}
+                <span className={styles.generateBudgetMenuHint}>PDF</span>
+              </button>
+              <button
+                type="button"
+                className={styles.generateBudgetMenuItem}
+                role="menuitem"
+                disabled={generatingPdf}
+                onClick={() => handleDownloadPdf("es")}
+              >
+                Castellano{" "}
+                <span className={styles.generateBudgetMenuHint}>PDF</span>
+              </button>
+            </div>
+          ) : null}
+        </div>
       </div>
 
       <div className={styles.divider} />
@@ -140,9 +198,6 @@ export function InvoiceView({
         ) : client.address ? (
           <p className={styles.clientDetail}>{client.address}</p>
         ) : null}
-        {invoice.job_address && (
-          <p className={styles.clientDetail}>Obra: {invoice.job_address}</p>
-        )}
       </div>
 
       {/* LINES TABLE */}
@@ -180,44 +235,12 @@ export function InvoiceView({
         <span className={styles.grandTotalLabel}>Total</span>
         <span className={styles.grandTotalValue}>{formatEUR(total)}</span>
       </div>
-
-      {/* PAYMENT */}
-      {settings?.bank_iban && (
-        <div className={styles.payment}>
-          <p className={styles.paymentText}>
-            Forma de pagament: Transferència a {settings.bank_iban}
-          </p>
-        </div>
-      )}
-
       {/* QUOTE REFERENCE */}
       {quoteNumber && (
         <div className={styles.reference}>
           <p className={styles.referenceText}>Pressupost núm.: {quoteNumber}</p>
         </div>
       )}
-
-      {/* DOWNLOAD PDF */}
-      <div className={styles.actions}>
-        <button
-          type="button"
-          className={styles.downloadBtn}
-          onClick={() => handleDownloadPdf("ca")}
-          disabled={generatingPdf}
-          aria-busy={generatingPdf || undefined}
-        >
-          {generatingPdf ? "Generant PDF…" : "Descarregar PDF (CA)"}
-        </button>
-        <button
-          type="button"
-          className={styles.downloadBtn}
-          onClick={() => handleDownloadPdf("es")}
-          disabled={generatingPdf}
-          aria-busy={generatingPdf || undefined}
-        >
-          {generatingPdf ? "Generant PDF…" : "Descargar PDF (ES)"}
-        </button>
-      </div>
     </section>
   );
 }
