@@ -19,7 +19,11 @@ export async function PATCH(
     return NextResponse.json({ error: "Client no trobat" }, { status: 404 });
   }
 
-  const patch: Record<string, string> = {};
+  const patch: {
+    address_street?: string;
+    address_postal_code?: string;
+    address_city?: string;
+  } = {};
   if (typeof body.address_street === "string")
     patch.address_street = body.address_street.trim();
   if (typeof body.address_postal_code === "string")
