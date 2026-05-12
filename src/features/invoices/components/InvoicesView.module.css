@@ -327,6 +327,10 @@
   color: var(--state-approved);
 }
 
+.pillClickable {
+  cursor: pointer;
+}
+
 /* ── Action icon button ──────────────────────────────── */
 .iconBtn {
   display: inline-flex;
