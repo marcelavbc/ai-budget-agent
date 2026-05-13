@@ -2,19 +2,14 @@
 
 import { useEffect, useMemo, useRef, useState, type ChangeEvent } from "react";
 import type { BudgetListRow } from "@/features/budgets/types/budgetsDb";
-import {
-  budgetStatusOrAllLabel,
-  normalizeBudgetStatusOrAll,
-  type BudgetStatus,
-} from "@/features/budgets/lib/budgetStatus";
+import { budgetStatusOrAllLabel, type BudgetStatus } from "@/features/budgets/lib/budgetStatus";
+import { filterBudgets } from "@/features/budgets/lib/filterBudgets";
 import {
   budgetsListPeriodLabel,
   type BudgetsListPeriodKey,
 } from "@/features/budgets/lib/budgetsListPeriod";
 import { addMonths, startOfMonth, startOfYear, toYMD } from "@/shared/lib/dateUtils";
-import { toComparableBudgetListDate } from "@/features/budgets/lib/budgetsListFormatting";
 
-const normalizeStatus = normalizeBudgetStatusOrAll;
 const statusLabel = budgetStatusOrAllLabel;
 
 export function useBudgetsListFilters(items: BudgetListRow[]) {
@@ -65,33 +60,16 @@ export function useBudgetsListFilters(items: BudgetListRow[]) {
     // custom: preserve typed values
   }, [period]);
 
-  const filtered = useMemo(() => {
-    const q = query.trim().toLowerCase();
-    const from = dateFrom.trim();
-    const to = dateTo.trim();
-
-    return items.filter((b) => {
-      if (selectedStatuses.size > 0) {
-        const s = normalizeStatus(b.status);
-        if (s === "all") return false;
-        if (!selectedStatuses.has(s)) return false;
-      }
-
-      if (q) {
-        const haystack = [b.title ?? "", b.quote_number ?? "", b.job_address ?? ""]
-          .join(" ")
-          .toLowerCase();
-        if (!haystack.includes(q)) return false;
-      }
-
-      const d = toComparableBudgetListDate(b.document_date);
-      if ((from || to) && !d) return false;
-      if (from && d && d < from) return false;
-      if (to && d && d > to) return false;
-
-      return true;
-    });
-  }, [items, query, selectedStatuses, dateFrom, dateTo]);
+  const filtered = useMemo(
+    () =>
+      filterBudgets(items, {
+        query,
+        selectedStatuses,
+        dateFrom,
+        dateTo,
+      }),
+    [items, query, selectedStatuses, dateFrom, dateTo]
+  );
 
   const customHasDates =
     period === "custom" && (dateFrom.trim() !== "" || dateTo.trim() !== "");
