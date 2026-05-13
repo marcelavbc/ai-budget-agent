@@ -1,8 +1,10 @@
 import { useState } from "react";
-import type { BudgetLine, BudgetOptionGroup, BudgetListItem } from "@/features/budgets/types/budget";
-import {
-  isBudgetOptionGroup,
+import type {
+  BudgetLine,
+  BudgetOptionGroup,
+  BudgetListItem,
 } from "@/features/budgets/types/budget";
+import { isBudgetOptionGroup } from "@/features/budgets/types/budget";
 import { normalizeLinesWithDraftContext } from "@/features/budgets/lib/normalizeLinesWithDraftContext";
 import {
   applyPricePerSqm,
@@ -13,9 +15,7 @@ import {
 
 function getAllLines(items: BudgetListItem[]): BudgetLine[] {
   return items.flatMap((item) =>
-    isBudgetOptionGroup(item)
-        ? item.options
-        : [item as BudgetLine]
+    isBudgetOptionGroup(item) ? item.options : [item as BudgetLine]
   );
 }
 
@@ -64,7 +64,10 @@ function stripLine(prev: BudgetListItem[], lineId: string): BudgetListItem[] {
 }
 
 function isOptionLine(line: BudgetLine): boolean {
-  return typeof line.optionGroupId === "string" && line.optionGroupId.trim().length > 0;
+  return (
+    typeof line.optionGroupId === "string" &&
+    line.optionGroupId.trim().length > 0
+  );
 }
 
 function buildOptionGroups(items: BudgetListItem[]): BudgetListItem[] {
@@ -99,7 +102,11 @@ function buildOptionGroups(items: BudgetListItem[]): BudgetListItem[] {
     }
 
     if (options.length < 2) {
-      result.push({ ...line, optionGroupId: undefined, optionLabel: undefined });
+      result.push({
+        ...line,
+        optionGroupId: undefined,
+        optionLabel: undefined,
+      });
     } else {
       const group: BudgetOptionGroup = {
         id: groupId,
@@ -140,15 +147,18 @@ export function useBudgetLines() {
     id: string,
     patch: Partial<Pick<BudgetLine, "label" | "quantity" | "unitPrice">>
   ) {
-    if (typeof patch.unitPrice === "number") {
-      const targetLine = getAllLines(items).find((l) => l.id === id);
-      if (targetLine?.type === "walls_and_ceilings" && targetLine.unitLabel === "m²") {
-        setPricePerSqm(patch.unitPrice);
+    setItems((prev) => {
+      if (typeof patch.unitPrice === "number") {
+        const targetLine = getAllLines(prev).find((l) => l.id === id);
+        if (
+          targetLine?.type === "walls_and_ceilings" &&
+          targetLine.unitLabel === "m²"
+        ) {
+          setPricePerSqm(patch.unitPrice);
+        }
       }
-    }
 
-    setItems((prev) =>
-      prev.map((item) => {
+      return prev.map((item) => {
         if (!isBudgetOptionGroup(item)) {
           const line = item as BudgetLine;
           if (line.id !== id) return line;
@@ -165,8 +175,8 @@ export function useBudgetLines() {
           title: updatedOptions[0]?.label ?? item.title,
           options: updatedOptions,
         };
-      })
-    );
+      });
+    });
   }
 
   // ─── derived state ──────────────────────────────────────────────────────────
