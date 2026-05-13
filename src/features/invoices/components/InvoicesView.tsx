@@ -4,6 +4,7 @@ import { useCallback, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { Eye, Search } from "lucide-react";
 import type { InvoiceListRow } from "@/features/invoices/lib/invoices";
+import { filterInvoices } from "@/features/invoices/lib/filterInvoices";
 import { formatEUR } from "@/shared/lib/formatCurrency";
 import { useClickOutside } from "@/shared/hooks/useClickOutside";
 import styles from "./InvoicesView.module.css";
@@ -44,18 +45,10 @@ export function InvoicesView({ invoices }: Props) {
   const closeMenu = useCallback(() => setMenuOpen(false), []);
   useClickOutside(dropdownRef, menuOpen, closeMenu);
 
-  const filtered = useMemo(() => {
-    const q = query.trim().toLowerCase();
-    return invoices.filter((it) => {
-      if (q) {
-        const num = (it.invoice_number ?? "").toLowerCase();
-        const client = (it.client_name ?? "").toLowerCase();
-        if (!num.includes(q) && !client.includes(q)) return false;
-      }
-      if (selectedStatus !== null && it.status !== selectedStatus) return false;
-      return true;
-    });
-  }, [invoices, query, selectedStatus]);
+  const filtered = useMemo(
+    () => filterInvoices(invoices, { query, selectedStatus }),
+    [invoices, query, selectedStatus]
+  );
 
   const dateFmt = new Intl.DateTimeFormat("ca-ES", { dateStyle: "medium" });
 
