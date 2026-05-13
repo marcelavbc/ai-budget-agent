@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { Cormorant_Garamond, Inter } from "next/font/google";
 import "./globals.css";
-import Header from "@/shared/components/Header";
+import ConditionalHeader from "@/shared/components/ConditionalHeader";
 
 const bodyFont = Inter({
   subsets: ["latin"],
@@ -34,7 +34,7 @@ export default function RootLayout({
   return (
     <html lang="ca">
       <body className={`${bodyFont.variable} ${displayFont.variable}`}>
-        <Header />
+        <ConditionalHeader />
         {children}
       </body>
     </html>

@@ -1,9 +1,16 @@
 .root {
-  display: inline-flex;
+  display: flex;
   align-items: center;
+  justify-content: center;
   text-decoration: none;
   color: inherit;
   line-height: 0;
+  max-width: 100%;
+  min-width: 0;
+}
+
+.rootFullWidth {
+  width: 100%;
 }
 
 .root:focus-visible {
@@ -13,32 +20,39 @@
 }
 
 .image {
+  display: block;
   width: auto;
+  height: auto;
+  max-width: 100%;
   object-fit: contain;
 }
 
 .sizeSmall .image {
-  height: 104px;
-  max-width: min(520px, 90vw);
+  max-height: 104px;
 }
 
 .sizeMedium .image {
-  height: 88px;
-  max-width: min(380px, 70vw);
+  max-height: 88px;
 }
 
 .sizeLarge .image {
-  height: 112px;
-  max-width: min(480px, 75vw);
+  max-height: 112px;
+}
+
+.sizeHero .image {
+  max-height: 140px;
 }
 
 @media (max-width: 520px) {
   .sizeSmall .image {
-    height: 82px;
-    max-width: min(420px, 88vw);
+    max-height: 82px;
   }
 
   .sizeLarge .image {
-    height: 92px;
+    max-height: 92px;
+  }
+
+  .sizeHero .image {
+    max-height: 118px;
   }
 }
