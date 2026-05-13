@@ -27,7 +27,7 @@ function baseItems(): BudgetClientItem[] {
 }
 
 describe("isBudgetDraftComplete", () => {
-  it("retorna false si falta algun camp obligatori del client", () => {
+  it("returns false when any required client field is missing", () => {
     const items = baseItems();
 
     expect(
@@ -53,7 +53,7 @@ describe("isBudgetDraftComplete", () => {
     ).toBe(false);
   });
 
-  it("retorna false si no hi ha partides o falta descripció", () => {
+  it("returns false when there are no items or description is missing", () => {
     expect(isBudgetDraftComplete({ client: baseClient(), items: [] })).toBe(
       false
     );
@@ -65,7 +65,7 @@ describe("isBudgetDraftComplete", () => {
     ).toBe(false);
   });
 
-  it("retorna true quan tot és complet", () => {
+  it("returns true when everything is complete", () => {
     expect(
       isBudgetDraftComplete({ client: baseClient(), items: baseItems() })
     ).toBe(true);

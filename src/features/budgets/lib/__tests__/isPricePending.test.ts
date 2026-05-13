@@ -21,17 +21,17 @@ function makeLine(overrides: Partial<BudgetLine>): BudgetLine {
 // ─── isPricePending ────────────────────────────────────────────────────────────
 
 describe("isPricePending", () => {
-  it("retorna true quan quantity i unitPrice són 0", () => {
+  it("returns true when quantity and unitPrice are 0", () => {
     const line = makeLine({ quantity: 0, unitPrice: 0, subtotal: 0 });
     expect(isPricePending(line)).toBe(true);
   });
 
-  it("retorna true per a una línia custom sense preu", () => {
+  it("returns true for custom line with no price", () => {
     const line = makeLine({ type: "custom", unitPrice: 0, subtotal: 0 });
     expect(isPricePending(line)).toBe(true);
   });
 
-  it("retorna false per a una línia normal amb preu i quantitat reals", () => {
+  it("returns false for normal line with real price and quantity", () => {
     const line = makeLine({
       type: "walls_and_ceilings",
       quantity: 20,
@@ -41,13 +41,13 @@ describe("isPricePending", () => {
     expect(isPricePending(line)).toBe(false);
   });
 
-  it("retorna true quan quantity > 0 però unitPrice és 0 (bug: subtotal = 0 real)", () => {
-    // La IA ha assignat quantitat però no s'ha definit el preu.
+  it("returns true when quantity > 0 but unitPrice is 0 (effective subtotal 0)", () => {
+    // Quantity set but price not defined.
     const line = makeLine({ quantity: 5, unitPrice: 0, subtotal: 0 });
     expect(isPricePending(line)).toBe(true);
   });
 
-  it("retorna true quan unitLabel és m² i quantity és 0 (la IA no sabia l'àrea)", () => {
+  it("returns true when unitLabel is m² and quantity is 0 (area unknown)", () => {
     const line = makeLine({
       unitLabel: "m²",
       quantity: 0,
@@ -57,7 +57,7 @@ describe("isPricePending", () => {
     expect(isPricePending(line)).toBe(true);
   });
 
-  it("retorna true quan unitLabel és unitat i quantity és 0", () => {
+  it("returns true when unitLabel is unitat and quantity is 0", () => {
     const line = makeLine({
       unitLabel: "unitat",
       quantity: 0,
@@ -67,7 +67,7 @@ describe("isPricePending", () => {
     expect(isPricePending(line)).toBe(true);
   });
 
-  it("retorna false per a una línia partida amb quantity 1 (cost fix intencional)", () => {
+  it("returns false for partida line with quantity 1 (intentional fixed cost)", () => {
     const line = makeLine({
       unitLabel: "partida",
       quantity: 1,
