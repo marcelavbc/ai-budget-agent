@@ -276,21 +276,6 @@
   box-shadow: var(--focus-glow);
 }
 
-.fieldInputInvalid {
-  border-color: color-mix(in srgb, var(--color-terracotta) 45%, var(--border));
-}
-
-.fieldInputInvalid:focus {
-  border-color: var(--color-terracotta);
-}
-
-.fieldError {
-  font-size: 0.8rem;
-  color: var(--error);
-  margin: 0;
-  line-height: 1.4;
-}
-
 .fieldHint {
   font-size: 12px;
   color: var(--text-muted);
@@ -395,36 +380,6 @@
   margin-top: 1rem;
 }
 
-.addItemBtn {
-  border: 1px solid var(--border);
-  background: var(--surface);
-  color: var(--text);
-  border-radius: 10px;
-  padding: 0.55rem 0.75rem;
-  font-size: 0.86rem;
-  font-family: inherit;
-  font-weight: 600;
-  cursor: pointer;
-  transition:
-    transform 0.06s ease,
-    opacity 0.15s ease;
-}
-
-@media (hover: hover) and (pointer: fine) {
-  .addItemBtn:hover {
-    opacity: 0.9;
-  }
-}
-
-.addItemBtn:focus-visible {
-  outline: 2px solid var(--focus-ring);
-  outline-offset: 2px;
-}
-
-.addItemBtn:active {
-  transform: translateY(1px);
-}
-
 .card {
   background: var(--surface);
   border: 1px solid var(--border-soft);
@@ -468,14 +423,6 @@
   white-space: nowrap;
 }
 
-.cardTitle {
-  font-size: 0.95rem;
-  font-weight: 600;
-  color: var(--text);
-  line-height: 1.35;
-  min-width: 0;
-}
-
 .cardHeaderRight {
   display: inline-flex;
   align-items: center;
@@ -509,11 +456,6 @@
   color: var(--text-muted);
 }
 
-.optionGroupHint {
-  font-size: 0.82rem;
-  color: var(--text-muted);
-}
-
 .optionGroupBody {
   padding: 8px;
   display: flex;
@@ -527,7 +469,6 @@
   gap: 6px;
 }
 
-.iconBtn,
 .iconBtnDanger {
   border: none;
   background: transparent;
@@ -726,20 +667,4 @@
     flex-basis: 100%;
     width: 100%;
   }
-}
-
-.totalLabel {
-  font-size: 13px;
-  font-weight: 600;
-  color: var(--text-secondary);
-}
-
-.totalValue {
-  font-size: 2rem;
-  font-family: var(--font-display);
-  font-weight: 600;
-  letter-spacing: -0.03em;
-  color: var(--total-figure);
-  line-height: 1.1;
-  font-variant-numeric: tabular-nums;
 }

@@ -68,8 +68,6 @@ export function useBudgetEditController(args: {
   }
 
   return {
-    budgetId: budget.id,
-
     // AI
     submit,
     loading,

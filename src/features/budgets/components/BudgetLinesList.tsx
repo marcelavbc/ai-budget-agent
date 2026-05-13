@@ -1,6 +1,5 @@
 "use client";
 
-import { useState } from "react";
 import type { BudgetLine, BudgetListItem } from "@/features/budgets/types/budget";
 import { isBudgetOptionGroup } from "@/features/budgets/types/budget";
 import { DraggableLine } from "./DraggableLine";
@@ -27,8 +26,6 @@ export function BudgetLinesList({
   onUpdateLine,
   onGenerateDraft,
 }: Props) {
-  const [dropError] = useState<string | null>(null);
-
   if (items.length === 0) {
     return (
       <section className={styles.empty} aria-live="polite">
@@ -45,12 +42,6 @@ export function BudgetLinesList({
     <section className={styles.result} aria-live="polite">
       <div className={styles.linesBlock}>
         <h2 className={styles.linesLabel}>Desglossament</h2>
-
-        {dropError && (
-          <p className={styles.dropError} role="alert">
-            {dropError}
-          </p>
-        )}
 
         <div className={styles.linesList}>
           {items.map((item) =>
