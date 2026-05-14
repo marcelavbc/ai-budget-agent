@@ -21,3 +21,15 @@ Cypress.Commands.add("interceptGroq", (fixtureName: string) => {
     req.reply({ fixture: fixtureName });
   }).as("generateDraft");
 });
+
+Cypress.Commands.add("setSliderValue", (selector: string, value: number) => {
+  cy.get(selector).then(($input) => {
+    const nativeInputValueSetter = Object.getOwnPropertyDescriptor(
+      window.HTMLInputElement.prototype,
+      "value"
+    )?.set;
+    nativeInputValueSetter?.call($input[0], value);
+    $input[0].dispatchEvent(new Event("input", { bubbles: true }));
+    $input[0].dispatchEvent(new Event("change", { bubbles: true }));
+  });
+});

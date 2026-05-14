@@ -1,0 +1,14 @@
+{
+  "lines": [
+    {
+      "id": "repair-0",
+      "type": "repair",
+      "label": "Reparació d'esquerdes",
+      "quantity": 1,
+      "unitLabel": "partida",
+      "unitPrice": 0,
+      "subtotal": 0,
+      "pricingMode": "input"
+    }
+  ]
+}

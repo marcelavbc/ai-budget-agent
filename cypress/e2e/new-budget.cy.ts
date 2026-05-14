@@ -43,4 +43,28 @@ describe("New budget", () => {
     cy.contains("button", "Generar esborrany").click();
     cy.get('input[name="nameOrCompany"]').should("exist");
   });
+  it("does not show 'Generar esborrany' when lines have pending prices", () => {
+    cy.interceptGroq("groq-draft-pending");
+    cy.get('textarea[aria-label="Descripció del treball"]').type(
+      "Reparar esquerdes"
+    );
+    cy.get('button[type="submit"]').click();
+    cy.wait("@generateDraft");
+    cy.contains("button", "Generar esborrany").should("not.exist");
+  });
+
+  it("shows price per sqm slider", () => {
+    cy.get('input[type="range"]#price-per-sqm').should("exist");
+  });
+
+  it("updates price per sqm when slider changes", () => {
+    cy.interceptGroq("groq-draft-simple");
+    cy.get('textarea[aria-label="Descripció del treball"]').type(
+      "Pintar menjador 20m²"
+    );
+    cy.get('button[type="submit"]').click();
+    cy.wait("@generateDraft");
+    cy.setSliderValue('input[type="range"]#price-per-sqm', 18);
+    cy.contains("18 €").should("exist");
+  });
 });
