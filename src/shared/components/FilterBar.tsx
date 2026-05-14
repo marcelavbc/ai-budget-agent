@@ -153,6 +153,7 @@ export function FilterBar() {
           className={styles.controlYearLabelBtn}
           onClick={toggleYearScope}
           aria-pressed={hasConcreteYear}
+          data-cy="year-toggle"
           title={
             hasConcreteYear ? "Mostrar tots els anys" : "Triar un any concret"
           }
