@@ -67,4 +67,15 @@ describe("New budget", () => {
     cy.setSliderValue('input[type="range"]#price-per-sqm', 18);
     cy.contains("18 €").should("exist");
   });
+  it("renders option group card when AI returns alternative lines", () => {
+    cy.interceptGroq("groq-draft-options");
+    cy.get('textarea[aria-label="Descripció del treball"]').type(
+      "Passamà opció 1 decapat o opció 2 esmalt"
+    );
+    cy.get('button[type="submit"]').click();
+    cy.wait("@generateDraft");
+    cy.contains("Opcions alternatives").should("exist");
+    cy.contains("Opció 1").should("exist");
+    cy.contains("Opció 2").should("exist");
+  });
 });

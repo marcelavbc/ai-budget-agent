@@ -1,0 +1,28 @@
+{
+  "lines": [
+    {
+      "id": "opt-1",
+      "type": "enamel_varnish",
+      "label": "Passamà: decapat + lasur",
+      "quantity": 1,
+      "unitLabel": "partida",
+      "unitPrice": 150,
+      "subtotal": 150,
+      "pricingMode": "input",
+      "optionGroupId": "passama-fusta",
+      "optionLabel": "Opció 1"
+    },
+    {
+      "id": "opt-2",
+      "type": "enamel_varnish",
+      "label": "Passamà: polit + esmalt",
+      "quantity": 1,
+      "unitLabel": "partida",
+      "unitPrice": 200,
+      "subtotal": 200,
+      "pricingMode": "input",
+      "optionGroupId": "passama-fusta",
+      "optionLabel": "Opció 2"
+    }
+  ]
+}
