@@ -16,7 +16,7 @@ type FieldRef = {
 // ---------------------------------------------------------------------------
 
 /** Remove duplicate "Opció 2: …" prefix already stored in title. */
-function stripLeadingOptionPrefix(
+export function stripLeadingOptionPrefix(
   title: string,
   optionLabel: string | undefined
 ): string {
@@ -33,7 +33,7 @@ function stripLeadingOptionPrefix(
 }
 
 /** Fix "Opció N" ↔ "Opción N" regardless of LLM output. */
-function normalizeOptionLabel(
+export function normalizeOptionLabel(
   label: string | undefined,
   lang: "ca" | "es"
 ): string | undefined {
@@ -52,7 +52,7 @@ function normalizeOptionLabel(
  * Extract every translatable text field into a flat array of strings.
  * fieldRefs[i] tells us which item + field string[i] belongs to.
  */
-function extractTexts(items: BudgetClientItem[]): {
+export function extractTexts(items: BudgetClientItem[]): {
   texts: string[];
   fieldRefs: FieldRef[];
 } {
@@ -75,7 +75,7 @@ function extractTexts(items: BudgetClientItem[]): {
   return { texts, fieldRefs };
 }
 
-function applyTranslatedTexts(
+export function applyTranslatedTexts(
   originals: BudgetClientItem[],
   translations: string[],
   fieldRefs: FieldRef[],
@@ -95,7 +95,8 @@ function applyTranslatedTexts(
   return originals.map((orig, i) => {
     const patch = patches[i]!;
     const hasOptionLabel =
-      typeof orig.optionLabel === "string" && orig.optionLabel.trim().length > 0;
+      typeof orig.optionLabel === "string" &&
+      orig.optionLabel.trim().length > 0;
     const optionLabel = normalizeOptionLabel(
       "optionLabel" in patch ? patch.optionLabel : orig.optionLabel,
       lang
@@ -114,10 +115,7 @@ function applyTranslatedTexts(
 // LLM call
 // ---------------------------------------------------------------------------
 
-function buildMessages(
-  texts: string[],
-  lang: "ca" | "es"
-): GroqMessage[] {
+function buildMessages(texts: string[], lang: "ca" | "es"): GroqMessage[] {
   // We send the array of strings and ask for { "translations": [...] }
   // using json_object mode — this is reliable and needs zero custom parsing.
   const inputJson = JSON.stringify({ texts });
@@ -125,8 +123,8 @@ function buildMessages(
   if (lang === "es") {
     const system = [
       "Eres un traductor profesional de catalán a español para presupuestos de obras y pintura.",
-      "Recibirás un objeto JSON con la clave \"texts\": un array de cadenas de texto en catalán (o catalán/español mezclado).",
-      "Debes devolver un objeto JSON con la clave \"translations\": el mismo array con CADA cadena traducida íntegramente al español.",
+      'Recibirás un objeto JSON con la clave "texts": un array de cadenas de texto en catalán (o catalán/español mezclado).',
+      'Debes devolver un objeto JSON con la clave "translations": el mismo array con CADA cadena traducida íntegramente al español.',
       "",
       "Reglas estrictas:",
       "- Traduce CADA cadena completa al español. No dejes ninguna palabra en catalán.",
@@ -149,8 +147,8 @@ function buildMessages(
 
   const system = [
     "Ets un traductor professional de castellà a català per a pressupostos d'obres i pintura.",
-    "Rebràs un objecte JSON amb la clau \"texts\": un array de cadenes de text en castellà (o castellà/català barrejat).",
-    "Has de retornar un objecte JSON amb la clau \"translations\": el mateix array amb CADA cadena traduïda íntegrament al català.",
+    'Rebràs un objecte JSON amb la clau "texts": un array de cadenes de text en castellà (o castellà/català barrejat).',
+    'Has de retornar un objecte JSON amb la clau "translations": el mateix array amb CADA cadena traduïda íntegrament al català.',
     "",
     "Regles:",
     "- Tradueix CADA cadena completament al català. No deixis cap paraula en castellà.",
@@ -170,7 +168,7 @@ function buildMessages(
 // Validate LLM response
 // ---------------------------------------------------------------------------
 
-function parseTranslations(
+export function parseTranslations(
   raw: string,
   expectedCount: number
 ): string[] | null {
