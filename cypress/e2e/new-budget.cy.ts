@@ -1,0 +1,46 @@
+describe("New budget", () => {
+  beforeEach(() => {
+    cy.login("test1234");
+    cy.visit("/budgets/nou");
+  });
+
+  it("renders the new budget page", () => {
+    cy.get("h1").should("contain", "Nou pressupost");
+  });
+
+  it("shows validation error when description is empty", () => {
+    cy.get('button[type="submit"]').click();
+    cy.get('[role="alert"]').should("contain", "Escriu una descripció");
+  });
+
+  it("generates draft lines from AI response", () => {
+    cy.interceptGroq("groq-draft-simple");
+    cy.get('textarea[aria-label="Descripció del treball"]').type(
+      "Pintar menjador 20m²"
+    );
+    cy.get('button[type="submit"]').click();
+    cy.wait("@generateDraft");
+    cy.contains("Pintura de parets i sostre").should("exist");
+  });
+
+  it("shows 'Generar esborrany' button after lines are added", () => {
+    cy.interceptGroq("groq-draft-simple");
+    cy.get('textarea[aria-label="Descripció del treball"]').type(
+      "Pintar menjador 20m²"
+    );
+    cy.get('button[type="submit"]').click();
+    cy.wait("@generateDraft");
+    cy.contains("button", "Generar esborrany").should("exist");
+  });
+
+  it("navigates to draft view after clicking 'Generar esborrany'", () => {
+    cy.interceptGroq("groq-draft-simple");
+    cy.get('textarea[aria-label="Descripció del treball"]').type(
+      "Pintar menjador 20m²"
+    );
+    cy.get('button[type="submit"]').click();
+    cy.wait("@generateDraft");
+    cy.contains("button", "Generar esborrany").click();
+    cy.get('input[name="nameOrCompany"]').should("exist");
+  });
+});

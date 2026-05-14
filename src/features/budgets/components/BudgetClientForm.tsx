@@ -30,6 +30,7 @@ export function BudgetClientForm({
         <label className={styles.field}>
           <span className={styles.fieldLabel}>Nom o empresa</span>
           <input
+            name="nameOrCompany"
             className={styles.fieldInput}
             type="text"
             value={client.nameOrCompany}

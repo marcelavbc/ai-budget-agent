@@ -1,0 +1,14 @@
+{
+  "lines": [
+    {
+      "id": "walls-0",
+      "type": "walls_and_ceilings",
+      "label": "Pintura de parets i sostre",
+      "quantity": 20,
+      "unitLabel": "m²",
+      "unitPrice": 12,
+      "subtotal": 240,
+      "pricingMode": "range"
+    }
+  ]
+}

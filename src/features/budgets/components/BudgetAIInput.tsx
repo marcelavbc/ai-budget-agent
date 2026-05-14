@@ -111,8 +111,11 @@ export function BudgetAIInput({
         ) : null}
       </div>
 
-      {displayError ? <p className={styles.formError}>{displayError}</p> : null}
+      {displayError ? (
+        <p role="alert" className={styles.formError}>
+          {displayError}
+        </p>
+      ) : null}
     </form>
   );
 }
-

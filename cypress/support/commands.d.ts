@@ -10,3 +10,10 @@ declare namespace Cypress {
     login(password: string): Chainable<void>;
   }
 }
+
+declare namespace Cypress {
+  interface Chainable {
+    login(password: string): Chainable<void>;
+    interceptGroq(fixtureName: string): Chainable<void>;
+  }
+}

@@ -402,7 +402,7 @@
 }
 
 .th {
-  text-align: center;
+  text-align: left;
   font-size: 12px;
   text-transform: none;
   letter-spacing: 0;
@@ -431,8 +431,12 @@
 @media (hover: hover) and (pointer: fine) {
   .tr:hover {
     background: var(--bg-subtle);
-    cursor: pointer;
   }
+}
+
+/* Use this class when a row itself should show a pointer (row is clickable) */
+.trClickable {
+  cursor: pointer;
 }
 
 .colQuote {

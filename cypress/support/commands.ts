@@ -15,3 +15,9 @@ Cypress.Commands.add("login", (password: string) => {
   cy.get('button[type="submit"]').click();
   cy.wait("@loginRequest");
 });
+
+Cypress.Commands.add("interceptGroq", (fixtureName: string) => {
+  cy.intercept("POST", "/api/generate-budget-draft", (req) => {
+    req.reply({ fixture: fixtureName });
+  }).as("generateDraft");
+});
