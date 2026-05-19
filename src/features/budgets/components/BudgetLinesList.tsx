@@ -1,6 +1,9 @@
 "use client";
 
-import type { BudgetLine, BudgetListItem } from "@/features/budgets/types/budget";
+import type {
+  BudgetLine,
+  BudgetListItem,
+} from "@/features/budgets/types/budget";
 import { isBudgetOptionGroup } from "@/features/budgets/types/budget";
 import { DraggableLine } from "./DraggableLine";
 import { BudgetOptionGroupCard } from "./BudgetOptionGroupCard";
@@ -57,7 +60,9 @@ export function BudgetLinesList({
                 key={(item as BudgetLine).id}
                 line={item as BudgetLine}
                 onRemove={() => onRemoveLine((item as BudgetLine).id)}
-                onUpdate={(patch) => onUpdateLine((item as BudgetLine).id, patch)}
+                onUpdate={(patch) =>
+                  onUpdateLine((item as BudgetLine).id, patch)
+                }
               />
             )
           )}
@@ -74,10 +79,13 @@ export function BudgetLinesList({
           </ul>
         </div>
       ) : null}
-
-      {!hasPending && onGenerateDraft && (
+      {onGenerateDraft && (
         <div className={styles.generateBlock}>
-          <button className={styles.generateBtn} onClick={onGenerateDraft}>
+          <button
+            className={styles.generateBtn}
+            onClick={onGenerateDraft}
+            disabled={hasPending}
+          >
             Generar esborrany
           </button>
         </div>

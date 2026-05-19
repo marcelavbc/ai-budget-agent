@@ -93,16 +93,7 @@
 .generateBlock {
   margin-top: 2rem;
   display: flex;
-  position: sticky;
-  bottom: 16px;
   padding-top: 12px;
-  z-index: 5;
-  background: linear-gradient(
-    180deg,
-    color-mix(in srgb, var(--color-background) 0%, transparent) 0%,
-    color-mix(in srgb, var(--color-background) 88%, var(--surface)) 40%,
-    var(--color-background) 100%
-  );
 }
 
 .generateBtn {
@@ -119,7 +110,13 @@
   cursor: pointer;
   transition:
     border-color 200ms ease,
-    background 200ms ease;
+    background 200ms ease,
+    opacity 200ms ease;
+}
+
+.generateBtn:disabled {
+  opacity: 0.38;
+  cursor: not-allowed;
 }
 
 @media (max-width: 520px) {
