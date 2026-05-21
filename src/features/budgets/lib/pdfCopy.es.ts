@@ -32,10 +32,16 @@ export const pdfLabelsEs = {
 };
 
 export function buildIntroTextEs(client: BudgetClientDetails): string {
-  const address = (client.address ?? "").trim();
+  const address = [
+    client.addressStreet,
+    client.addressPostalCode,
+    client.addressCity,
+  ]
+    .map((value) => (value ?? "").trim())
+    .filter(Boolean)
+    .join(", ");
   if (address) {
-    const singleLineAddress = address.replace(/\n+/g, ", ");
-    return `Trabajos de pintura a realizar en ${singleLineAddress}.`;
+    return `Trabajos de pintura a realizar en ${address}.`;
   }
 
   return "Trabajos de pintura detallados según las partidas indicadas en este presupuesto.";

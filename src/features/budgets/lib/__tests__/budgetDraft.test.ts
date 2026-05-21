@@ -8,7 +8,9 @@ import type {
 function baseClient(): BudgetClientDetails {
   return {
     nameOrCompany: "Maria Vila",
-    address: "Carrer Major 1\n08001 Barcelona",
+    addressStreet: "Carrer Major 1",
+    addressPostalCode: "08001",
+    addressCity: "Barcelona",
     quoteNumber: "MV-20260422",
     date: "2026-04-22",
     estimatedTime: "7 a 9 dies hàbils",

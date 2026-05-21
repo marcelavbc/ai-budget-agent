@@ -20,7 +20,9 @@ export function buildInitialBudgetEditClientDetails(args: {
   const { budget, client } = args;
   return {
     nameOrCompany: (client.name ?? "").trim(),
-    address: (budget.job_address ?? client.address ?? "").trim(),
+    addressStreet: (client.address_street ?? "").trim(),
+    addressPostalCode: (client.address_postal_code ?? "").trim(),
+    addressCity: (client.address_city ?? "").trim(),
     quoteNumber: (budget.quote_number ?? "").trim(),
     date: (budget.document_date ?? "").trim(),
     estimatedTime: (budget.estimated_time ?? "").trim(),

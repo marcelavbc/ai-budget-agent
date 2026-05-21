@@ -110,18 +110,9 @@ export function BudgetListItemActions({
 
       const clientForPdf: BudgetClientDetails = {
         nameOrCompany: (client.name ?? "").trim(),
-        address: (() => {
-          const street = (client.address_street ?? "").trim();
-          const postal = (client.address_postal_code ?? "").trim();
-          const city = (client.address_city ?? "").trim();
-          const line2 = [postal, city].filter(Boolean).join(" ");
-
-          if (street || line2) {
-            return [street, line2].filter(Boolean).join("\n");
-          }
-          // fallback to legacy address
-          return (budget.job_address ?? client.address ?? "").trim();
-        })(),
+        addressStreet: (client.address_street ?? "").trim(),
+        addressPostalCode: (client.address_postal_code ?? "").trim(),
+        addressCity: (client.address_city ?? "").trim(),
         quoteNumber: (budget.quote_number ?? "").trim(),
         date: (budget.document_date ?? "").trim(),
         estimatedTime: (budget.estimated_time ?? "").trim(),

@@ -1,6 +1,12 @@
 import { useCallback, useRef, useState } from "react";
-import type { BudgetClientDetails, BudgetClientItem } from "@/features/budgets/types/budget";
-import { buildPdfFilename, translateItemsForPdf } from "@/features/budgets/lib/pdfUtils";
+import type {
+  BudgetClientDetails,
+  BudgetClientItem,
+} from "@/features/budgets/types/budget";
+import {
+  buildPdfFilename,
+  translateItemsForPdf,
+} from "@/features/budgets/lib/pdfUtils";
 
 export function usePdfExport() {
   const [generating, setGenerating] = useState(false);
@@ -18,8 +24,12 @@ export function usePdfExport() {
       setGenerating(true);
       setPdfError(null);
       try {
-        const finalItems = await translateItemsForPdf(args.items, args.lang);
-        const { generateBudgetPdf } = await import("@/features/budgets/lib/generateBudgetPdf");
+        const finalItems =
+          args.lang === "es"
+            ? await translateItemsForPdf(args.items, args.lang)
+            : args.items;
+        const { generateBudgetPdf } =
+          await import("@/features/budgets/lib/generateBudgetPdf");
         const blob = await generateBudgetPdf({
           client: args.client,
           items: finalItems,
@@ -47,4 +57,3 @@ export function usePdfExport() {
 
   return { exportPdf, generating, pdfError, setPdfError };
 }
-

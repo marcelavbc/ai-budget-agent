@@ -16,7 +16,6 @@ function makeClientDetails(
 ): BudgetClientDetails {
   return {
     nameOrCompany: "Joan García",
-    address: "Carrer Major 1",
     quoteNumber: "2025-01",
     date: "2025-01-15",
     estimatedTime: "5 dies",
@@ -64,17 +63,9 @@ describe("deriveBudgetTitle", () => {
     expect(deriveBudgetTitle(makeClientDetails())).toBe("Joan García");
   });
 
-  it("no name but has address returns address", () => {
+  it("empty name returns null", () => {
     expect(
-      deriveBudgetTitle(
-        makeClientDetails({ nameOrCompany: "", address: "Carrer Nou 3" })
-      )
-    ).toBe("Carrer Nou 3");
-  });
-
-  it("both empty returns null", () => {
-    expect(
-      deriveBudgetTitle(makeClientDetails({ nameOrCompany: "", address: "" }))
+      deriveBudgetTitle(makeClientDetails({ nameOrCompany: "" }))
     ).toBeNull();
   });
 

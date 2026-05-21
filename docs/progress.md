@@ -14,7 +14,7 @@ Aplicación Next.js (App Router) para gestionar **pressupostos** y **factures**,
 |------|--------|
 | Auth (cookie + middleware) | Hecho |
 | Listado / filtrado de pressupostos | Hecho |
-| Creación de pressupost amb IA (`/budgets/nou`) | Hecho (flujo en 2 pasos) |
+| Creació de pressupost amb IA (`/budgets/nou`) | Hecho (flujo unificat, una sola pantalla) |
 | Edición de pressupost guardat (`/budgets/[id]/edit`) | Hecho |
 | Guardar pressupost (POST `/api/budgets`) | Hecho (fix NOT NULL, may 2026) |
 | Factures des de pressupost + PDF | Hecho |
@@ -43,18 +43,19 @@ Aplicación Next.js (App Router) para gestionar **pressupostos** y **factures**,
 - Vista de pressupostos con tabla/tarjetas, filtros por texto, estado y rango de fechas.
 - Lógica extraída a `filterBudgets.ts` + tests (`filterBudgets.test.ts`).
 
-### Creación (`/budgets/nou`) — flujo actual en dos pasos
+### Creació (`/budgets/nou`)
 
-1. **Vista `lines`**: `BudgetForm` + IA (`BudgetAIInput`) → partidas en `useBudgetLines` + vista previa en `BudgetDraftEditor`.
-2. **Vista `draft`**: botón «Generar esborrany» → `BudgetDraftView` (datos cliente + guardar).
+- Una sola pantalla: `BudgetDraftView` (mode="create") + `BudgetAIInput` en `itemsFooter`
+- `useBudgetCreateController` gestiona todo el estado
+- Eliminats: `useBudgetLines`, `BudgetDraftEditor`, `generateBudgetDraft`, vista lines/draft, botó «Generar esborrany», useEffect de sincronització
+- Nous arxius: `useBudgetCreateController`, `budgetLinesToClientItemsFromAI`, `budgetDescriptionTemplates`
 
-Archivos clave:
+### UX descripció Roger (may 2026)
 
-- `src/app/budgets/nou/page.tsx` — orquesta `draftItems` + `items`, sincronización con `useEffect`.
-- `src/features/budgets/components/BudgetDraftEditor.tsx` — tarjetas editables (título, import, quantitat, unitat, descripció, eliminar).
-- `src/features/budgets/components/BudgetDraftView.tsx` — formulario cliente, partidas, PDF, guardar.
-- `src/features/budgets/hooks/useBudgetLines.ts` — líneas de trabajo, `hasPending`, precio m².
-- `src/features/budgets/lib/generateBudgetDraft.ts` — convierte `BudgetLine[]` → `BudgetClientItem[]` (descripció = plantilla técnica por tipo).
+- La IA genera `clientDescription` per cada línia parsejada
+- `budgetDescriptionTemplates.ts` centralitza la lògica de plantilles (Jotun, Isaval, Titanlux) i és usat per `budgetLinesToClientItemsFromAI` i `generateBudgetDraft` (aquest últim eliminat)
+- `repair` i `custom` usen `clientDescription` directament com a descripció
+- Tipus amb plantilla mostren la plantilla amb color interpolat + bloc col·lapsable "Text original de Roger" amb botó "Usar text original" a `BudgetDraftView`
 
 ### Edición de pressupostos guardados
 
@@ -138,13 +139,13 @@ Cobertura relevante: hooks de líneas, filtros, mapeo edición, helpers de guard
 
 ## Pendiente y discutido
 
-### 1. Unificar flujo de creación (opción 2 — acordada en conversación)
+### 1. Unificar flujo de creación — hecho (may 2026)
 
 Hoy crear un pressupost tiene **dos pantallas** (`lines` → `draft`). En edición ya hay **una sola** pantalla editable + IA.
 
 **Propuesta acordada**: eliminar `view: "lines" | "draft"`, el botón «Generar esborrany» y reutilizar en `/budgets/nou` el mismo patrón que `/budgets/[id]/edit` (`BudgetDraftView` + `BudgetAIInput` + guardar con POST).
 
-**Estado**: no implementado en el código actual.
+**Estado**: implementado (may 2026).
 
 ### 2. UX descripció para Roger — hecho (may 2026)
 
@@ -180,9 +181,9 @@ No se aplicaron refactors de esa revisión aún.
 
 ## Comportamiento actual que conviene recordar
 
-- **Botón «Generar esborrany»**: deshabilitado mientras `hasPending` (partidas sin precio válido en `useBudgetLines`).
 - **Botón «Guardar pressupost»**: habilitado con solo el nombre/empresa del cliente rellenado.
-- **Descripcions al crear**: la IA genera `clientDescription` per cada línia. Tipus amb plantilla mostren la plantilla (amb color interpolat si Roger l'especifica) + bloc col·lapsable "Text original de Roger". Tipus sense plantilla (`repair`, `custom`) usen `clientDescription` directament.
+- **Descripcions**: la IA genera `clientDescription` per cada línia. `budgetLinesToClientItemsFromAI` aplica plantilles des de `budgetDescriptionTemplates.ts` (color interpolat des de `clientDescription` si Roger l'especifica). Tipus sense plantilla (`repair`, `custom`) usen `clientDescription` directament. A `BudgetDraftView`, tipus amb plantilla mostren bloc col·lapsable "Text original de Roger" amb botó "Usar text original".
+- **Flux creació = flux edició**: `/budgets/nou` usa el mateix patró que `/budgets/[id]/edit`. No hi ha dos passos ni sincronització manual.
 - **Guardar con descripciones vacías**: OK en UI; en BD se persisten como `""`.
 - **Edición post-guardado**: completa en `/budgets/[id]/edit`.
 
@@ -203,8 +204,6 @@ b57dade test: option groups en nou
 
 ## Próximos pasos sugeridos (orden práctico)
 
-1. **Push** del commit `871c2e8` a `origin/main` cuando esté validado en local.
-2. **Unificar** `/budgets/nou` con el flujo de edición (opción 2).
-3. **Reintroducir** la UX descripció Roger (`suggestedDescription` + merge síncrono) si sigue siendo prioridad de producto.
-4. **Refactor** compartido Editor/View de partidas para reducir duplicación.
-5. Añadir `env.example` y, si aplica, volver a valorar **emitir factura** (RPC ya diseñada en el pasado).
+1. **Refactor** compartit Editor/View de partidas (ara ja resolt parcialment amb l'unificació; queda extreure llista de partides si cal).
+2. Añadir **`env.example`** y documentar variables en `docs/AI_ASSISTANT_CONTEXT.md`.
+3. **Revisión de components UI** (pendent de la revisió iniciada avui — duplicación, props no usadas, CSS huérfano).

@@ -78,7 +78,6 @@ export interface BudgetClientItem {
 /** Budget header (client + reference); used for UI and PDF export. */
 export interface BudgetClientDetails {
   nameOrCompany: string;
-  address: string;
   addressStreet?: string;
   addressPostalCode?: string;
   addressCity?: string;
@@ -97,7 +96,6 @@ export function defaultBudgetClientDetails(): BudgetClientDetails {
   const date = `${y}-${m}-${d}`;
   return {
     nameOrCompany: "",
-    address: "",
     addressStreet: "",
     addressPostalCode: "",
     addressCity: "",

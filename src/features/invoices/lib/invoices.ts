@@ -80,7 +80,7 @@ export async function getInvoiceById(id: string): Promise<InvoiceRow | null> {
     .eq("id", id)
     .maybeSingle();
   if (error) throw new Error(error.message);
-  return data ?? null;
+  return (data ?? null) as InvoiceRow | null;
 }
 
 export async function getInvoiceLinesByInvoiceId(
@@ -95,7 +95,7 @@ export async function getInvoiceLinesByInvoiceId(
     .eq("invoice_id", invoiceId)
     .order("sort_order", { ascending: true });
   if (error) throw new Error(error.message);
-  return data ?? [];
+  return (data ?? []) as InvoiceLineRow[];
 }
 
 export async function createInvoiceFromBudget(

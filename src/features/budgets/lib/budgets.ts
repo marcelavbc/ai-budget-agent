@@ -41,7 +41,6 @@ export interface CreateBudgetResult {
 export interface CreateClientInput {
   name: string;
   phone?: string | null;
-  address?: string | null;
   address_street?: string | null;
   address_postal_code?: string | null;
   address_city?: string | null;
@@ -54,7 +53,6 @@ type BudgetListQueryRow = BudgetListRow & {
 export async function createClient({
   name,
   phone = null,
-  address = null,
   address_street = null,
   address_postal_code = null,
   address_city = null,
@@ -62,7 +60,6 @@ export async function createClient({
   const supabase = getSupabaseClient();
   const normalizedName = name.trim();
   const normalizedPhone = (phone ?? "").trim();
-  const normalizedAddress = (address ?? "").trim();
 
   const { data, error } = await supabase
     .from("clients")
@@ -70,7 +67,6 @@ export async function createClient({
       {
         name: normalizedName,
         phone: normalizeOptionalString(normalizedPhone),
-        address: normalizeOptionalString(normalizedAddress),
         address_street: normalizeOptionalString((address_street ?? "").trim()),
         address_postal_code: normalizeOptionalString(
           (address_postal_code ?? "").trim()
@@ -93,7 +89,6 @@ export async function updateClientById(
       ClientRow,
       | "name"
       | "phone"
-      | "address"
       | "address_street"
       | "address_postal_code"
       | "address_city"
@@ -104,8 +99,6 @@ export async function updateClientById(
   const normalized = {
     name: typeof patch.name === "string" ? patch.name.trim() : patch.name,
     phone: typeof patch.phone === "string" ? patch.phone.trim() : patch.phone,
-    address:
-      typeof patch.address === "string" ? patch.address.trim() : patch.address,
     address_street:
       typeof patch.address_street === "string"
         ? patch.address_street.trim()
@@ -133,20 +126,20 @@ export async function getClientById(id: string | null): Promise<ClientRow> {
   if (!normalizedId || normalizedId.toLowerCase() === "null") {
     return {
       id: normalizedId || "unknown",
-      name: null,
+      name: "",
       phone: null,
-      address: null,
       address_street: null,
       address_postal_code: null,
       address_city: null,
-      created_at: null,
+      tax_id: null,
+      created_at: new Date().toISOString(),
     } as ClientRow;
   }
 
   const { data, error } = await supabase
     .from("clients")
     .select(
-      "id,name,phone,address,address_street,address_postal_code,address_city,tax_id,created_at"
+      "id,name,phone,address_street,address_postal_code,address_city,tax_id,created_at"
     )
     .eq("id", normalizedId)
     .maybeSingle();
@@ -155,13 +148,13 @@ export async function getClientById(id: string | null): Promise<ClientRow> {
     if (code === "PGRST116" || code === "22P02") {
       return {
         id: normalizedId,
-        name: null,
+        name: "",
         phone: null,
-        address: null,
         address_street: null,
         address_postal_code: null,
         address_city: null,
-        created_at: null,
+        tax_id: null,
+        created_at: new Date().toISOString(),
       } as ClientRow;
     }
     throw new Error(error.message);
@@ -169,13 +162,13 @@ export async function getClientById(id: string | null): Promise<ClientRow> {
   if (!data) {
     return {
       id: normalizedId,
-      name: null,
+      name: "",
       phone: null,
-      address: null,
       address_street: null,
       address_postal_code: null,
       address_city: null,
-      created_at: null,
+      tax_id: null,
+      created_at: new Date().toISOString(),
     } as ClientRow;
   }
   return data as ClientRow;
@@ -197,8 +190,13 @@ export async function createBudget({
     .insert([
       {
         client_id: clientId,
-        title: derivedTitle,
-        job_address: normalizeOptionalString(client.address),
+        title: derivedTitle ?? "",
+        job_address: normalizeOptionalString(
+          [client.addressStreet, client.addressPostalCode, client.addressCity]
+            .map((value) => (value ?? "").trim())
+            .filter(Boolean)
+            .join(", ")
+        ),
         quote_number: normalizeOptionalString(client.quoteNumber),
         document_date: normalizeOptionalString(client.date),
         estimated_time: normalizeOptionalString(client.estimatedTime),
@@ -232,7 +230,7 @@ export async function getBudgetById(id: string): Promise<BudgetRow | null> {
     .eq("id", id)
     .maybeSingle();
   if (error) throw new Error(error.message);
-  return data;
+  return data as BudgetRow;
 }
 
 export async function updateBudgetById(
@@ -381,7 +379,6 @@ export async function updateBudgetWithLines(args: {
       : (
           await createClient({
             name: client.nameOrCompany,
-            address: client.address,
             address_street: client.addressStreet,
             address_postal_code: client.addressPostalCode,
             address_city: client.addressCity,
@@ -392,7 +389,6 @@ export async function updateBudgetWithLines(args: {
   if (ensuredClientId === normalizedClientId) {
     await updateClientById(ensuredClientId, {
       name: client.nameOrCompany,
-      address: client.address,
       address_street: client.addressStreet,
       address_postal_code: client.addressPostalCode,
       address_city: client.addressCity,
@@ -401,8 +397,13 @@ export async function updateBudgetWithLines(args: {
 
   await updateBudgetById(budgetId, {
     client_id: ensuredClientId,
-    title: derivedTitle,
-    job_address: normalizeOptionalString(client.address),
+    title: derivedTitle ?? "",
+    job_address: normalizeOptionalString(
+      [client.addressStreet, client.addressPostalCode, client.addressCity]
+        .map((value) => (value ?? "").trim())
+        .filter(Boolean)
+        .join(", ")
+    ),
     quote_number: normalizeOptionalString(client.quoteNumber),
     document_date: normalizeOptionalString(client.date),
     estimated_time: normalizeOptionalString(client.estimatedTime),
@@ -464,7 +465,6 @@ export async function saveBudgetWithLines({
   // TODO: evolve to findOrCreateClient (avoid duplicates) once we define the matching rules.
   const { id: clientId } = await createClient({
     name: client.nameOrCompany,
-    address: client.address,
     address_street: client.addressStreet,
     address_postal_code: client.addressPostalCode,
     address_city: client.addressCity,

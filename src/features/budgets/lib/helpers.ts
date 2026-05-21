@@ -8,9 +8,7 @@ export function normalizeOptionalString(value: string | null | undefined): strin
 
 export function deriveBudgetTitle(client: BudgetClientDetails): string | null {
   const name = client.nameOrCompany.trim();
-  const addr = client.address.trim();
   if (name.length > 0) return name;
-  if (addr.length > 0) return addr;
   return null;
 }
 

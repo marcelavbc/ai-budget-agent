@@ -183,7 +183,6 @@ export function InvoiceView({
         {client.tax_id && (
           <p className={styles.clientDetail}>{client.tax_id}</p>
         )}
-        {/* Show new structured fields if available, fallback to legacy address */}
         {client.address_street ? (
           <>
             <p className={styles.clientDetail}>{client.address_street}</p>
@@ -195,8 +194,6 @@ export function InvoiceView({
               </p>
             )}
           </>
-        ) : client.address ? (
-          <p className={styles.clientDetail}>{client.address}</p>
         ) : null}
       </div>
 

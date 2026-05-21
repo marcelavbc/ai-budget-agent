@@ -32,9 +32,7 @@ function makeClientRow(overrides: Partial<ClientRow> = {}): ClientRow {
   return {
     id: "c1",
     name: "Joan García",
-    email: null,
     phone: null,
-    address: "Carrer Backup 5",
     address_street: null,
     address_postal_code: null,
     address_city: null,
@@ -77,40 +75,29 @@ function makeBudgetLine(overrides: Partial<BudgetLine> = {}): BudgetLine {
 }
 
 describe("buildInitialBudgetEditClientDetails", () => {
-  it("maps budget and client fields correctly (nameOrCompany, address, quoteNumber, date, estimatedTime)", () => {
+  it("maps budget and client fields correctly (nameOrCompany, address fields, quoteNumber, date, estimatedTime)", () => {
     const budget = makeBudgetRow({
       job_address: "Obra Carrer Nou 9",
       quote_number: "Q-42",
       document_date: "2026-03-01",
       estimated_time: "10 dies",
     });
-    const client = makeClientRow({ name: "Acme SL" });
+    const client = makeClientRow({
+      name: "Acme SL",
+      address_street: "Carrer Client 10",
+      address_postal_code: "08002",
+      address_city: "Barcelona",
+    });
 
     expect(buildInitialBudgetEditClientDetails({ budget, client })).toEqual({
       nameOrCompany: "Acme SL",
-      address: "Obra Carrer Nou 9",
+      addressStreet: "Carrer Client 10",
+      addressPostalCode: "08002",
+      addressCity: "Barcelona",
       quoteNumber: "Q-42",
       date: "2026-03-01",
       estimatedTime: "10 dies",
     });
-  });
-
-  it("uses job_address over client.address when both exist", () => {
-    const budget = makeBudgetRow({ job_address: "Site address" });
-    const client = makeClientRow({ address: "Client billing address" });
-
-    expect(buildInitialBudgetEditClientDetails({ budget, client }).address).toBe(
-      "Site address"
-    );
-  });
-
-  it("falls back to client.address when job_address is null", () => {
-    const budget = makeBudgetRow({ job_address: null });
-    const client = makeClientRow({ address: "Carrer Backup 5" });
-
-    expect(buildInitialBudgetEditClientDetails({ budget, client }).address).toBe(
-      "Carrer Backup 5"
-    );
   });
 
   it("returns empty strings for null/undefined fields (no undefined in output)", () => {
@@ -120,13 +107,20 @@ describe("buildInitialBudgetEditClientDetails", () => {
       document_date: null,
       estimated_time: null,
     });
-    const client = makeClientRow({ name: null, address: null });
+    const client = makeClientRow({
+      name: null,
+      address_street: null,
+      address_postal_code: null,
+      address_city: null,
+    });
 
     const details = buildInitialBudgetEditClientDetails({ budget, client });
 
     expect(details).toEqual({
       nameOrCompany: "",
-      address: "",
+      addressStreet: "",
+      addressPostalCode: "",
+      addressCity: "",
       quoteNumber: "",
       date: "",
       estimatedTime: "",

@@ -48,10 +48,16 @@ export function formatUnitCa(unit: string, quantityAsString: string): string {
 }
 
 export function buildIntroTextCa(client: BudgetClientDetails): string {
-  const address = (client.address ?? "").trim();
+  const address = [
+    client.addressStreet,
+    client.addressPostalCode,
+    client.addressCity,
+  ]
+    .map((value) => (value ?? "").trim())
+    .filter(Boolean)
+    .join(", ");
   if (address) {
-    const singleLineAddress = address.replace(/\n+/g, ", ");
-    return `Treballs de pintura a realitzar a ${singleLineAddress}.`;
+    return `Treballs de pintura a realitzar a ${address}.`;
   }
 
   return "Treballs de pintura detallats segons les partides indicades en aquest pressupost.";
