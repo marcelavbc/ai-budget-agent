@@ -51,9 +51,8 @@ function isAIParsedBudgetLines(value: unknown): value is AIParsedBudgetLines {
     if (optionGroupId != null && typeof optionGroupId !== "string") return false;
     if (optionLabel != null && typeof optionLabel !== "string") return false;
     if (
-      clientDescription != null &&
-      (typeof clientDescription !== "string" ||
-        clientDescription.trim().length === 0)
+      typeof clientDescription !== "string" ||
+      clientDescription.trim().length === 0
     ) {
       return false;
     }
