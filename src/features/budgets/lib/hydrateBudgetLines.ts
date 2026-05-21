@@ -30,7 +30,7 @@ export function hydrateBudgetLines(aiLines: AIParsedLine[]): BudgetLine[] {
     };
   });
 
-  const wallsLine = normalizedBaseLines.find(
+  const wallsLine = [...normalizedBaseLines].reverse().find(
     (line) =>
       line.type === "walls_and_ceilings" &&
       line.unitLabel === "m²" &&
