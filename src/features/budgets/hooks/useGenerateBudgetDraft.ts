@@ -1,5 +1,8 @@
 import { useState } from "react";
-import type { BudgetLine, BudgetDraftResponse } from "@/features/budgets/types/budget";
+import type {
+  BudgetLine,
+  BudgetDraftResponse,
+} from "@/features/budgets/types/budget";
 
 export function useGenerateBudgetDraft() {
   const [loading, setLoading] = useState(false);

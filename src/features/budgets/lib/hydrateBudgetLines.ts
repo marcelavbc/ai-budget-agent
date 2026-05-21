@@ -26,6 +26,7 @@ export function hydrateBudgetLines(aiLines: AIParsedLine[]): BudgetLine[] {
       pricingMode: unitMismatch ? "input" : template.pricingMode,
       optionGroupId: line.optionGroupId,
       optionLabel: line.optionLabel,
+      clientDescription: line.clientDescription,
     };
   });
 

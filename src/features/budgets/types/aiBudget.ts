@@ -7,6 +7,7 @@ export interface AIParsedLine {
   unitLabel: BudgetLineUnit;
   optionGroupId?: string;
   optionLabel?: string;
+  clientDescription?: string;
 }
 
 export interface AIParsedBudgetLines {

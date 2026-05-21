@@ -28,6 +28,7 @@ export interface BudgetLine {
   pricingMode: BudgetLinePricingMode;
   optionGroupId?: string;
   optionLabel?: string;
+  clientDescription?: string;
 }
 
 export interface BudgetDraftResponse {
@@ -71,6 +72,7 @@ export interface BudgetClientItem {
   unitPrice?: number;
   optionGroupId?: string;
   optionLabel?: string;
+  clientDescription?: string;
 }
 
 /** Budget header (client + reference); used for UI and PDF export. */

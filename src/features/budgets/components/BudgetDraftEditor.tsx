@@ -12,8 +12,12 @@ interface Props {
   warnings?: string[];
 }
 
-function segmentDraftItems(items: BudgetClientItem[]) {
-  const segments: Array<any> = [];
+type DraftSegment =
+  | { kind: "single"; item: BudgetClientItem }
+  | { kind: "optionGroup"; id: string; items: BudgetClientItem[] };
+
+function segmentDraftItems(items: BudgetClientItem[]): DraftSegment[] {
+  const segments: DraftSegment[] = [];
   let i = 0;
   while (i < items.length) {
     const cur = items[i]!;
@@ -32,7 +36,10 @@ function segmentDraftItems(items: BudgetClientItem[]) {
       j += 1;
     }
     if (groupItems.length < 2) {
-      segments.push({ kind: "single", item: { ...cur, optionGroupId: undefined, optionLabel: undefined } });
+      segments.push({
+        kind: "single",
+        item: { ...cur, optionGroupId: undefined, optionLabel: undefined },
+      });
     } else {
       segments.push({ kind: "optionGroup", id: groupId, items: groupItems });
     }
@@ -41,7 +48,12 @@ function segmentDraftItems(items: BudgetClientItem[]) {
   return segments;
 }
 
-export function BudgetDraftEditor({ items, onItemChange, onItemRemove, warnings }: Props) {
+export function BudgetDraftEditor({
+  items,
+  onItemChange,
+  onItemRemove,
+  warnings,
+}: Props) {
   const segments = segmentDraftItems(items);
 
   return (
@@ -63,17 +75,25 @@ export function BudgetDraftEditor({ items, onItemChange, onItemRemove, warnings 
 
       <ul className={styles.list}>
         {segments.map((seg) => {
-          const renderCard = (item: BudgetClientItem, optionLabel?: string, key?: string) => (
+          const renderCard = (
+            item: BudgetClientItem,
+            optionLabel?: string,
+            key?: string
+          ) => (
             <div key={key ?? item.id} className={styles.card}>
               <div className={styles.cardHeader}>
                 <div className={styles.cardTitleRow}>
-                  {optionLabel ? <span className={styles.optionBadge}>{optionLabel}</span> : null}
+                  {optionLabel ? (
+                    <span className={styles.optionBadge}>{optionLabel}</span>
+                  ) : null}
                   <div className={styles.itemTitleInputWrap}>
                     <input
                       className={styles.itemTitleInput}
                       type="text"
                       value={item.title}
-                      onChange={(e) => onItemChange(item.id, { title: e.target.value })}
+                      onChange={(e) =>
+                        onItemChange(item.id, { title: e.target.value })
+                      }
                       placeholder="Títol de la partida"
                     />
                   </div>
@@ -96,7 +116,12 @@ export function BudgetDraftEditor({ items, onItemChange, onItemRemove, warnings 
                   />
                   {onItemRemove ? (
                     <div className={styles.cardIconActions}>
-                      <button type="button" className={styles.iconBtnDanger} onClick={() => onItemRemove(item.id)} aria-label={`Eliminar ${item.title}`}>
+                      <button
+                        type="button"
+                        className={styles.iconBtnDanger}
+                        onClick={() => onItemRemove(item.id)}
+                        aria-label={`Eliminar ${item.title}`}
+                      >
                         <Trash2 size={16} />
                       </button>
                     </div>
@@ -122,7 +147,16 @@ export function BudgetDraftEditor({ items, onItemChange, onItemRemove, warnings 
 
                 <label className={styles.itemField}>
                   <span className={styles.itemFieldLabel}>Unitat</span>
-                  <select className={styles.itemFieldInput} value={item.unitLabel ?? "partida"} onChange={(e) => onItemChange(item.id, { unitLabel: e.target.value as BudgetClientItem["unitLabel"] })}>
+                  <select
+                    className={styles.itemFieldInput}
+                    value={item.unitLabel ?? "partida"}
+                    onChange={(e) =>
+                      onItemChange(item.id, {
+                        unitLabel: e.target
+                          .value as BudgetClientItem["unitLabel"],
+                      })
+                    }
+                  >
                     <option value="partida">partida</option>
                     <option value="unitat">unitat</option>
                     <option value="m²">m²</option>
@@ -130,18 +164,59 @@ export function BudgetDraftEditor({ items, onItemChange, onItemRemove, warnings 
                 </label>
               </div>
 
-              <textarea className={styles.descTextarea} value={item.description} onChange={(e) => onItemChange(item.id, { description: e.target.value })} rows={4} placeholder="Descripció de la partida…" />
+              <textarea
+                className={styles.descTextarea}
+                value={item.description}
+                onChange={(e) =>
+                  onItemChange(item.id, { description: e.target.value })
+                }
+                rows={4}
+                placeholder="Descripció de la partida…"
+              />
+              {(item.clientDescription?.trim() ?? "").length > 0 &&
+              item.description !== item.clientDescription ? (
+                <details className={styles.originalDescBlock}>
+                  <summary className={styles.originalDescSummary}>
+                    Text original
+                  </summary>
+                  <p className={styles.originalDescText}>
+                    {item.clientDescription}
+                  </p>
+                  <button
+                    type="button"
+                    className={styles.linkLike}
+                    onClick={() =>
+                      onItemChange(item.id, {
+                        description: item.clientDescription!,
+                      })
+                    }
+                  >
+                    Usar text original
+                  </button>
+                </details>
+              ) : null}
             </div>
           );
 
-          if (seg.kind === "single") return <li key={seg.item.id}>{renderCard(seg.item)}</li>;
+          if (seg.kind === "single")
+            return <li key={seg.item.id}>{renderCard(seg.item)}</li>;
 
           return (
             <li key={`opt-${seg.id}`} className={styles.optionGroup}>
               <div className={styles.optionGroupHeader}>
-                <span className={styles.optionGroupTitle}>Opcions alternatives</span>
+                <span className={styles.optionGroupTitle}>
+                  Opcions alternatives
+                </span>
               </div>
-              <div className={styles.optionGroupBody}>{seg.items.map((item) => renderCard(item, (item.optionLabel ?? "").trim() || "Opció", item.id))}</div>
+              <div className={styles.optionGroupBody}>
+                {seg.items.map((item) =>
+                  renderCard(
+                    item,
+                    (item.optionLabel ?? "").trim() || "Opció",
+                    item.id
+                  )
+                )}
+              </div>
             </li>
           );
         })}

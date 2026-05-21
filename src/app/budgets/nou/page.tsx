@@ -46,9 +46,15 @@ export default function NewBudgetPage() {
     const freshClientItems = generateBudgetDraft(items);
     setDraftItems((prev) => {
       const existingMap = new Map(prev.map((item) => [item.id, item]));
-      return freshClientItems.map(
-        (fresh) => existingMap.get(fresh.id) ?? fresh,
-      );
+      return freshClientItems.map((fresh) => {
+        const existing = existingMap.get(fresh.id);
+        if (!existing) return fresh;
+        return {
+          ...existing,
+          clientDescription:
+            fresh.clientDescription ?? existing.clientDescription,
+        };
+      });
     });
   }, [items]);
 
