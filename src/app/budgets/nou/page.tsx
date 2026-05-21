@@ -31,7 +31,7 @@ export default function NewBudgetPage() {
   const [view, setView] = useState<"lines" | "draft">("lines");
   const [draftItems, setDraftItems] = useState<BudgetClientItem[]>([]);
   const [clientDetails, setClientDetails] = useState<BudgetClientDetails>(
-    defaultBudgetClientDetails,
+    defaultBudgetClientDetails
   );
   const {
     quoteManuallyEdited,
@@ -72,12 +72,9 @@ export default function NewBudgetPage() {
     removeLine(id);
   }
 
-  function handleDraftItemChange(
-    id: string,
-    patch: Partial<BudgetClientItem>,
-  ) {
+  function handleDraftItemChange(id: string, patch: Partial<BudgetClientItem>) {
     setDraftItems((prev) =>
-      prev.map((item) => (item.id === id ? { ...item, ...patch } : item)),
+      prev.map((item) => (item.id === id ? { ...item, ...patch } : item))
     );
 
     const linePatch: Parameters<typeof updateLine>[1] = {};
@@ -117,8 +114,8 @@ export default function NewBudgetPage() {
                   Encara no hi ha partides
                 </h2>
                 <p className={styles.emptyItemsText}>
-                  Escriu una partida a dalt (p. ex. "Pintar menjador 18 m²") i
-                  la veurem aquí amb el preu estimat i la descripció.
+                  Escriu una partida a dalt (p. ex. Pintar menjador 18 m²) i la
+                  veurem aquí amb el preu estimat i la descripció.
                 </p>
               </section>
             ) : (
@@ -168,5 +165,3 @@ export default function NewBudgetPage() {
     </div>
   );
 }
-
-
