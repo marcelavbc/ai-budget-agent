@@ -74,7 +74,6 @@ interface Props {
   onItemChange: (id: string, patch: Partial<BudgetClientItem>) => void;
   onItemRemove?: (id: string) => void;
   itemsFooter?: React.ReactNode;
-  footerNotice?: React.ReactNode;
   onSave?: (args: {
     client: BudgetClientDetails;
     items: BudgetClientItem[];
@@ -94,7 +93,6 @@ export function BudgetDraftView({
   onItemChange,
   onItemRemove,
   itemsFooter,
-  footerNotice,
   onSave,
   quoteManuallyEdited,
   onQuoteNumberChange,
@@ -382,7 +380,6 @@ export function BudgetDraftView({
               {pdfError}
             </p>
           ) : null}
-          {footerNotice}
           <div className={styles.footerBtns}>
             <button
               type="button"

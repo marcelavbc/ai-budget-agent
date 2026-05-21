@@ -134,7 +134,6 @@ export default function NewBudgetPage() {
                   items={draftItems}
                   onItemChange={handleDraftItemChange}
                   onItemRemove={handleItemRemove}
-                  warnings={lastResponse?.errors}
                 />
                 <div className={styles.generateBlock}>
                   <button

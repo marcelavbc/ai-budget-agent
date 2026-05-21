@@ -9,7 +9,6 @@ interface Props {
   items: BudgetClientItem[];
   onItemChange: (id: string, patch: Partial<BudgetClientItem>) => void;
   onItemRemove?: (id: string) => void;
-  warnings?: string[];
 }
 
 type DraftSegment =
@@ -48,11 +47,10 @@ function segmentDraftItems(items: BudgetClientItem[]): DraftSegment[] {
   return segments;
 }
 
-export function BudgetDraftEditor({
+function BudgetDraftEditor({
   items,
   onItemChange,
   onItemRemove,
-  warnings,
 }: Props) {
   const segments = segmentDraftItems(items);
 
@@ -61,17 +59,6 @@ export function BudgetDraftEditor({
       <div className={styles.itemsTopBar}>
         <h3 className={styles.itemsTitle}>Partides</h3>
       </div>
-
-      {warnings && warnings.length > 0 ? (
-        <div className={styles.warnings}>
-          <p className={styles.warningsTitle}>Avís</p>
-          <ul className={styles.warningsList}>
-            {warnings.map((msg, index) => (
-              <li key={`warning-${index}-${msg}`}>{msg}</li>
-            ))}
-          </ul>
-        </div>
-      ) : null}
 
       <ul className={styles.list}>
         {segments.map((seg) => {
