@@ -152,11 +152,6 @@ export function BudgetDraftView({
       className={`${styles.root} ${mode === "edit" ? styles.rootEdit : ""}`}
     >
       <div className={styles.topBar}>
-        {mode !== "edit" ? (
-          <button type="button" className={styles.backBtn} onClick={onBack}>
-            ← Tornar a les partides
-          </button>
-        ) : null}
         {mode === "edit" ? (
           <>
             <h2 className={`${styles.heading} ${styles.headingEdit}`}>
@@ -203,7 +198,8 @@ export function BudgetDraftView({
                       disabled={generating}
                       onClick={() => handleGenerateBudgetPdf("ca")}
                     >
-                      Català <span className={styles.generateBudgetMenuHint}>PDF</span>
+                      Català{" "}
+                      <span className={styles.generateBudgetMenuHint}>PDF</span>
                     </button>
                     <button
                       type="button"
@@ -365,36 +361,36 @@ export function BudgetDraftView({
         })}
       </ul>
 
-      {mode === "edit" && itemsFooter ? (
+      {itemsFooter ? (
         <div className={styles.itemsFooter}>{itemsFooter}</div>
       ) : null}
 
       <div className={styles.footer}>
-          {saveError ? (
-            <p className={styles.saveError} role="alert">
-              {saveError}
-            </p>
-          ) : null}
-          {mode === "edit" && pdfError ? (
-            <p className={styles.saveError} role="alert">
-              {pdfError}
-            </p>
-          ) : null}
-          <div className={styles.footerBtns}>
-            <button
-              type="button"
-              className={styles.saveBtn}
-              onClick={handleSaveBudget}
-              disabled={!draftComplete || isSaving}
-            >
-              {isSaving
-                ? "Guardant pressupost…"
-                : mode === "edit"
-                  ? "Guardar canvis"
-                  : "Guardar pressupost"}
-            </button>
-          </div>
+        {saveError ? (
+          <p className={styles.saveError} role="alert">
+            {saveError}
+          </p>
+        ) : null}
+        {mode === "edit" && pdfError ? (
+          <p className={styles.saveError} role="alert">
+            {pdfError}
+          </p>
+        ) : null}
+        <div className={styles.footerBtns}>
+          <button
+            type="button"
+            className={styles.saveBtn}
+            onClick={handleSaveBudget}
+            disabled={!draftComplete || isSaving}
+          >
+            {isSaving
+              ? "Guardant pressupost…"
+              : mode === "edit"
+                ? "Guardar canvis"
+                : "Guardar pressupost"}
+          </button>
         </div>
+      </div>
     </section>
   );
 }
