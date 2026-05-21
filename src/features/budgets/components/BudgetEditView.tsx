@@ -8,7 +8,6 @@ import type {
 import { BudgetDraftView } from "@/features/budgets/components/BudgetDraftView";
 import { BudgetAIInput } from "@/features/budgets/components/BudgetAIInput";
 import { useBudgetEditController } from "@/features/budgets/hooks/useBudgetEditController";
-import { useRouter } from "next/navigation";
 
 export function BudgetEditView({
   budget,
@@ -20,7 +19,6 @@ export function BudgetEditView({
   lines: BudgetLineRow[];
 }) {
   const c = useBudgetEditController({ budget, client, lines });
-  const router = useRouter();
 
   return (
     <BudgetDraftView
@@ -48,7 +46,6 @@ export function BudgetEditView({
       quoteManuallyEdited={c.quoteManuallyEdited}
       onQuoteNumberChange={c.onQuoteNumberChange}
       onResetQuoteAutomation={c.resetAutomation}
-      onBack={() => router.push(`/budgets/${budget.id}`)}
       onSave={c.handleSave}
     />
   );

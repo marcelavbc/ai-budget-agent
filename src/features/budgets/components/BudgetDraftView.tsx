@@ -81,7 +81,6 @@ interface Props {
   quoteManuallyEdited: boolean;
   onQuoteNumberChange: (value: string) => void;
   onResetQuoteAutomation: () => void;
-  onBack: () => void;
 }
 
 export function BudgetDraftView({
@@ -97,7 +96,6 @@ export function BudgetDraftView({
   quoteManuallyEdited,
   onQuoteNumberChange,
   onResetQuoteAutomation,
-  onBack,
 }: Props) {
   const [isSaving, setIsSaving] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);

@@ -1,6 +1,5 @@
 "use client";
 
-import { useRouter } from "next/navigation";
 import { BudgetDraftView } from "@/features/budgets/components/BudgetDraftView";
 import { BudgetAIInput } from "@/features/budgets/components/BudgetAIInput";
 import { useBudgetCreateController } from "@/features/budgets/hooks/useBudgetCreateController";
@@ -9,7 +8,6 @@ import styles from "./page.module.css";
 
 export default function NewBudgetPage() {
   const c = useBudgetCreateController();
-  const router = useRouter();
 
   return (
     <div className={styles.wrap}>
@@ -40,7 +38,6 @@ export default function NewBudgetPage() {
           quoteManuallyEdited={c.quoteManuallyEdited}
           onQuoteNumberChange={c.onQuoteNumberChange}
           onResetQuoteAutomation={c.resetAutomation}
-          onBack={() => router.push("/budgets")}
           onSave={c.handleSave}
         />
       </div>
