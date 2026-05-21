@@ -4,6 +4,7 @@ import { useCallback, useRef, useState } from "react";
 import { useClickOutside } from "@/shared/hooks/useClickOutside";
 import { useRouter } from "next/navigation";
 import { ChevronDown, FileDown, Trash2 } from "lucide-react";
+import { formatEUR } from "@/shared/lib/formatCurrency";
 import type {
   BudgetClientDetails,
   BudgetClientItem,
@@ -17,6 +18,7 @@ import {
 } from "@/features/budgets/lib/budgetStatus";
 import { usePdfExport } from "@/features/budgets/hooks/usePdfExport";
 import { BudgetClientForm } from "@/features/budgets/components/BudgetClientForm";
+import { DecimalFieldInput } from "@/shared/components/DecimalFieldInput";
 import styles from "./BudgetDraftView.module.css";
 
 type DraftSegment =
@@ -109,6 +111,7 @@ export function BudgetDraftView({
 
   const draftComplete = isBudgetDraftComplete({ client, items });
   const status = normalizeBudgetStatus(budgetStatus);
+  const readOnly = mode !== "edit";
   const closePdfMenu = useCallback(() => setPdfMenuOpen(false), []);
   useClickOutside(pdfMenuRef, pdfMenuOpen, closePdfMenu);
 
@@ -155,7 +158,7 @@ export function BudgetDraftView({
       <div className={styles.topBar}>
         {mode !== "edit" ? (
           <button type="button" className={styles.backBtn} onClick={onBack}>
-            ← Tornar a les línies
+            ← Tornar a les partides
           </button>
         ) : null}
         {mode === "edit" ? (
@@ -252,41 +255,44 @@ export function BudgetDraftView({
                     <span className={styles.optionBadge}>{optionLabel}</span>
                   ) : null}
                   <div className={styles.itemTitleInputWrap}>
-                    <input
-                      className={styles.itemTitleInput}
-                      type="text"
-                      value={item.title}
-                      onChange={(e) =>
-                        onItemChange(item.id, { title: e.target.value })
-                      }
-                      placeholder="Títol de la partida"
-                    />
+                    {readOnly ? (
+                      <p className={styles.itemTitleText}>{item.title}</p>
+                    ) : (
+                      <input
+                        className={styles.itemTitleInput}
+                        type="text"
+                        value={item.title}
+                        onChange={(e) =>
+                          onItemChange(item.id, { title: e.target.value })
+                        }
+                        placeholder="Títol de la partida"
+                      />
+                    )}
                   </div>
                 </div>
                 <div className={styles.cardHeaderRight}>
-                  <input
-                    type="number"
-                    inputMode="decimal"
-                    className={styles.cardTotalInput}
-                    aria-label="Import total de la partida (€)"
-                    value={item.total ?? 0}
-                    min={0}
-                    step="0.01"
-                    onChange={(e) => {
-                      const t = Number(e.target.value);
-                      const total = Number.isFinite(t)
-                        ? Math.round(t * 100) / 100
-                        : 0;
-                      const quantity = item.quantity ?? 1;
-                      const patch: Partial<BudgetClientItem> = { total };
-                      if (quantity > 0) {
-                        patch.unitPrice =
-                          Math.round((total / quantity) * 100) / 100;
-                      }
-                      onItemChange(item.id, patch);
-                    }}
-                  />
-                  {onItemRemove ? (
+                  {readOnly ? (
+                    <span className={styles.itemTotalText}>
+                      {formatEUR(item.total ?? 0)}
+                    </span>
+                  ) : (
+                    <DecimalFieldInput
+                      className={styles.cardTotalInput}
+                      aria-label="Import total de la partida (€)"
+                      value={item.total ?? 0}
+                      onChange={(t) => {
+                        const total = Math.round(t * 100) / 100;
+                        const quantity = item.quantity ?? 1;
+                        const patch: Partial<BudgetClientItem> = { total };
+                        if (quantity > 0) {
+                          patch.unitPrice =
+                            Math.round((total / quantity) * 100) / 100;
+                        }
+                        onItemChange(item.id, patch);
+                      }}
+                    />
+                  )}
+                  {!readOnly && onItemRemove ? (
                     <div className={styles.cardIconActions}>
                       <button
                         type="button"
@@ -301,55 +307,58 @@ export function BudgetDraftView({
                 </div>
               </div>
 
-              <div className={styles.itemMetaRow}>
-                <label className={styles.itemField}>
-                  <span className={styles.itemFieldLabel}>Quant.</span>
-                  <input
-                    className={styles.itemFieldInput}
-                    type="number"
-                    inputMode="decimal"
-                    value={item.quantity ?? 1}
-                    min={0}
-                    step="0.01"
-                    onChange={(e) => {
-                      const q = Number(e.target.value);
-                      const quantity = Number.isFinite(q) ? q : 0;
-                      const unitPrice = item.unitPrice ?? 0;
-                      const total =
-                        Math.round(quantity * unitPrice * 100) / 100;
-                      onItemChange(item.id, { quantity, total });
-                    }}
-                  />
-                </label>
+              {!readOnly && (
+                <div className={styles.itemMetaRow}>
+                  <label className={styles.itemField}>
+                    <span className={styles.itemFieldLabel}>Quant.</span>
+                    <DecimalFieldInput
+                      className={styles.itemFieldInput}
+                      value={item.quantity ?? 1}
+                      onChange={(q) => {
+                        const quantity = Math.round(q * 100) / 100;
+                        const unitPrice = item.unitPrice ?? 0;
+                        const total =
+                          Math.round(quantity * unitPrice * 100) / 100;
+                        onItemChange(item.id, { quantity, total });
+                      }}
+                    />
+                  </label>
 
-                <label className={styles.itemField}>
-                  <span className={styles.itemFieldLabel}>Unitat</span>
-                  <select
-                    className={styles.itemFieldInput}
-                    value={item.unitLabel ?? "partida"}
-                    onChange={(e) =>
-                      onItemChange(item.id, {
-                        unitLabel: e.target
-                          .value as BudgetClientItem["unitLabel"],
-                      })
-                    }
-                  >
-                    <option value="partida">partida</option>
-                    <option value="unitat">unitat</option>
-                    <option value="m²">m²</option>
-                  </select>
-                </label>
-              </div>
+                  <label className={styles.itemField}>
+                    <span className={styles.itemFieldLabel}>Unitat</span>
+                    <select
+                      className={styles.itemFieldInput}
+                      value={item.unitLabel ?? "partida"}
+                      onChange={(e) =>
+                        onItemChange(item.id, {
+                          unitLabel: e.target
+                            .value as BudgetClientItem["unitLabel"],
+                        })
+                      }
+                    >
+                      <option value="partida">partida</option>
+                      <option value="unitat">unitat</option>
+                      <option value="m²">m²</option>
+                    </select>
+                  </label>
+                </div>
+              )}
 
-              <textarea
-                className={styles.descTextarea}
-                value={item.description}
-                onChange={(e) =>
-                  handleDescriptionChange(item.id, e.target.value)
-                }
-                rows={4}
-                placeholder="Descripció de la partida…"
-              />
+              {readOnly ? (
+                item.description ? (
+                  <p className={styles.descText}>{item.description}</p>
+                ) : null
+              ) : (
+                <textarea
+                  className={styles.descTextarea}
+                  value={item.description}
+                  onChange={(e) =>
+                    handleDescriptionChange(item.id, e.target.value)
+                  }
+                  rows={4}
+                  placeholder="Descripció de la partida…"
+                />
+              )}
             </div>
           );
 
@@ -383,32 +392,32 @@ export function BudgetDraftView({
       ) : null}
 
       <div className={styles.footer}>
-        {saveError ? (
-          <p className={styles.saveError} role="alert">
-            {saveError}
-          </p>
-        ) : null}
-        {mode === "edit" && pdfError ? (
-          <p className={styles.saveError} role="alert">
-            {pdfError}
-          </p>
-        ) : null}
-        {footerNotice}
-        <div className={styles.footerBtns}>
-          <button
-            type="button"
-            className={styles.saveBtn}
-            onClick={handleSaveBudget}
-            disabled={!draftComplete || isSaving}
-          >
-            {isSaving
-              ? "Guardant pressupost…"
-              : mode === "edit"
-                ? "Guardar canvis"
-                : "Guardar pressupost"}
-          </button>
+          {saveError ? (
+            <p className={styles.saveError} role="alert">
+              {saveError}
+            </p>
+          ) : null}
+          {mode === "edit" && pdfError ? (
+            <p className={styles.saveError} role="alert">
+              {pdfError}
+            </p>
+          ) : null}
+          {footerNotice}
+          <div className={styles.footerBtns}>
+            <button
+              type="button"
+              className={styles.saveBtn}
+              onClick={handleSaveBudget}
+              disabled={!draftComplete || isSaving}
+            >
+              {isSaving
+                ? "Guardant pressupost…"
+                : mode === "edit"
+                  ? "Guardar canvis"
+                  : "Guardar pressupost"}
+            </button>
+          </div>
         </div>
-      </div>
     </section>
   );
 }

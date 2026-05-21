@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import type {
   BudgetLine,
   BudgetListItem,
@@ -73,12 +73,15 @@ export function useBudgetLines() {
 
   // ─── derived state ──────────────────────────────────────────────────────────
 
-  const allLines = getAllLines(items);
-  const adjustedAllLines = applyPricePerSqm(allLines, pricePerSqm);
-  const lineMap = new Map(adjustedAllLines.map((l) => [l.id, l]));
-  const adjustedItems = applyLineMap(items, lineMap);
-
-  const hasPending = computeHasPending(adjustedAllLines);
+  const { adjustedItems, hasPending } = useMemo(() => {
+    const allLines = getAllLines(items);
+    const adjustedAllLines = applyPricePerSqm(allLines, pricePerSqm);
+    const lineMap = new Map(adjustedAllLines.map((l) => [l.id, l]));
+    return {
+      adjustedItems: applyLineMap(items, lineMap),
+      hasPending: computeHasPending(adjustedAllLines),
+    };
+  }, [items, pricePerSqm]);
 
   return {
     items: adjustedItems,

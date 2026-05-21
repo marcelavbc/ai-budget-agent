@@ -668,3 +668,28 @@
     width: 100%;
   }
 }
+
+/* Read-only item display */
+.itemTitleText {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--text);
+  line-height: 1.35;
+  letter-spacing: -0.01em;
+}
+
+.itemTotalText {
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--text);
+  white-space: nowrap;
+}
+
+.descText {
+  margin: 0.75rem 0 0;
+  font-size: 13px;
+  color: var(--text-muted);
+  line-height: 1.55;
+  white-space: pre-wrap;
+}
