@@ -44,6 +44,7 @@ export default function InvoiceStatusPill({
       onStatusChange?.("paid");
       router.refresh();
     } catch (err) {
+      console.error(err);
       setStatus(prev);
     } finally {
       setSaving(false);

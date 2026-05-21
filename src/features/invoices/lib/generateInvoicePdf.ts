@@ -577,23 +577,6 @@ export async function generateInvoicePdf(
   }
 
   // -------------------------------------------------------------------------
-  // Section: Payment line
-  // -------------------------------------------------------------------------
-
-  function drawPaymentLine() {
-    const iban = safeTrim(owner.bank_iban);
-    if (!iban) return;
-
-    ensureSpace(20);
-
-    doc.setFont("helvetica", "normal");
-    doc.setFontSize(9);
-    setTextColor(doc, COLORS.muted);
-    doc.text(labels.payment(iban), marginX, y);
-    y += 14;
-  }
-
-  // -------------------------------------------------------------------------
   // Divider helper
   // -------------------------------------------------------------------------
 
