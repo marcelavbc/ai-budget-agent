@@ -20,11 +20,13 @@ export async function POST(request: Request) {
 
     const { budgetId } = await saveBudgetWithLines({ client, items });
     return NextResponse.json({ budgetId });
-  } catch {
-    return NextResponse.json(
-      { error: "No s'ha pogut guardar el pressupost." },
-      { status: 500 }
-    );
+  } catch (e) {
+    console.error("POST /api/budgets failed:", e);
+    const message =
+      e instanceof Error
+        ? e.message
+        : "No s'ha pogut guardar el pressupost.";
+    return NextResponse.json({ error: message }, { status: 500 });
   }
 }
 

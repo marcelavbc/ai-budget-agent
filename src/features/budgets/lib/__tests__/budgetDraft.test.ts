@@ -27,47 +27,39 @@ function baseItems(): BudgetClientItem[] {
 }
 
 describe("isBudgetDraftComplete", () => {
-  it("returns false when any required client field is missing", () => {
-    const items = baseItems();
-
+  it("returns false when name or company is missing", () => {
     expect(
       isBudgetDraftComplete({
         client: { ...baseClient(), nameOrCompany: "" },
-        items,
-      })
+        items: baseItems(),
+      }),
     ).toBe(false);
     expect(
       isBudgetDraftComplete({
-        client: { ...baseClient(), quoteNumber: "" },
-        items,
-      })
-    ).toBe(false);
-    expect(
-      isBudgetDraftComplete({ client: { ...baseClient(), date: "" }, items })
-    ).toBe(false);
-    expect(
-      isBudgetDraftComplete({
-        client: { ...baseClient(), estimatedTime: "" },
-        items,
-      })
+        client: { ...baseClient(), nameOrCompany: "   " },
+        items: baseItems(),
+      }),
     ).toBe(false);
   });
 
-  it("returns false when there are no items or description is missing", () => {
-    expect(isBudgetDraftComplete({ client: baseClient(), items: [] })).toBe(
-      false
-    );
+  it("returns true when only name or company is filled", () => {
+    expect(
+      isBudgetDraftComplete({
+        client: {
+          ...baseClient(),
+          quoteNumber: "",
+          date: "",
+          estimatedTime: "",
+        },
+        items: [],
+      }),
+    ).toBe(true);
+
     expect(
       isBudgetDraftComplete({
         client: baseClient(),
         items: [{ ...baseItems()[0], description: "  " }],
-      })
-    ).toBe(false);
-  });
-
-  it("returns true when everything is complete", () => {
-    expect(
-      isBudgetDraftComplete({ client: baseClient(), items: baseItems() })
+      }),
     ).toBe(true);
   });
 });

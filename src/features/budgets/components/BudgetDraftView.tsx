@@ -4,7 +4,6 @@ import { useCallback, useRef, useState } from "react";
 import { useClickOutside } from "@/shared/hooks/useClickOutside";
 import { useRouter } from "next/navigation";
 import { ChevronDown, FileDown, Trash2 } from "lucide-react";
-import { formatEUR } from "@/shared/lib/formatCurrency";
 import type {
   BudgetClientDetails,
   BudgetClientItem,
@@ -111,7 +110,6 @@ export function BudgetDraftView({
 
   const draftComplete = isBudgetDraftComplete({ client, items });
   const status = normalizeBudgetStatus(budgetStatus);
-  const readOnly = mode !== "edit";
   const closePdfMenu = useCallback(() => setPdfMenuOpen(false), []);
   useClickOutside(pdfMenuRef, pdfMenuOpen, closePdfMenu);
 
@@ -255,44 +253,34 @@ export function BudgetDraftView({
                     <span className={styles.optionBadge}>{optionLabel}</span>
                   ) : null}
                   <div className={styles.itemTitleInputWrap}>
-                    {readOnly ? (
-                      <p className={styles.itemTitleText}>{item.title}</p>
-                    ) : (
-                      <input
-                        className={styles.itemTitleInput}
-                        type="text"
-                        value={item.title}
-                        onChange={(e) =>
-                          onItemChange(item.id, { title: e.target.value })
-                        }
-                        placeholder="Títol de la partida"
-                      />
-                    )}
+                    <input
+                      className={styles.itemTitleInput}
+                      type="text"
+                      value={item.title}
+                      onChange={(e) =>
+                        onItemChange(item.id, { title: e.target.value })
+                      }
+                      placeholder="Títol de la partida"
+                    />
                   </div>
                 </div>
                 <div className={styles.cardHeaderRight}>
-                  {readOnly ? (
-                    <span className={styles.itemTotalText}>
-                      {formatEUR(item.total ?? 0)}
-                    </span>
-                  ) : (
-                    <DecimalFieldInput
-                      className={styles.cardTotalInput}
-                      aria-label="Import total de la partida (€)"
-                      value={item.total ?? 0}
-                      onChange={(t) => {
-                        const total = Math.round(t * 100) / 100;
-                        const quantity = item.quantity ?? 1;
-                        const patch: Partial<BudgetClientItem> = { total };
-                        if (quantity > 0) {
-                          patch.unitPrice =
-                            Math.round((total / quantity) * 100) / 100;
-                        }
-                        onItemChange(item.id, patch);
-                      }}
-                    />
-                  )}
-                  {!readOnly && onItemRemove ? (
+                  <DecimalFieldInput
+                    className={styles.cardTotalInput}
+                    aria-label="Import total de la partida (€)"
+                    value={item.total ?? 0}
+                    onChange={(t) => {
+                      const total = Math.round(t * 100) / 100;
+                      const quantity = item.quantity ?? 1;
+                      const patch: Partial<BudgetClientItem> = { total };
+                      if (quantity > 0) {
+                        patch.unitPrice =
+                          Math.round((total / quantity) * 100) / 100;
+                      }
+                      onItemChange(item.id, patch);
+                    }}
+                  />
+                  {onItemRemove ? (
                     <div className={styles.cardIconActions}>
                       <button
                         type="button"
@@ -307,58 +295,50 @@ export function BudgetDraftView({
                 </div>
               </div>
 
-              {!readOnly && (
-                <div className={styles.itemMetaRow}>
-                  <label className={styles.itemField}>
-                    <span className={styles.itemFieldLabel}>Quant.</span>
-                    <DecimalFieldInput
-                      className={styles.itemFieldInput}
-                      value={item.quantity ?? 1}
-                      onChange={(q) => {
-                        const quantity = Math.round(q * 100) / 100;
-                        const unitPrice = item.unitPrice ?? 0;
-                        const total =
-                          Math.round(quantity * unitPrice * 100) / 100;
-                        onItemChange(item.id, { quantity, total });
-                      }}
-                    />
-                  </label>
+              <div className={styles.itemMetaRow}>
+                <label className={styles.itemField}>
+                  <span className={styles.itemFieldLabel}>Quant.</span>
+                  <DecimalFieldInput
+                    className={styles.itemFieldInput}
+                    value={item.quantity ?? 1}
+                    onChange={(q) => {
+                      const quantity = Math.round(q * 100) / 100;
+                      const unitPrice = item.unitPrice ?? 0;
+                      const total =
+                        Math.round(quantity * unitPrice * 100) / 100;
+                      onItemChange(item.id, { quantity, total });
+                    }}
+                  />
+                </label>
 
-                  <label className={styles.itemField}>
-                    <span className={styles.itemFieldLabel}>Unitat</span>
-                    <select
-                      className={styles.itemFieldInput}
-                      value={item.unitLabel ?? "partida"}
-                      onChange={(e) =>
-                        onItemChange(item.id, {
-                          unitLabel: e.target
-                            .value as BudgetClientItem["unitLabel"],
-                        })
-                      }
-                    >
-                      <option value="partida">partida</option>
-                      <option value="unitat">unitat</option>
-                      <option value="m²">m²</option>
-                    </select>
-                  </label>
-                </div>
-              )}
+                <label className={styles.itemField}>
+                  <span className={styles.itemFieldLabel}>Unitat</span>
+                  <select
+                    className={styles.itemFieldInput}
+                    value={item.unitLabel ?? "partida"}
+                    onChange={(e) =>
+                      onItemChange(item.id, {
+                        unitLabel: e.target
+                          .value as BudgetClientItem["unitLabel"],
+                      })
+                    }
+                  >
+                    <option value="partida">partida</option>
+                    <option value="unitat">unitat</option>
+                    <option value="m²">m²</option>
+                  </select>
+                </label>
+              </div>
 
-              {readOnly ? (
-                item.description ? (
-                  <p className={styles.descText}>{item.description}</p>
-                ) : null
-              ) : (
-                <textarea
-                  className={styles.descTextarea}
-                  value={item.description}
-                  onChange={(e) =>
-                    handleDescriptionChange(item.id, e.target.value)
-                  }
-                  rows={4}
-                  placeholder="Descripció de la partida…"
-                />
-              )}
+              <textarea
+                className={styles.descTextarea}
+                value={item.description}
+                onChange={(e) =>
+                  handleDescriptionChange(item.id, e.target.value)
+                }
+                rows={4}
+                placeholder="Descripció de la partida…"
+              />
             </div>
           );
 

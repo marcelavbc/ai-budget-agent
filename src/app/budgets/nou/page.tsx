@@ -151,6 +151,7 @@ export default function NewBudgetPage() {
             clientDetails={clientDetails}
             onClientDetailsChange={setClientWithAutoQuote}
             onItemChange={handleDraftItemChange}
+            onItemRemove={handleItemRemove}
             quoteManuallyEdited={quoteManuallyEdited}
             onQuoteNumberChange={onQuoteNumberChange}
             onResetQuoteAutomation={resetAutomation}

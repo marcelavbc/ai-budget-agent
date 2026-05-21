@@ -22,7 +22,7 @@ export function calcBudgetHeaderAmounts(
   items: BudgetClientItem[],
   taxRate: number
 ) {
-  const subtotal = items.reduce((sum, item) => sum + item.total, 0);
+  const subtotal = items.reduce((sum, item) => sum + (item.total ?? 0), 0);
   const tax_amount = round2(subtotal * (taxRate / 100));
   return { subtotal, tax_amount };
 }
@@ -37,17 +37,25 @@ export function toBudgetLineRows(
   budgetId: string,
   items: BudgetClientItem[]
 ): TablesInsert<"budget_lines">[] {
-  return items.map((item, idx) => ({
-    budget_id: budgetId,
-    title: normalizeOptionalString(item.title),
-    description: normalizeOptionalString(item.description),
-    quantity: item.quantity ?? 1,
-    unit: normalizeOptionalString(item.unitLabel ?? null),
-    unit_price: item.unitPrice ?? null,
-    line_total: item.total,
-    option_group_id: normalizeOptionalString(item.optionGroupId),
-    option_label: normalizeOptionalString(item.optionLabel),
-    sort_order: idx,
-  }));
+  return items.map((item, idx) => {
+    const quantity = item.quantity ?? 1;
+    const lineTotal = item.total ?? 0;
+    const unitPrice =
+      item.unitPrice ??
+      (quantity > 0 ? round2(lineTotal / quantity) : 0);
+
+    return {
+      budget_id: budgetId,
+      title: normalizeOptionalString(item.title),
+      description: (item.description ?? "").trim(),
+      quantity,
+      unit: normalizeOptionalString(item.unitLabel ?? null),
+      unit_price: unitPrice,
+      line_total: lineTotal,
+      option_group_id: normalizeOptionalString(item.optionGroupId),
+      option_label: normalizeOptionalString(item.optionLabel),
+      sort_order: idx,
+    };
+  });
 }
 

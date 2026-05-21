@@ -174,6 +174,22 @@ describe("toBudgetLineRows", () => {
     expect(row?.title).toBeNull();
   });
 
+  it("empty description is stored as empty string for DB not-null constraint", () => {
+    const [row] = toBudgetLineRows("budget-1", [
+      makeItem({ description: "  " }),
+    ]);
+
+    expect(row?.description).toBe("");
+  });
+
+  it("missing unitPrice is derived from total and quantity", () => {
+    const [row] = toBudgetLineRows("budget-1", [
+      makeItem({ unitPrice: undefined, total: 120, quantity: 10 }),
+    ]);
+
+    expect(row?.unit_price).toBe(12);
+  });
+
   it("optionGroupId and optionLabel are preserved when present", () => {
     const [row] = toBudgetLineRows("budget-1", [
       makeItem({ optionGroupId: "group-1", optionLabel: "Opció A" }),
