@@ -1,94 +1,118 @@
-# AI Assistant Context — ai-budget-agent
+# Contexto para asistentes IA — ai-budget-agent
 
-This document summarizes the main features, components, data flow, and key decisions in the ai-budget-agent codebase. Use this as context for an AI assistant or new contributor.
+Resumen de funcionalidades, componentes, flujos de datos y decisiones del proyecto. Complementa `progress.md` (estado y cambios recientes).
 
-## Overview
+## Resumen
 
-- Purpose: Web app for creating and managing budgets and invoices, with AI-assisted budget draft generation and item translation.
-- Main domains: Budgets (create/edit/generate), Invoices (create from budgets), Auth, AI parsing/translation, PDF export.
+- **Propósito**: app web para presupuestos y facturas, con generación de partidas por IA (Groq) y persistencia en Supabase.
+- **Dominios**: presupuestos (crear/editar/listar/PDF), facturas (desde presupuesto), auth, parsing/traducción IA.
 
-## Tech stack & tooling
+## Stack
 
-- Framework: Next.js (app router), React, TypeScript
-- Backend/DB: Supabase (via `src/core/lib/supabaseClient.ts`)
-- AI: Groq chat completions adapter (see AI lib)
-- Testing: Cypress (E2E) and Vitest (unit)
-- Packaging and scripts: `package.json` (pnpm-compatible)
+| Capa | Tecnología |
+|------|------------|
+| Frontend | Next.js 15 (App Router), React 19, TypeScript |
+| Estilos | CSS Modules |
+| Estado | Local en páginas/hooks (sin Zustand ni Context global) |
+| BD | Supabase — cliente server en `src/core/lib/supabaseClient.ts` |
+| IA | Groq — `src/features/budgets/lib/ai/groq.ts` |
+| Tests | Vitest (unit), Cypress (E2E) |
+| Dev | `pnpm dev` → puerto **3001** |
 
-## Main features
+## Funcionalidades principales
 
-- Budget creation, editing, and listing
-- AI-assisted draft generation from free-form text (`/api/generate-budget-draft`)
-- Item translation for budgets (`/api/translate-budget-items`)
-- Export budgets to PDF and generate invoices from budgets
+- Listado y filtrado de presupuestos (`filterBudgets.ts`)
+- Creación `/budgets/nou`: dos vistas (`lines` → `draft`), ver `docs/ADD_BUDGET_FLOW.md`
+- Edición `/budgets/[id]/edit`: una pantalla (`BudgetEditView` + IA para añadir partidas)
+- IA: `POST /api/generate-budget-draft`, `POST /api/translate-budget-items`
+- PDF presupuesto (CA/ES en edición), PDF factura
+- Facturas desde presupuesto (`create_invoice_from_budget`)
 
-## Important files & folders
+## Rutas API relevantes
 
-- Project root: [package.json](package.json), [next.config.ts](next.config.ts), [tsconfig.json](tsconfig.json)
-- App entry and pages: [src/app](src/app)
-- API routes: [src/app/api](src/app/api)
-- Supabase client and types: [src/core/lib/supabaseClient.ts](src/core/lib/supabaseClient.ts), [src/core/types/supabase.ts](src/core/types/supabase.ts)
-- Budgets feature: [src/features/budgets](src/features/budgets)
-- Shared components & utilities: [src/shared/components](src/shared/components), [src/shared/lib](src/shared/lib)
-- Tests: [cypress/e2e](cypress/e2e), [vitest.config.ts](vitest.config.ts)
+| Ruta | Uso |
+|------|-----|
+| `POST /api/auth/login` | Cookie `auth_session` |
+| `GET/POST /api/budgets` | Listar / crear presupuesto |
+| `GET/PUT /api/budgets/[id]` | Detalle / actualizar |
+| `POST /api/generate-budget-draft` | Texto → líneas IA |
+| `POST /api/translate-budget-items` | Traducción de partidas |
+| `POST /api/invoices/from-budget` | Crear factura |
 
-## Key API routes (server handlers)
+## Componentes UI (presupuestos)
 
-- Auth: [src/app/api/auth/login/route.ts](src/app/api/auth/login/route.ts) — simple password-based login sets `auth_session` cookie.
-- Budgets: [src/app/api/budgets/route.ts](src/app/api/budgets/route.ts) and [src/app/api/budgets/[id]/route.ts](src/app/api/budgets/[id]/route.ts) — CRUD + export and client-data endpoints.
-- Generate draft (AI): [src/app/api/generate-budget-draft/route.ts](src/app/api/generate-budget-draft/route.ts)
-- Translate items (AI): [src/app/api/translate-budget-items/route.ts](src/app/api/translate-budget-items/route.ts)
-- Invoices-from-budget: [src/app/api/invoices/from-budget/route.ts](src/app/api/invoices/from-budget/route.ts)
+| Componente | Uso |
+|------------|-----|
+| `BudgetsView` | Listado |
+| `BudgetForm` | Wrapper de `BudgetAIInput` en creación |
+| `BudgetAIInput` | Textarea + envío IA (+ slider m² opcional) |
+| `BudgetDraftEditor` | Partidas editables en vista `lines` de `/nou` |
+| `BudgetDraftView` | Cliente + partidas + guardar (crear y editar) |
+| `BudgetEditView` | Página de edición; compone `BudgetDraftView` + IA |
+| `BudgetClientForm` | Campos del cliente |
+| `DecimalFieldInput` | Inputs numéricos compartidos (`src/shared`) |
 
-## Key UI components
+**Obsoleto en flujo activo:** `BudgetLinesList` (eliminado del flujo de creación). `BudgetOptionGroupCard` / `DraggableLine` existen pero la UI actual de grupos está en `BudgetDraftEditor` / `BudgetDraftView`.
 
-- Budgets listing and view: [src/features/budgets/components/BudgetsView.tsx](src/features/budgets/components/BudgetsView.tsx)
-- Budget editor form: [src/features/budgets/components/BudgetForm.tsx](src/features/budgets/components/BudgetForm.tsx)
-- Budget lines list: [src/features/budgets/components/BudgetLinesList.tsx](src/features/budgets/components/BudgetLinesList.tsx)
-- AI input widget: [src/features/budgets/components/BudgetAIInput.tsx](src/features/budgets/components/BudgetAIInput.tsx)
-- Draft preview: [src/features/budgets/components/BudgetDraftView.tsx](src/features/budgets/components/BudgetDraftView.tsx)
-- Shared UI: [src/shared/components/Header.tsx](src/shared/components/Header.tsx), [src/shared/components/FilterBar.tsx](src/shared/components/FilterBar.tsx)
+## Flujo de datos (IA → guardar)
 
-## Data flow & integrations
+```
+BudgetAIInput
+  → POST /api/generate-budget-draft
+  → parseBudgetLinesWithAI + hydrateBudgetLines
+  → BudgetLine[] en useBudgetLines
+  → generateBudgetDraft → BudgetClientItem[] (draftItems)
+  → BudgetDraftView → saveBudgetWithLines (client)
+  → POST /api/budgets → saveBudgetWithLines (server) → Supabase
+```
 
-- Client-side UI components call API routes via `fetch` (client hooks/components).
-- API handlers use the Supabase client from [src/core/lib/supabaseClient.ts](src/core/lib/supabaseClient.ts) to read/write DB.
-- Authentication is implemented by a simple password check in the `auth` route which sets an `auth_session` cookie used by client requests.
-- AI flows:
-  - `BudgetAIInput` (client) → `POST /api/generate-budget-draft` → server uses parsing utilities in `src/features/budgets/lib` → calls Groq via `src/features/budgets/lib/ai/groq.ts` → returns validated JSON draft to client.
-  - `POST /api/translate-budget-items` → server translates item lines via Groq and returns preserved-brand translations.
+**Validación guardar (crear):** solo `client.nameOrCompany` no vacío (`isBudgetDraftComplete`).
 
-## AI-specific files & notes
+**Mapeo líneas BD:** `toBudgetLineRows` — `description` nunca `null`; `unit_price` calculado si falta.
 
-- Groq adapter: [src/features/budgets/lib/ai/groq.ts](src/features/budgets/lib/ai/groq.ts) — expects `GROQ_API_KEY` and `GROQ_CHAT_COMPLETIONS_URL` env vars.
-- Parsing & validation: [src/features/budgets/lib/parseBudgetLinesWithAI.ts](src/features/budgets/lib/parseBudgetLinesWithAI.ts)
-- Draft builder: [src/features/budgets/lib/buildBudgetDraftFromAI.ts](src/features/budgets/lib/buildBudgetDraftFromAI.ts)
-- Translation: [src/features/budgets/lib/translateBudgetItems.ts](src/features/budgets/lib/translateBudgetItems.ts)
+## Archivos IA
 
-## Testing & CI
+- `parseBudgetLinesWithAI.ts` — prompt y validación JSON
+- `buildBudgetDraftFromAI.ts` — orquesta parse + hydrate
+- `generateBudgetDraft.ts` — plantillas de descripción por tipo de línea
+- `translateBudgetItems.ts` — traducción
 
-- E2E: Cypress specs at [cypress/e2e](cypress/e2e) — e.g., [cypress/e2e/login.cy.ts](cypress/e2e/login.cy.ts).
-- Unit: Vitest configured in [vitest.config.ts](vitest.config.ts); feature tests are under `src/features/*/__tests__`.
+## Grupos de opciones
 
-## Key architectural decisions & rationale
+Ver `docs/OPTION_GROUP_FLOW.md`. Metadatos `optionGroupId` / `optionLabel` desde la IA hasta PDF y BD.
 
-- Next.js App Router: modern React + server components, streamlined route handlers in `src/app/api`.
-- Supabase for DB/auth: simple hosted Postgres with REST-like client (keeps server code concise).
-- AI via Groq: centralized adapter (`ai/groq.ts`) to keep prompts & validation consistent.
-- CSS Modules: scoped styling in component-level `.module.css` files for predictable styles.
-- Testing split: e2e flows for UX-critical paths (Cypress) and unit tests for parsing/AI helpers (Vitest).
+## Tests
 
-## Quick pointers for an AI assistant
+- Unit: `src/features/**/__tests__` (Vitest; ~158 tests)
+- E2E: `cypress/e2e/` — login, budgets, new-budget (IA mock, grupos opción, slider)
 
-- To generate budgets from user text, inspect [src/features/budgets/components/BudgetAIInput.tsx](src/features/budgets/components/BudgetAIInput.tsx) and the handler [src/app/api/generate-budget-draft/route.ts](src/app/api/generate-budget-draft/route.ts).
-- For database schema or migrations, check [supabase/migrations](supabase/migrations).
-- For configuration and env var requirements: `GROQ_API_KEY`, `NEXT_PUBLIC_SUPABASE_URL` / `NEXT_PUBLIC_SUPABASE_ANON_KEY` (or server keys), and standard Next.js envs.
+## Decisiones de arquitectura
 
-## Next steps (recommendations)
+- App Router + route handlers en `src/app/api`
+- Supabase solo en server para escrituras sensibles; tipos en `src/core/types/supabase.ts`
+- Adaptador Groq centralizado
+- Sin estado global: hooks `useBudgetLines`, `useBudgetEditController`, `useQuoteNumber`, etc.
 
-- Add a small `docs/ROUTES.md` mapping each API route to inputs/outputs for quick reference.
-- Add an env sample file `env.example` listing required env vars for local development and AI features.
+## Variables de entorno
+
+- `GROQ_API_KEY`, `GROQ_CHAT_COMPLETIONS_URL`
+- `NEXT_PUBLIC_SUPABASE_URL`, claves Supabase (anon/service según uso)
+- Credenciales de login (ruta auth)
+
+## Documentación relacionada
+
+| Doc | Contenido |
+|-----|-----------|
+| [progress.md](../progress.md) | Progreso, commits recientes, pendientes |
+| [ADD_BUDGET_FLOW.md](./ADD_BUDGET_FLOW.md) | Creación en `/budgets/nou` |
+| [OPTION_GROUP_FLOW.md](./OPTION_GROUP_FLOW.md) | Alternativas IA |
+
+## Pendientes documentados (no implementados)
+
+- Unificar `/budgets/nou` con el flujo de edición (una sola pantalla)
+- UX descripción usuario vs plantilla técnica (`suggestedDescription`) — diseñado pero no en el repo actual
+- `docs/ROUTES.md`, `env.example` — recomendados
 
 ---
 
-_Generated automatically to help AI assistants and new contributors get up to speed quickly._
+_Actualizado a mayo de 2026._
