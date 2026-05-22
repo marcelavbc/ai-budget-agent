@@ -116,6 +116,7 @@ export function BudgetListItemActions({
         quoteNumber: (budget.quote_number ?? "").trim(),
         date: (budget.document_date ?? "").trim(),
         estimatedTime: (budget.estimated_time ?? "").trim(),
+        lang: "ca" as const,
       };
 
       await exportPdf({

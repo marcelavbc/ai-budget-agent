@@ -26,6 +26,7 @@ export function buildInitialBudgetEditClientDetails(args: {
     quoteNumber: (budget.quote_number ?? "").trim(),
     date: (budget.document_date ?? "").trim(),
     estimatedTime: (budget.estimated_time ?? "").trim(),
+    lang: (budget.lang === "es" ? "es" : "ca") as "ca" | "es",
   };
 }
 

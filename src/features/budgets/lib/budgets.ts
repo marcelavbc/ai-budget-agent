@@ -205,6 +205,7 @@ export async function createBudget({
         subtotal,
         tax_rate: taxRate,
         tax_amount,
+        lang: client.lang,
       },
     ])
     .select("id")
@@ -248,6 +249,7 @@ export async function updateBudgetById(
       | "subtotal"
       | "tax_rate"
       | "tax_amount"
+      | "lang"
     >
   >
 ): Promise<void> {
@@ -276,6 +278,7 @@ export async function updateBudgetById(
     subtotal: patch.subtotal,
     tax_rate: patch.tax_rate,
     tax_amount: patch.tax_amount,
+    lang: patch.lang,
   };
 
   const { error } = await supabase
@@ -411,6 +414,7 @@ export async function updateBudgetWithLines(args: {
     subtotal,
     tax_rate: taxRate,
     tax_amount,
+    lang: client.lang,
   });
 
   await replaceBudgetLines(budgetId, items);

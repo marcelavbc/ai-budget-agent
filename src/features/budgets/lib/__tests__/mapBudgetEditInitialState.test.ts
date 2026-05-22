@@ -1,6 +1,10 @@
 import { describe, expect, it } from "vitest";
 import type { BudgetLine } from "@/features/budgets/types/budget";
-import type { BudgetLineRow, BudgetRow, ClientRow } from "@/features/budgets/types/budgetsDb";
+import type {
+  BudgetLineRow,
+  BudgetRow,
+  ClientRow,
+} from "@/features/budgets/types/budgetsDb";
 import { budgetLinesToClientItems } from "@/features/budgets/lib/budgetLineToClientItem";
 import {
   buildInitialBudgetEditClientDetails,
@@ -11,6 +15,7 @@ function makeBudgetRow(overrides: Partial<BudgetRow> = {}): BudgetRow {
   return {
     id: "b1",
     client_id: "c1",
+    invoice_id: null,
     title: "Test budget",
     job_address: "Carrer Major 1",
     quote_number: "2025-01",
@@ -21,9 +26,10 @@ function makeBudgetRow(overrides: Partial<BudgetRow> = {}): BudgetRow {
     tax_rate: 0,
     tax_amount: 0,
     notes: null,
-    issue_date: null,
-    created_at: null,
-    updated_at: null,
+    issue_date: "2025-01-01T00:00:00.000Z",
+    created_at: "2025-01-01T00:00:00.000Z",
+    updated_at: "2025-01-01T00:00:00.000Z",
+    lang: "ca",
     ...overrides,
   };
 }
@@ -37,12 +43,14 @@ function makeClientRow(overrides: Partial<ClientRow> = {}): ClientRow {
     address_postal_code: null,
     address_city: null,
     tax_id: null,
-    created_at: null,
+    created_at: "2025-01-01T00:00:00.000Z",
     ...overrides,
   };
 }
 
-function makeBudgetLineRow(overrides: Partial<BudgetLineRow> = {}): BudgetLineRow {
+function makeBudgetLineRow(
+  overrides: Partial<BudgetLineRow> = {}
+): BudgetLineRow {
   return {
     id: "l1",
     budget_id: "b1",
@@ -55,7 +63,7 @@ function makeBudgetLineRow(overrides: Partial<BudgetLineRow> = {}): BudgetLineRo
     sort_order: 0,
     option_group_id: null,
     option_label: null,
-    created_at: null,
+    created_at: "2025-01-01T00:00:00.000Z",
     ...overrides,
   };
 }
@@ -97,6 +105,7 @@ describe("buildInitialBudgetEditClientDetails", () => {
       quoteNumber: "Q-42",
       date: "2026-03-01",
       estimatedTime: "10 dies",
+      lang: "ca",
     });
   });
 
@@ -107,12 +116,14 @@ describe("buildInitialBudgetEditClientDetails", () => {
       document_date: null,
       estimated_time: null,
     });
-    const client = makeClientRow({
+    const client = {
+      ...makeClientRow({
+        address_street: null,
+        address_postal_code: null,
+        address_city: null,
+      }),
       name: null,
-      address_street: null,
-      address_postal_code: null,
-      address_city: null,
-    });
+    } as unknown as ClientRow;
 
     const details = buildInitialBudgetEditClientDetails({ budget, client });
 
@@ -124,6 +135,7 @@ describe("buildInitialBudgetEditClientDetails", () => {
       quoteNumber: "",
       date: "",
       estimatedTime: "",
+      lang: "ca",
     });
     expect(Object.values(details).every((v) => v !== undefined)).toBe(true);
   });
@@ -155,23 +167,33 @@ describe("buildInitialBudgetEditItems", () => {
   });
 
   it('falls back to "Partida" when title is null or empty', () => {
-    expect(buildInitialBudgetEditItems({ lines: [makeBudgetLineRow({ title: null })] })[0]?.title).toBe(
-      "Partida"
-    );
-    expect(buildInitialBudgetEditItems({ lines: [makeBudgetLineRow({ title: "" })] })[0]?.title).toBe(
-      "Partida"
-    );
     expect(
-      buildInitialBudgetEditItems({ lines: [makeBudgetLineRow({ title: "   " })] })[0]?.title
+      buildInitialBudgetEditItems({
+        lines: [makeBudgetLineRow({ title: null })],
+      })[0]?.title
+    ).toBe("Partida");
+    expect(
+      buildInitialBudgetEditItems({
+        lines: [makeBudgetLineRow({ title: "" })],
+      })[0]?.title
+    ).toBe("Partida");
+    expect(
+      buildInitialBudgetEditItems({
+        lines: [makeBudgetLineRow({ title: "   " })],
+      })[0]?.title
     ).toBe("Partida");
   });
 
   it('falls back to "partida" unitLabel for unknown unit values', () => {
     expect(
-      buildInitialBudgetEditItems({ lines: [makeBudgetLineRow({ unit: "kg" })] })[0]?.unitLabel
+      buildInitialBudgetEditItems({
+        lines: [makeBudgetLineRow({ unit: "kg" })],
+      })[0]?.unitLabel
     ).toBe("partida");
     expect(
-      buildInitialBudgetEditItems({ lines: [makeBudgetLineRow({ unit: null })] })[0]?.unitLabel
+      buildInitialBudgetEditItems({
+        lines: [makeBudgetLineRow({ unit: null })],
+      })[0]?.unitLabel
     ).toBe("partida");
   });
 
@@ -188,11 +210,13 @@ describe("buildInitialBudgetEditItems", () => {
   });
 
   it("calculates total from quantity * unit_price when line_total is null", () => {
-    const row = makeBudgetLineRow({
-      quantity: 7,
-      unit_price: 11.11,
+    const row = {
+      ...makeBudgetLineRow({
+        quantity: 7,
+        unit_price: 11.11,
+      }),
       line_total: null,
-    });
+    } as unknown as BudgetLineRow;
 
     expect(buildInitialBudgetEditItems({ lines: [row] })[0]?.total).toBe(77.77);
   });

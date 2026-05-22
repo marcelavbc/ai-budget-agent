@@ -86,6 +86,7 @@ export interface BudgetClientDetails {
   date: string;
   /** Durada estimada del treball (text lliure, p. ex. dies hàbils). */
   estimatedTime: string;
+  lang: "ca" | "es";
 }
 
 export function defaultBudgetClientDetails(): BudgetClientDetails {
@@ -102,5 +103,6 @@ export function defaultBudgetClientDetails(): BudgetClientDetails {
     quoteNumber: buildAutoQuoteNumber("", date),
     date,
     estimatedTime: "",
+    lang: "ca",
   };
 }
