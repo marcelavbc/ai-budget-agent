@@ -1,3 +1,4 @@
+import { useState } from "react";
 import type { BudgetClientDetails } from "@/features/budgets/types/budget";
 import styles from "./BudgetDraftView.module.css";
 
@@ -14,6 +15,8 @@ export function BudgetClientForm({
   onQuoteNumberChange: (value: string) => void;
   onResetQuoteAutomation: () => void;
 }) {
+  const [collapsed, setCollapsed] = useState(true);
+
   function setClientField<K extends keyof BudgetClientDetails>(
     key: K,
     value: BudgetClientDetails[K]
@@ -21,8 +24,38 @@ export function BudgetClientForm({
     onChange((prev) => ({ ...prev, [key]: value }));
   }
 
+  const clientName = client.nameOrCompany || "Client sense nom";
+  const quoteNumber = client.quoteNumber || "—";
+
+  if (collapsed) {
+    return (
+      <div className={styles.clientSection}>
+        <div className={styles.clientSummary}>
+          <div className={styles.clientSummaryText}>
+            <span className={styles.clientSummaryName}>{clientName}</span>
+            <span>{quoteNumber}</span>
+          </div>
+          <button
+            type="button"
+            className={styles.linkLike}
+            onClick={() => setCollapsed(false)}
+          >
+            Editar dades
+          </button>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className={styles.clientSection}>
+      <button
+        type="button"
+        className={styles.linkLike}
+        onClick={() => setCollapsed(true)}
+      >
+        Amagar dades
+      </button>
       <h3 className={styles.clientSectionTitle}>
         Dades del client i del pressupost
       </h3>
