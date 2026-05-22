@@ -356,6 +356,23 @@ export function BudgetDraftView({
                   />
                 </label>
 
+                {item.unitLabel === "m²" ? (
+                  <label className={styles.itemField}>
+                    <span className={styles.itemFieldLabel}>Preu (€/m²)</span>
+                    <DecimalFieldInput
+                      className={styles.itemFieldInput}
+                      value={item.unitPrice ?? 0}
+                      onChange={(unitPrice) => {
+                        const price = Math.round(unitPrice * 100) / 100;
+                        const quantity = item.quantity ?? 0;
+                        const total =
+                          Math.round(quantity * price * 100) / 100;
+                        onItemChange(item.id, { unitPrice: price, total });
+                      }}
+                    />
+                  </label>
+                ) : null}
+
                 <label className={styles.itemField}>
                   <span className={styles.itemFieldLabel}>Unitat</span>
                   <select

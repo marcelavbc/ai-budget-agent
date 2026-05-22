@@ -18,6 +18,7 @@ export function budgetLinesToClientItemsFromAI(
     quantity: line.quantity,
     unitLabel: line.unitLabel,
     unitPrice: line.unitPrice,
+    lineType: line.type,
     optionGroupId: line.optionGroupId,
     optionLabel: line.optionLabel,
     clientDescription: line.clientDescription,

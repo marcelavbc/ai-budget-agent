@@ -1,8 +1,11 @@
 import { describe, expect, it } from "vitest";
 import type { BudgetLine } from "@/features/budgets/types/budget";
+import type { BudgetClientItem } from "@/features/budgets/types/budget";
 import {
   applyPricePerSqm,
+  applyPricePerSqmToClientItems,
   computeHasPending,
+  shouldApplyPricePerSqm,
 } from "@/features/budgets/lib/budgetLineComputations";
 import { isPricePending } from "@/features/budgets/lib/isPricePending";
 
@@ -83,6 +86,73 @@ describe("applyPricePerSqm", () => {
     expect(next[0]).toMatchObject({ id: "w", unitPrice: 18, subtotal: 72 });
     expect(next[1]).toMatchObject({ id: "wp", unitPrice: 300, subtotal: 300 });
     expect(next[2]).toMatchObject({ id: "d", unitPrice: 25, subtotal: 50 });
+  });
+});
+
+describe("shouldApplyPricePerSqm (client items)", () => {
+  it("applies only to walls_and_ceilings with m²", () => {
+    expect(
+      shouldApplyPricePerSqm({
+        lineType: "walls_and_ceilings",
+        unitLabel: "m²",
+      })
+    ).toBe(true);
+    expect(
+      shouldApplyPricePerSqm({
+        lineType: "repair",
+        unitLabel: "m²",
+        title: "Cuina: reparació",
+      })
+    ).toBe(false);
+  });
+
+  it("legacy m² without lineType skips repair titles", () => {
+    expect(
+      shouldApplyPricePerSqm({
+        unitLabel: "m²",
+        title: "Cuina: reparació desperfectes",
+      })
+    ).toBe(false);
+    expect(
+      shouldApplyPricePerSqm({
+        unitLabel: "m²",
+        title: "Cuina: pintura sostre",
+      })
+    ).toBe(true);
+  });
+});
+
+describe("applyPricePerSqmToClientItems", () => {
+  function makeItem(
+    overrides: Partial<BudgetClientItem> = {}
+  ): BudgetClientItem {
+    return {
+      id: "1",
+      title: "Pintura",
+      description: "",
+      total: 120,
+      quantity: 60,
+      unitLabel: "m²",
+      unitPrice: 12,
+      lineType: "walls_and_ceilings",
+      ...overrides,
+    };
+  }
+
+  it("60 m² × 6 €/m² → total 360 on walls line only", () => {
+    const items = [
+      makeItem(),
+      makeItem({
+        id: "2",
+        lineType: "repair",
+        title: "Reparació",
+        unitPrice: 4,
+        total: 240,
+      }),
+    ];
+    const next = applyPricePerSqmToClientItems(items, 6);
+    expect(next[0]).toMatchObject({ unitPrice: 6, total: 360 });
+    expect(next[1]).toMatchObject({ unitPrice: 4, total: 240 });
   });
 });
 

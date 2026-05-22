@@ -28,6 +28,7 @@ export function budgetLinesToClientItems(lines: BudgetLine[]): BudgetClientItem[
     unitLabel: line.unitLabel,
     unitPrice: line.unitPrice,
     total: line.subtotal,
+    lineType: line.type,
   }));
 }
 

@@ -104,7 +104,8 @@ export function BudgetAIInput({
             />
 
             <p className={styles.sliderHint}>
-              Valor aplicat a la pintura de parets i sostres.
+              Preu per m² de la pintura de parets i sostres. El total de la
+              partida és m² × €/m² (p. ex. 60 m² × 6 € = 360 €).
             </p>
           </div>
         ) : null}

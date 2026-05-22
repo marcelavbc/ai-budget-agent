@@ -51,7 +51,7 @@ export function useBudgetEditController(args: {
     resetAutomation,
   } = useQuoteNumber({ setClientDetails, initialManuallyEdited: true });
 
-  const { pricePerSqm, setPricePerSqm } = usePricePerSqm({
+  const { pricePerSqm, setPricePerSqm, applyPriceToNewItems } = usePricePerSqm({
     items,
     onItemsReplace: (items) => setItems(items),
   });
@@ -94,7 +94,8 @@ export function useBudgetEditController(args: {
     handleSave,
 
     appendAiLines: (lines: BudgetLine[]) => {
-      setItems((prev) => [...prev, ...budgetLinesToClientItems(lines)]);
+      const newItems = applyPriceToNewItems(budgetLinesToClientItems(lines));
+      setItems((prev) => [...prev, ...newItems]);
     },
     updateItem: (id: string, patch: Partial<BudgetClientItem>) => {
       setItems((prev) =>

@@ -70,6 +70,8 @@ export interface BudgetClientItem {
   quantity?: number;
   unitLabel?: BudgetLineUnit;
   unitPrice?: number;
+  /** From IA / plantilla; used to apply the m² slider only to pintura de parets i sostres. */
+  lineType?: BudgetLineType;
   optionGroupId?: string;
   optionLabel?: string;
   clientDescription?: string;
