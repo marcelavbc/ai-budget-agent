@@ -64,6 +64,8 @@ function statusPillClass(value: BudgetStatus): string {
 
 interface Props {
   mode?: "create" | "edit";
+  /** When false, edit mode skips the in-component h2 (page provides the title). */
+  showEditHeading?: boolean;
   budgetId?: string;
   budgetStatus?: string | null;
   onBudgetStatusChange?: (status: BudgetStatus) => void;
@@ -87,6 +89,7 @@ interface Props {
 
 export function BudgetDraftView({
   mode = "create",
+  showEditHeading = true,
   budgetId,
   budgetStatus,
   onBudgetStatusChange,
@@ -222,9 +225,11 @@ export function BudgetDraftView({
       <div className={styles.topBar}>
         {mode === "edit" ? (
           <>
-            <h2 className={`${styles.heading} ${styles.headingEdit}`}>
-              Editar pressupost
-            </h2>
+            {showEditHeading ? (
+              <h2 className={`${styles.heading} ${styles.headingEdit}`}>
+                Editar pressupost
+              </h2>
+            ) : null}
             <div className={styles.editHeaderActions}>
               {budgetId ? (
                 <StatusPill

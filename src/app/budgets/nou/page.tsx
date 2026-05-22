@@ -20,6 +20,7 @@ export default function NewBudgetPage() {
 
         <BudgetDraftView
           mode={c.persistedBudget ? "edit" : "create"}
+          showEditHeading={false}
           budgetId={c.persistedBudget?.budgetId}
           budgetStatus={c.budgetStatus}
           onBudgetStatusChange={c.setBudgetStatus}
