@@ -1,6 +1,6 @@
 # Progreso del proyecto — ai-budget-agent
 
-Última actualización: **21 de mayo de 2026**
+Última actualización: **22 de mayo de 2026**
 
 Documento de seguimiento del trabajo realizado. Refleja el estado del código en `main` (commit local `871c2e8`, 1 commit por delante de `origin/main`).
 
@@ -21,6 +21,9 @@ Aplicación Next.js (App Router) para gestionar **pressupostos** y **factures**,
 | Tests Vitest | **158 tests** en verde |
 | Tests Cypress E2E | Presentes (`cypress/e2e/`) |
 | UX descripció Roger (text usuari vs plantilla) | **Hecho** (may 2026) |
+| Camp `lang` a pressupostos | Hecho (may 2026) |
+| Traducció manual CA/ES amb revisió | **Hecho** (may 2026) |
+| Eliminació camp `address` legacy de clients | Hecho (may 2026) |
 
 ---
 
@@ -73,6 +76,24 @@ Aplicación Next.js (App Router) para gestionar **pressupostos** y **factures**,
 ### PDF de pressupost
 
 - Export CA/ES desde `BudgetDraftView` (modo edición) vía `usePdfExport` / `generateBudgetPdf`.
+
+### Idioma i traducció (may 2026)
+
+- Camp `lang`: "ca" | "es" afegit a la taula budgets (NOT NULL, default "ca")
+- `BudgetClientDetails` té `lang` — es persiste en crear i actualitzar pressupostos
+- La traducció automàtica al generar PDF ha estat eliminada
+- `BudgetDraftView` (mode="edit") té botons "Traduir al castellà" / "Tornar al català" amb snapshot local
+- Al traduir, `client.lang` canvia a "es" i es desa; al revertir, torna a "ca"
+- `generateBudgetPdf` usa `client.lang` per seleccionar els textos del PDF
+- `buildPdfFilename` usa `client.lang` per al prefix del fitxer (Pressupost/Presupuesto)
+- Listado: columna "Idioma" amb badge CA/ES; botó PDF genera directament en l'idioma desat
+- `BudgetsListTable` té ara el seu propi CSS module (`BudgetsListTable.module.css`)
+
+### Eliminació address legacy (may 2026)
+
+- Columna `address` eliminada de la taula clients — els camps estructurats `address_street`, `address_postal_code`, `address_city` són l'única font de veritat
+- Tipus Supabase regenerats
+- Codi netejat a `budgets.ts`, `helpers.ts`, `mapBudgetEditInitialState.ts`, `pdfCopy.ca.ts`, `pdfCopy.es.ts`, `generateBudgetPdf.ts`
 
 ### Refactors y tests (pressupostos)
 
@@ -207,3 +228,4 @@ b57dade test: option groups en nou
 1. **Refactor** compartit Editor/View de partidas (ara ja resolt parcialment amb l'unificació; queda extreure llista de partides si cal).
 2. Añadir **`env.example`** y documentar variables en `docs/AI_ASSISTANT_CONTEXT.md`.
 3. **Revisión de components UI** (pendent de la revisió iniciada avui — duplicación, props no usadas, CSS huérfano).
+4. **Revisió CSS huèrfan** a `BudgetsView.module.css` (classes de taula duplicades ara que `BudgetsListTable` té CSS propi).
