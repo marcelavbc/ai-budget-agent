@@ -331,6 +331,29 @@ export function BudgetDraftView({
                 rows={4}
                 placeholder="Descripció de la partida…"
               />
+              {(item.clientDescription?.trim() ?? "").length > 0 ? (
+                <details className={styles.originalDescBlock}>
+                  <summary className={styles.originalDescSummary}>
+                    Text original
+                  </summary>
+                  <p className={styles.originalDescText}>
+                    {item.clientDescription}
+                  </p>
+                  {item.description !== item.clientDescription ? (
+                    <button
+                      type="button"
+                      className={styles.linkLike}
+                      onClick={() =>
+                        onItemChange(item.id, {
+                          description: item.clientDescription!,
+                        })
+                      }
+                    >
+                      Usar text original
+                    </button>
+                  ) : null}
+                </details>
+              ) : null}
             </div>
           );
 
