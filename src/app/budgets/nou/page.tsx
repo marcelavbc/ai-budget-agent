@@ -13,11 +13,16 @@ export default function NewBudgetPage() {
     <div className={styles.wrap}>
       <div className={styles.inner}>
         <header className={styles.header}>
-          <h1 className={styles.title}>Nou pressupost</h1>
+          <h1 className={styles.title}>
+            {c.persistedBudget ? "Editar pressupost" : "Nou pressupost"}
+          </h1>
         </header>
 
         <BudgetDraftView
-          mode="create"
+          mode={c.persistedBudget ? "edit" : "create"}
+          budgetId={c.persistedBudget?.budgetId}
+          budgetStatus={c.budgetStatus}
+          onBudgetStatusChange={c.setBudgetStatus}
           items={c.items}
           clientDetails={c.clientDetails}
           onClientDetailsChange={c.setClientWithAutoQuote}
@@ -28,6 +33,9 @@ export default function NewBudgetPage() {
             <BudgetAIInput
               loading={c.loading}
               formError={c.formError}
+              showPricePerSqm={true}
+              pricePerSqm={c.pricePerSqm}
+              onPriceChange={c.setPricePerSqm}
               onSubmit={async (description) => {
                 const lines = await c.submit(description);
                 if (!lines) return false;

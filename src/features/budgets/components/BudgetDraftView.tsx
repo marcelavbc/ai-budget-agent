@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
 import { FileDown, Trash2 } from "lucide-react";
 import type {
   BudgetClientDetails,
@@ -15,6 +14,7 @@ import {
   type BudgetStatus,
 } from "@/features/budgets/lib/budgetStatus";
 import { usePdfExport } from "@/features/budgets/hooks/usePdfExport";
+import { StatusPill } from "@/features/budgets/components/StatusPill";
 import { BudgetClientForm } from "@/features/budgets/components/BudgetClientForm";
 import { DecimalFieldInput } from "@/shared/components/DecimalFieldInput";
 import styles from "./BudgetDraftView.module.css";
@@ -64,7 +64,9 @@ function statusPillClass(value: BudgetStatus): string {
 
 interface Props {
   mode?: "create" | "edit";
+  budgetId?: string;
   budgetStatus?: string | null;
+  onBudgetStatusChange?: (status: BudgetStatus) => void;
   items: BudgetClientItem[];
   clientDetails: BudgetClientDetails;
   onClientDetailsChange: React.Dispatch<
@@ -85,7 +87,9 @@ interface Props {
 
 export function BudgetDraftView({
   mode = "create",
+  budgetId,
   budgetStatus,
+  onBudgetStatusChange,
   items,
   clientDetails: client,
   onClientDetailsChange: setClient,
@@ -105,7 +109,6 @@ export function BudgetDraftView({
   );
   const [isTranslating, setIsTranslating] = useState(false);
   const { exportPdf, generating, pdfError } = usePdfExport();
-  const router = useRouter();
 
   const draftComplete = isBudgetDraftComplete({ client, items });
   const status = normalizeBudgetStatus(budgetStatus);
@@ -122,12 +125,9 @@ export function BudgetDraftView({
       if (onSave) {
         await onSave({ client, items });
       } else {
-        await saveBudgetWithLines({
-          client,
-          items,
-        });
+        await saveBudgetWithLines({ client, items });
       }
-      router.push("/budgets");
+      window.scrollTo({ top: 0, behavior: "smooth" });
     } catch (e) {
       setSaveError(
         e instanceof Error
@@ -226,11 +226,19 @@ export function BudgetDraftView({
               Editar pressupost
             </h2>
             <div className={styles.editHeaderActions}>
-              <span
-                className={`${styles.statusPill} ${statusPillClass(status)}`}
-              >
-                {budgetStatusLabel(status)}
-              </span>
+              {budgetId ? (
+                <StatusPill
+                  budgetId={budgetId}
+                  initialStatus={budgetStatus ?? status}
+                  onStatusChange={onBudgetStatusChange}
+                />
+              ) : (
+                <span
+                  className={`${styles.statusPill} ${statusPillClass(status)}`}
+                >
+                  {budgetStatusLabel(status)}
+                </span>
+              )}
               {translationButtons}
               <button
                 type="button"
@@ -266,6 +274,10 @@ export function BudgetDraftView({
       <div className={styles.itemsTopBar}>
         <h3 className={styles.itemsTitle}>Partides</h3>
       </div>
+
+      {itemsFooter ? (
+        <div className={styles.itemsFooter}>{itemsFooter}</div>
+      ) : null}
 
       <ul className={styles.list}>
         {segments.map((seg) => {
@@ -417,10 +429,6 @@ export function BudgetDraftView({
           );
         })}
       </ul>
-
-      {itemsFooter ? (
-        <div className={styles.itemsFooter}>{itemsFooter}</div>
-      ) : null}
 
       <div className={styles.footer}>
         {saveError ? (

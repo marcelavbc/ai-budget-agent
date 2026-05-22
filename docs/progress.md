@@ -2,7 +2,7 @@
 
 Última actualización: **22 de mayo de 2026**
 
-Documento de seguimiento del trabajo realizado. Refleja el estado del código en `main` (commit local `871c2e8`, 1 commit por delante de `origin/main`).
+Documento de seguimiento del trabajo realizado. Refleja el estado del código en `main` (commit `e7a577e`, sincronizado con `origin/main`). Cambios adicionales en working tree (sin commit) documentados en la sección del 22 de mayo.
 
 ---
 
@@ -14,11 +14,12 @@ Aplicación Next.js (App Router) para gestionar **pressupostos** y **factures**,
 |------|--------|
 | Auth (cookie + middleware) | Hecho |
 | Listado / filtrado de pressupostos | Hecho |
-| Creació de pressupost amb IA (`/budgets/nou`) | Hecho (flujo unificat, una sola pantalla) |
+| Creació de pressupost amb IA (`/budgets/nou`) | Hecho (flujo unificat; tras primer guardado pasa a modo edición en la misma página) |
 | Edición de pressupost guardat (`/budgets/[id]/edit`) | Hecho |
+| Slider preu per m² (creació i edició) | **Hecho** (may 2026, working tree) |
 | Guardar pressupost (POST `/api/budgets`) | Hecho (fix NOT NULL, may 2026) |
 | Factures des de pressupost + PDF | Hecho |
-| Tests Vitest | **158 tests** en verde |
+| Tests Vitest | **135 tests** en verde (14 archivos) |
 | Tests Cypress E2E | Presentes (`cypress/e2e/`) |
 | UX descripció Roger (text usuari vs plantilla) | **Hecho** (may 2026) |
 | Camp `lang` a pressupostos | Hecho (may 2026) |
@@ -48,10 +49,12 @@ Aplicación Next.js (App Router) para gestionar **pressupostos** y **factures**,
 
 ### Creació (`/budgets/nou`)
 
-- Una sola pantalla: `BudgetDraftView` (mode="create") + `BudgetAIInput` en `itemsFooter`
+- Una sola pantalla: `BudgetDraftView` + `BudgetAIInput` en `itemsFooter`
 - `useBudgetCreateController` gestiona todo el estado
 - Eliminats: `useBudgetLines`, `BudgetDraftEditor`, `generateBudgetDraft`, vista lines/draft, botó «Generar esborrany», useEffect de sincronització
 - Nous arxius: `useBudgetCreateController`, `budgetLinesToClientItemsFromAI`, `budgetDescriptionTemplates`
+- **Tras el primer guardado** (may 2026, working tree): la página no redirige a `/budgets`; guarda `budgetId` + `clientId`, cambia el título a «Editar pressupost», `BudgetDraftView` pasa a `mode="edit"` con `StatusPill`, y los guardados siguientes usan `PUT` (`updateBudgetWithLines`)
+- **Slider preu per m²** (may 2026, working tree): `usePricePerSqm` recalcula `unitPrice` y `total` de partidas con unidad `m²`; visible en `BudgetAIInput` tanto en creación como en edición
 
 ### UX descripció Roger (may 2026)
 
@@ -102,6 +105,31 @@ Aplicación Next.js (App Router) para gestionar **pressupostos** y **factures**,
 
 ---
 
+## Cambios recientes (sesión 22 may 2026)
+
+**Estado:** cambios en working tree, sin commit aún.
+
+### Precio por m² (`usePricePerSqm`)
+
+- Nuevo hook **`usePricePerSqm`**: precio por defecto **12 €/m²**; al mover el slider recalcula `unitPrice` y `total` solo en partidas con `unitLabel === "m²"`.
+- Integrado en **`useBudgetCreateController`** y **`useBudgetEditController`**.
+- **`BudgetAIInput`**: slider visible cuando `showPricePerSqm={true}` (creación y edición); props con valores por defecto (`pricePerSqm = 12`).
+
+### Creación sin salir de `/budgets/nou`
+
+- **`saveBudgetWithLines`** (server + client + `POST /api/budgets`) devuelve `{ budgetId, clientId }`.
+- Tras el primer guardado, `useBudgetCreateController` guarda `persistedBudget` y los siguientes guardados llaman a **`updateBudgetWithLines`** (incluye `status`).
+- **`nou/page.tsx`**: título dinámico («Nou pressupost» → «Editar pressupost»); `BudgetDraftView` con `mode`, `budgetId`, `budgetStatus` y `onBudgetStatusChange`.
+- **`BudgetDraftView`**: al guardar sin `onSave` custom ya no hace `router.push("/budgets")`; hace scroll al inicio. Con `budgetId`, muestra **`StatusPill`** interactivo en lugar del pill estático.
+- **`itemsFooter`** (input IA) movido **encima** de la lista de partidas.
+
+### Otros
+
+- **`BudgetForm.module.css`**: `margin-bottom` en `.textareaColumn`.
+- Commits previos en `main` (ya pusheados): título BD no nullable (`e7a577e`), limpieza tipos facturas (`59eb1b7`), CSS huérfano `BudgetsView` (`d8f85b3`), resumen cliente colapsable (`903b330`).
+
+---
+
 ## Cambios recientes (sesión 21 may 2026)
 
 Commits locales (aún no pusheados a `origin/main`):
@@ -149,7 +177,7 @@ Commits locales (aún no pusheados a `origin/main`):
 ## Testing
 
 ```bash
-pnpm test        # Vitest — 158 tests, 17 archivos
+pnpm test        # Vitest — 135 tests, 14 archivos
 pnpm run dev     # http://localhost:3001
 # Cypress E2E (manual): cypress/e2e/*.cy.ts
 ```
@@ -205,27 +233,31 @@ No se aplicaron refactors de esa revisión aún.
 - **Botón «Guardar pressupost»**: habilitado con solo el nombre/empresa del cliente rellenado.
 - **Descripcions**: la IA genera `clientDescription` per cada línia. `budgetLinesToClientItemsFromAI` aplica plantilles des de `budgetDescriptionTemplates.ts` (color interpolat des de `clientDescription` si Roger l'especifica). Tipus sense plantilla (`repair`, `custom`) usen `clientDescription` directament. A `BudgetDraftView`, tipus amb plantilla mostren bloc col·lapsable "Text original de Roger" amb botó "Usar text original".
 - **Flux creació = flux edició**: `/budgets/nou` usa el mateix patró que `/budgets/[id]/edit`. No hi ha dos passos ni sincronització manual.
+- **Primer guardado en `/budgets/nou`**: la pantalla passa a mode edición (título, `StatusPill`, PUT en guardados posteriors) sense navegar al listado.
+- **Preu per m²**: slider a `BudgetAIInput`; recalcula partides en m² via `usePricePerSqm`.
 - **Guardar con descripciones vacías**: OK en UI; en BD se persisten como `""`.
-- **Edición post-guardado**: completa en `/budgets/[id]/edit`.
+- **Edición post-guardado**: completa en `/budgets/[id]/edit` o en la mateixa `/budgets/nou` després del primer guardado.
 
 ---
 
 ## Commits recientes (referencia)
 
 ```
-871c2e8 fix: error handling guardado API + validación esborrany (solo nom/empresa) + toBudgetLineRows
-08ef2a1 feat: BudgetDraftEditor + DecimalFieldInput + sync updateLine/hasPending
-d0a7369 refactor: BudgetLinesList CSS y botones
-b57dade test: option groups en nou
-041e9ba docs: ADD_BUDGET_FLOW, OPTION_GROUP_FLOW
-533e428 test: Cypress E2E budgets + nou
+e7a577e refactor: title non-nullable en tipos BD + funciones relacionadas
+59eb1b7 refactor: limpieza tipos facturas (owner_postal_code, etc.)
+d8f85b3 refactor: CSS huérfano en BudgetsView.module.css
+903b330 feat: resumen cliente colapsable en BudgetClientForm
+be39547 chore: actualización docs/progress.md
+871c2e8 fix: error handling guardado API + validación esborrany + toBudgetLineRows
+08ef2a1 feat: BudgetDraftEditor + DecimalFieldInput
 ```
 
 ---
 
 ## Próximos pasos sugeridos (orden práctico)
 
-1. **Refactor** compartit Editor/View de partidas (ara ja resolt parcialment amb l'unificació; queda extreure llista de partides si cal).
-2. Añadir **`env.example`** y documentar variables en `docs/AI_ASSISTANT_CONTEXT.md`.
-3. **Revisión de components UI** (pendent de la revisió iniciada avui — duplicación, props no usadas, CSS huérfano).
-4. **Revisió CSS huèrfan** a `BudgetsView.module.css` (classes de taula duplicades ara que `BudgetsListTable` té CSS propi).
+1. **Commit** cambios del 22 may (precio m², flujo creación→edición en `/budgets/nou`, `clientId` en POST).
+2. Actualizar **`docs/ADD_BUDGET_FLOW.md`** (aún menciona `useBudgetLines` y flujo antiguo).
+3. **Refactor** `BudgetDraftView` (~400 líneas): extraer lista de partidas si cal.
+4. Añadir **`env.example`** y documentar variables en `docs/AI_ASSISTANT_CONTEXT.md`.
+5. **Revisión de components UI** (duplicación, props no usadas, CSS huérfano restante).

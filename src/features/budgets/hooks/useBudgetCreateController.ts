@@ -7,10 +7,15 @@ import type {
   BudgetLine,
 } from "@/features/budgets/types/budget";
 import { defaultBudgetClientDetails } from "@/features/budgets/types/budget";
-import { saveBudgetWithLines } from "@/features/budgets/lib/budgetsClient";
+import {
+  saveBudgetWithLines,
+  updateBudgetWithLines,
+} from "@/features/budgets/lib/budgetsClient";
 import { useGenerateBudgetDraft } from "@/features/budgets/hooks/useGenerateBudgetDraft";
 import { budgetLinesToClientItemsFromAI } from "@/features/budgets/lib/budgetLinesToClientItemsFromAI";
 import { useQuoteNumber } from "@/features/budgets/hooks/useQuoteNumber";
+import { usePricePerSqm } from "@/features/budgets/hooks/usePricePerSqm";
+import type { BudgetStatus } from "@/features/budgets/lib/budgetStatus";
 
 export function useBudgetCreateController() {
   const { submit, loading, formError } = useGenerateBudgetDraft();
@@ -19,6 +24,11 @@ export function useBudgetCreateController() {
     defaultBudgetClientDetails()
   );
   const [items, setItems] = useState<BudgetClientItem[]>([]);
+  const [persistedBudget, setPersistedBudget] = useState<{
+    budgetId: string;
+    clientId: string;
+  } | null>(null);
+  const [budgetStatus, setBudgetStatus] = useState<BudgetStatus>("draft");
 
   const {
     quoteManuallyEdited,
@@ -27,6 +37,11 @@ export function useBudgetCreateController() {
     resetAutomation,
   } = useQuoteNumber({ setClientDetails, initialManuallyEdited: false });
 
+  const { pricePerSqm, setPricePerSqm } = usePricePerSqm({
+    items,
+    onItemsReplace: (items) => setItems(items),
+  });
+
   async function handleSave({
     client,
     items,
@@ -34,7 +49,20 @@ export function useBudgetCreateController() {
     client: BudgetClientDetails;
     items: BudgetClientItem[];
   }) {
-    await saveBudgetWithLines({ client, items });
+    if (persistedBudget) {
+      await updateBudgetWithLines({
+        budgetId: persistedBudget.budgetId,
+        clientId: persistedBudget.clientId,
+        client,
+        items,
+        taxRate: 0,
+        status: budgetStatus,
+      });
+      return;
+    }
+
+    const { budgetId, clientId } = await saveBudgetWithLines({ client, items });
+    setPersistedBudget({ budgetId, clientId });
   }
 
   return {
@@ -42,6 +70,8 @@ export function useBudgetCreateController() {
     submit,
     loading,
     formError,
+    pricePerSqm,
+    setPricePerSqm,
 
     // draft state
     clientDetails,
@@ -51,7 +81,10 @@ export function useBudgetCreateController() {
     onQuoteNumberChange,
     resetAutomation,
 
-    // save/back
+    // save / edit chrome
+    persistedBudget,
+    budgetStatus,
+    setBudgetStatus,
     handleSave,
 
     appendAiLines: (lines: BudgetLine[]) => {

@@ -23,6 +23,7 @@ export function BudgetEditView({
   return (
     <BudgetDraftView
       mode="edit"
+      budgetId={budget.id}
       budgetStatus={budget.status}
       items={c.items}
       clientDetails={c.clientDetails}
@@ -34,6 +35,9 @@ export function BudgetEditView({
         <BudgetAIInput
           loading={c.loading}
           formError={c.formError}
+          showPricePerSqm={true}
+          pricePerSqm={c.pricePerSqm}
+          onPriceChange={c.setPricePerSqm}
           submitLabel="Afegir"
           placeholder="Escriu el que vols afegir… (p. ex. Pintar passadís 8 m² + reparar esquerdes)"
           onSubmit={async (description) => {

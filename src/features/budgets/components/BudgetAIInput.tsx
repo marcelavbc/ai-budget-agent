@@ -21,8 +21,8 @@ export function BudgetAIInput({
   placeholder = "Ex.: Pintar menjador de 20 m² en blanc",
   submitLabel = "Afegir partida",
   showPricePerSqm = false,
-  pricePerSqm,
-  onPriceChange,
+  pricePerSqm = 12,
+  onPriceChange = () => {},
 }: Props) {
   const [description, setDescription] = useState("");
   const [validationError, setValidationError] = useState<string | null>(null);
@@ -56,8 +56,7 @@ export function BudgetAIInput({
     await submitTrimmed(trimmed);
   }
 
-  const showSlider =
-    showPricePerSqm && typeof pricePerSqm === "number" && !!onPriceChange;
+  const showSlider = showPricePerSqm === true;
 
   return (
     <form className={styles.form} onSubmit={handleSubmit} noValidate>

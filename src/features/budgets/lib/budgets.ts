@@ -465,7 +465,7 @@ export interface SaveBudgetWithLinesInput {
 export async function saveBudgetWithLines({
   client,
   items,
-}: SaveBudgetWithLinesInput): Promise<{ budgetId: string }> {
+}: SaveBudgetWithLinesInput): Promise<{ budgetId: string; clientId: string }> {
   // TODO: evolve to findOrCreateClient (avoid duplicates) once we define the matching rules.
   const { id: clientId } = await createClient({
     name: client.nameOrCompany,
@@ -481,5 +481,5 @@ export async function saveBudgetWithLines({
     status: "draft",
   });
   await createBudgetLines({ budgetId: id, items });
-  return { budgetId: id };
+  return { budgetId: id, clientId };
 }

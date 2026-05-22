@@ -16,6 +16,7 @@ import { updateBudgetWithLines } from "@/features/budgets/lib/budgetsClient";
 import { useGenerateBudgetDraft } from "@/features/budgets/hooks/useGenerateBudgetDraft";
 import { budgetLinesToClientItems } from "@/features/budgets/lib/budgetLineToClientItem";
 import { useQuoteNumber } from "@/features/budgets/hooks/useQuoteNumber";
+import { usePricePerSqm } from "@/features/budgets/hooks/usePricePerSqm";
 import {
   buildInitialBudgetEditClientDetails,
   buildInitialBudgetEditItems,
@@ -50,6 +51,11 @@ export function useBudgetEditController(args: {
     resetAutomation,
   } = useQuoteNumber({ setClientDetails, initialManuallyEdited: true });
 
+  const { pricePerSqm, setPricePerSqm } = usePricePerSqm({
+    items,
+    onItemsReplace: (items) => setItems(items),
+  });
+
   async function handleSave({
     client,
     items,
@@ -72,6 +78,8 @@ export function useBudgetEditController(args: {
     submit,
     loading,
     formError,
+    pricePerSqm,
+    setPricePerSqm,
 
     // draft state
     clientDetails,
