@@ -1,9 +1,8 @@
 "use client";
 
-import { useCallback, useRef, useState } from "react";
-import { useClickOutside } from "@/shared/hooks/useClickOutside";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { ChevronDown, FileDown, Trash2 } from "lucide-react";
+import { FileDown, Trash2 } from "lucide-react";
 import type {
   BudgetClientDetails,
   BudgetClientItem,
@@ -99,15 +98,11 @@ export function BudgetDraftView({
 }: Props) {
   const [isSaving, setIsSaving] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
-  const [pdfMenuOpen, setPdfMenuOpen] = useState(false);
   const { exportPdf, generating, pdfError } = usePdfExport();
-  const pdfMenuRef = useRef<HTMLDivElement | null>(null);
   const router = useRouter();
 
   const draftComplete = isBudgetDraftComplete({ client, items });
   const status = normalizeBudgetStatus(budgetStatus);
-  const closePdfMenu = useCallback(() => setPdfMenuOpen(false), []);
-  useClickOutside(pdfMenuRef, pdfMenuOpen, closePdfMenu);
 
   function handleDescriptionChange(id: string, value: string) {
     onItemChange(id, { description: value });
@@ -138,9 +133,8 @@ export function BudgetDraftView({
     }
   }
 
-  async function handleGenerateBudgetPdf(lang: "ca" | "es") {
-    setPdfMenuOpen(false);
-    await exportPdf({ client, items, lang });
+  async function handleGenerateBudgetPdf() {
+    await exportPdf({ client, items });
   }
 
   const segments = segmentDraftItems(items);
@@ -161,57 +155,22 @@ export function BudgetDraftView({
               >
                 {budgetStatusLabel(status)}
               </span>
-              <div
-                className={styles.generateBudgetDropdown}
-                ref={pdfMenuRef}
-                onKeyDown={(e) => {
-                  if (e.key === "Escape") setPdfMenuOpen(false);
-                }}
+              <button
+                type="button"
+                className={styles.generateBudgetBtn}
+                disabled={generating}
+                aria-busy={generating || undefined}
+                onClick={handleGenerateBudgetPdf}
               >
-                <button
-                  type="button"
-                  className={styles.generateBudgetBtn}
-                  disabled={generating}
-                  aria-busy={generating || undefined}
-                  aria-haspopup="menu"
-                  aria-expanded={pdfMenuOpen}
-                  onClick={() => setPdfMenuOpen((v) => !v)}
-                >
-                  {generating ? (
-                    "Generant…"
-                  ) : (
-                    <>
-                      <FileDown size={16} aria-hidden="true" />
-                      Generar pressupost
-                      <ChevronDown size={14} aria-hidden="true" />
-                    </>
-                  )}
-                </button>
-                {pdfMenuOpen ? (
-                  <div className={styles.generateBudgetMenu} role="menu">
-                    <button
-                      type="button"
-                      className={styles.generateBudgetMenuItem}
-                      role="menuitem"
-                      disabled={generating}
-                      onClick={() => handleGenerateBudgetPdf("ca")}
-                    >
-                      Català{" "}
-                      <span className={styles.generateBudgetMenuHint}>PDF</span>
-                    </button>
-                    <button
-                      type="button"
-                      className={styles.generateBudgetMenuItem}
-                      role="menuitem"
-                      disabled={generating}
-                      onClick={() => handleGenerateBudgetPdf("es")}
-                    >
-                      Castellano{" "}
-                      <span className={styles.generateBudgetMenuHint}>PDF</span>
-                    </button>
-                  </div>
-                ) : null}
-              </div>
+                {generating ? (
+                  "Generant…"
+                ) : (
+                  <>
+                    <FileDown size={16} aria-hidden="true" />
+                    Generar pressupost
+                  </>
+                )}
+              </button>
             </div>
           </>
         ) : (

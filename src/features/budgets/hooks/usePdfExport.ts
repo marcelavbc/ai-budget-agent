@@ -3,10 +3,7 @@ import type {
   BudgetClientDetails,
   BudgetClientItem,
 } from "@/features/budgets/types/budget";
-import {
-  buildPdfFilename,
-  translateItemsForPdf,
-} from "@/features/budgets/lib/pdfUtils";
+import { buildPdfFilename } from "@/features/budgets/lib/pdfUtils";
 
 export function usePdfExport() {
   const [generating, setGenerating] = useState(false);
@@ -17,28 +14,22 @@ export function usePdfExport() {
     async (args: {
       client: BudgetClientDetails;
       items: BudgetClientItem[];
-      lang: "ca" | "es";
     }) => {
       if (generatingRef.current) return;
       generatingRef.current = true;
       setGenerating(true);
       setPdfError(null);
       try {
-        const finalItems =
-          args.lang === "es"
-            ? await translateItemsForPdf(args.items, args.lang)
-            : args.items;
         const { generateBudgetPdf } =
           await import("@/features/budgets/lib/generateBudgetPdf");
         const blob = await generateBudgetPdf({
           client: args.client,
-          items: finalItems,
-          lang: args.lang,
+          items: args.items,
         });
         const url = URL.createObjectURL(blob);
         const a = document.createElement("a");
         a.href = url;
-        a.download = buildPdfFilename(args.client, args.lang);
+        a.download = buildPdfFilename(args.client);
         a.click();
         window.setTimeout(() => URL.revokeObjectURL(url), 30_000);
       } catch (e) {

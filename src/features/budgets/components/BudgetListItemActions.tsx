@@ -122,7 +122,6 @@ export function BudgetListItemActions({
       await exportPdf({
         client: clientForPdf,
         items: itemsForPdf,
-        lang,
       });
     } catch (err) {
       setPdfError(
