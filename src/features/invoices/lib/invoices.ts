@@ -181,7 +181,7 @@ export async function getSettings(): Promise<SettingsRow | null> {
   const { data, error } = await supabase
     .from("settings")
     .select(
-      "id,owner_name,owner_address,owner_postal_city,owner_city,owner_nif,bank_iban,bank_name,default_tax_rate"
+      "id,owner_name,owner_address,owner_postal_code,owner_city,owner_nif,bank_iban,bank_name,default_tax_rate"
     )
     .limit(1)
     .maybeSingle();

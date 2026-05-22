@@ -226,7 +226,7 @@ export async function getBudgetById(id: string): Promise<BudgetRow | null> {
   const { data, error } = await supabase
     .from("budgets")
     .select(
-      "id,client_id,title,job_address,status,issue_date,document_date,notes,subtotal,tax_rate,tax_amount,created_at,updated_at,quote_number,estimated_time"
+      "id,client_id,title,job_address,status,document_date,notes,subtotal,tax_rate,tax_amount,created_at,updated_at,quote_number,estimated_time"
     )
     .eq("id", id)
     .maybeSingle();

@@ -52,7 +52,7 @@ export function InvoiceView({
         owner: settings ?? {
           owner_name: null,
           owner_address: null,
-          owner_postal_city: null,
+          owner_postal_code: null,
           owner_city: null,
           owner_nif: null,
           bank_iban: null,
@@ -101,7 +101,7 @@ export function InvoiceView({
           <p className={styles.issuerDetail}>{settings?.owner_nif ?? ""}</p>
           <p className={styles.issuerDetail}>{settings?.owner_address ?? ""}</p>
           <p className={styles.issuerDetail}>
-            {[settings?.owner_postal_city, settings?.owner_city]
+            {[settings?.owner_postal_code, settings?.owner_city]
               .filter(Boolean)
               .join(" ")}
           </p>

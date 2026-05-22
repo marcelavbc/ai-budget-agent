@@ -74,8 +74,6 @@ export type Database = {
           document_date: string | null
           estimated_time: string | null
           id: string
-          invoice_id: string | null
-          issue_date: string
           job_address: string | null
           lang: string
           notes: string | null
@@ -93,8 +91,6 @@ export type Database = {
           document_date?: string | null
           estimated_time?: string | null
           id?: string
-          invoice_id?: string | null
-          issue_date?: string
           job_address?: string | null
           lang?: string
           notes?: string | null
@@ -112,8 +108,6 @@ export type Database = {
           document_date?: string | null
           estimated_time?: string | null
           id?: string
-          invoice_id?: string | null
-          issue_date?: string
           job_address?: string | null
           lang?: string
           notes?: string | null
@@ -131,13 +125,6 @@ export type Database = {
             columns: ["client_id"]
             isOneToOne: false
             referencedRelation: "clients"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "budgets_invoice_id_fkey"
-            columns: ["invoice_id"]
-            isOneToOne: false
-            referencedRelation: "invoices"
             referencedColumns: ["id"]
           },
         ]
@@ -301,7 +288,7 @@ export type Database = {
           owner_city: string | null
           owner_name: string | null
           owner_nif: string | null
-          owner_postal_city: string | null
+          owner_postal_code: string | null
         }
         Insert: {
           bank_iban?: string | null
@@ -312,7 +299,7 @@ export type Database = {
           owner_city?: string | null
           owner_name?: string | null
           owner_nif?: string | null
-          owner_postal_city?: string | null
+          owner_postal_code?: string | null
         }
         Update: {
           bank_iban?: string | null
@@ -323,7 +310,7 @@ export type Database = {
           owner_city?: string | null
           owner_name?: string | null
           owner_nif?: string | null
-          owner_postal_city?: string | null
+          owner_postal_code?: string | null
         }
         Relationships: []
       }

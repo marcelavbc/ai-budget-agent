@@ -19,7 +19,7 @@ export interface GenerateInvoicePdfInput {
   owner: {
     owner_name: string | null;
     owner_address: string | null;
-    owner_postal_city: string | null;
+    owner_postal_code: string | null;
     owner_city: string | null;
     owner_nif: string | null;
     bank_iban: string | null;
@@ -318,7 +318,7 @@ export async function generateInvoicePdf(
     const name = safeTrim(owner.owner_name);
     const address = safeTrim(owner.owner_address);
     const postalCity = [
-      safeTrim(owner.owner_postal_city),
+      safeTrim(owner.owner_postal_code),
       safeTrim(owner.owner_city),
     ]
       .filter(Boolean)
