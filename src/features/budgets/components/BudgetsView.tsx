@@ -36,7 +36,6 @@ export function BudgetsView({ budgets }: { budgets: BudgetListRow[] }) {
             />
 
             <BudgetsListTable
-              styles={styles}
               budgets={filters.filtered}
               onStatusChange={setBudgetStatus}
             />

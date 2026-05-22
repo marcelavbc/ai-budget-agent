@@ -13,21 +13,20 @@
   --color-black-soft: #3a3a3a;
 
   /* ── Typography (neutral-first) ── */
-  --font-body: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --font-body:
+    system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
   --font-display: ui-serif, Georgia, serif;
   --font-mono:
-    ui-monospace,
-    SFMono-Regular,
-    Menlo,
-    Monaco,
-    Consolas,
-    "Liberation Mono",
-    "Courier New",
-    monospace;
+    ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono",
+    "Courier New", monospace;
 
   --text: var(--color-black);
   --text-secondary: var(--color-black-soft);
-  --text-muted: color-mix(in srgb, var(--color-black-soft) 58%, var(--color-background));
+  --text-muted: color-mix(
+    in srgb,
+    var(--color-black-soft) 58%,
+    var(--color-background)
+  );
 
   /* ── Surfaces ── */
   --surface: #ffffff;
@@ -36,7 +35,11 @@
 
   /* ── Hairline borders (warm neutral, not heavy boxes) ── */
   --border: color-mix(in srgb, var(--color-beige-medium) 42%, var(--surface));
-  --border-soft: color-mix(in srgb, var(--color-beige-light) 34%, var(--surface));
+  --border-soft: color-mix(
+    in srgb,
+    var(--color-beige-light) 34%,
+    var(--surface)
+  );
 
   /* ── Legacy / bridge tokens ── */
   --brand-primary: var(--color-black);
@@ -48,15 +51,20 @@
 
   --text-on-inverse: #ffffff;
   --error: var(--color-terracotta);
-  --text-delete: color-mix(in srgb, var(--color-terracotta) 78%, var(--color-black));
+  --text-delete: color-mix(
+    in srgb,
+    var(--color-terracotta) 78%,
+    var(--color-black)
+  );
 
   /* Minimal elevation */
   --shadow-soft: 0 1px 0 rgba(17, 17, 17, 0.05);
-  --shadow-card: 0 1px 3px rgba(17, 17, 17, 0.07),
-    0 0 0 1px rgba(17, 17, 17, 0.04);
+  --shadow-card:
+    0 1px 3px rgba(17, 17, 17, 0.07), 0 0 0 1px rgba(17, 17, 17, 0.04);
 
   --focus-ring: color-mix(in srgb, var(--color-gold-medium) 42%, transparent);
-  --focus-glow: 0 0 0 3px color-mix(in srgb, var(--color-gold-medium) 18%, transparent);
+  --focus-glow: 0 0 0 3px
+    color-mix(in srgb, var(--color-gold-medium) 18%, transparent);
 
   /* Status: readable, palette-aligned (no bright SaaS blues) */
   --state-draft: #6b6b6b;
@@ -70,7 +78,11 @@
 
   /* Gold reserved for totals & rare highlights */
   --total-figure: var(--color-gold-dark);
-  --separator-tone: color-mix(in srgb, var(--color-green-light) 28%, var(--color-background));
+  --separator-tone: color-mix(
+    in srgb,
+    var(--color-green-light) 28%,
+    var(--color-background)
+  );
 }
 
 html {
