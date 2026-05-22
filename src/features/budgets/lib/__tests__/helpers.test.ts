@@ -19,6 +19,7 @@ function makeClientDetails(
     quoteNumber: "2025-01",
     date: "2025-01-15",
     estimatedTime: "5 dies",
+    lang: "ca",
     ...overrides,
   };
 }
@@ -162,7 +163,7 @@ describe("toBudgetLineRows", () => {
   it("empty title becomes null via normalizeOptionalString", () => {
     const [row] = toBudgetLineRows("budget-1", [makeItem({ title: "   " })]);
 
-    expect(row?.title).toBeNull();
+    expect(row?.title).toBe("");
   });
 
   it("empty description is stored as empty string for DB not-null constraint", () => {

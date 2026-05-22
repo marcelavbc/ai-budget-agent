@@ -44,7 +44,7 @@ export function toBudgetLineRows(
 
     return {
       budget_id: budgetId,
-      title: normalizeOptionalString(item.title),
+      title: (item.title ?? "").trim(),
       description: (item.description ?? "").trim(),
       quantity,
       unit: normalizeOptionalString(item.unitLabel ?? null),

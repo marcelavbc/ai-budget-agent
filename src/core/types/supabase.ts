@@ -25,7 +25,7 @@ export type Database = {
           option_label: string | null
           quantity: number
           sort_order: number
-          title: string | null
+          title: string
           unit: string | null
           unit_price: number
         }
@@ -39,7 +39,7 @@ export type Database = {
           option_label?: string | null
           quantity?: number
           sort_order?: number
-          title?: string | null
+          title?: string
           unit?: string | null
           unit_price?: number
         }
@@ -53,7 +53,7 @@ export type Database = {
           option_label?: string | null
           quantity?: number
           sort_order?: number
-          title?: string | null
+          title?: string
           unit?: string | null
           unit_price?: number
         }
