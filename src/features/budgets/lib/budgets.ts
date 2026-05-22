@@ -296,7 +296,7 @@ export async function getBudgets(
   let q = supabase
     .from("budgets")
     .select(
-      "id,title,job_address,status,document_date,quote_number,created_at,invoices!budget_id(id)"
+      "id,title,job_address,status,document_date,quote_number,created_at,lang,invoices!budget_id(id)"
     )
     .order("document_date", { ascending: false, nullsFirst: false })
     .order("created_at", { ascending: false });

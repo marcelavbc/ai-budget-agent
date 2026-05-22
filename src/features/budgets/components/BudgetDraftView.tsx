@@ -71,6 +71,7 @@ interface Props {
     React.SetStateAction<BudgetClientDetails>
   >;
   onItemChange: (id: string, patch: Partial<BudgetClientItem>) => void;
+  onItemsReplace?: (items: BudgetClientItem[]) => void;
   onItemRemove?: (id: string) => void;
   itemsFooter?: React.ReactNode;
   onSave?: (args: {
@@ -89,6 +90,7 @@ export function BudgetDraftView({
   clientDetails: client,
   onClientDetailsChange: setClient,
   onItemChange,
+  onItemsReplace,
   onItemRemove,
   itemsFooter,
   onSave,
@@ -98,6 +100,10 @@ export function BudgetDraftView({
 }: Props) {
   const [isSaving, setIsSaving] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
+  const [itemsSnapshot, setItemsSnapshot] = useState<BudgetClientItem[] | null>(
+    null
+  );
+  const [isTranslating, setIsTranslating] = useState(false);
   const { exportPdf, generating, pdfError } = usePdfExport();
   const router = useRouter();
 
@@ -137,6 +143,76 @@ export function BudgetDraftView({
     await exportPdf({ client, items });
   }
 
+  async function handleTranslate() {
+    setItemsSnapshot(items);
+    setIsTranslating(true);
+    try {
+      const res = await fetch("/api/translate-budget-items", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ items, targetLang: "es" }),
+      });
+      if (!res.ok) throw new Error("Translation failed");
+      const data = (await res.json()) as { items: BudgetClientItem[] };
+      if (onItemsReplace) {
+        onItemsReplace(data.items);
+      } else {
+        for (const item of data.items) {
+          onItemChange(item.id, {
+            title: item.title,
+            description: item.description,
+          });
+        }
+      }
+      setClient((prev) => ({ ...prev, lang: "es" }));
+    } finally {
+      setIsTranslating(false);
+    }
+  }
+
+  function handleRevertTranslation() {
+    if (!itemsSnapshot) return;
+    if (onItemsReplace) {
+      onItemsReplace(itemsSnapshot);
+    } else {
+      for (const item of itemsSnapshot) {
+        onItemChange(item.id, {
+          title: item.title,
+          description: item.description,
+        });
+      }
+    }
+    setClient((prev) => ({ ...prev, lang: "ca" }));
+    setItemsSnapshot(null);
+  }
+
+  const translationButtons =
+    mode === "edit"
+      ? client.lang === "ca" && itemsSnapshot === null
+        ? (
+            <button
+              type="button"
+              className={styles.generateBudgetBtn}
+              onClick={handleTranslate}
+              disabled={isTranslating}
+              aria-busy={isTranslating || undefined}
+            >
+              Traduir al castellà
+            </button>
+          )
+        : client.lang === "es" || itemsSnapshot !== null
+          ? (
+              <button
+                type="button"
+                className={styles.generateBudgetBtn}
+                onClick={handleRevertTranslation}
+              >
+                Tornar al català
+              </button>
+            )
+          : null
+      : null;
+
   const segments = segmentDraftItems(items);
 
   return (
@@ -155,6 +231,7 @@ export function BudgetDraftView({
               >
                 {budgetStatusLabel(status)}
               </span>
+              {translationButtons}
               <button
                 type="button"
                 className={styles.generateBudgetBtn}

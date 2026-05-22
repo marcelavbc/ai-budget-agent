@@ -96,5 +96,8 @@ export function useBudgetEditController(args: {
     removeItem: (id: string) => {
       setItems((prev) => prev.filter((item) => item.id !== id));
     },
+    replaceItems: (items: BudgetClientItem[]) => {
+      setItems(items);
+    },
   };
 }

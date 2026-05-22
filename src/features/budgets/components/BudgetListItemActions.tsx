@@ -1,17 +1,9 @@
 "use client";
 
-import { useCallback, useRef, useState, useTransition } from "react";
-import { useClickOutside } from "@/shared/hooks/useClickOutside";
+import { useState, useTransition } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import {
-  FileDown,
-  Eye,
-  Pencil,
-  Trash2,
-  ChevronDown,
-  Receipt,
-} from "lucide-react";
+import { FileDown, Eye, Pencil, Trash2, Receipt } from "lucide-react";
 import { ConfirmDialog } from "@/shared/components/ConfirmDialog";
 import styles from "./BudgetListItemActions.module.css";
 import { usePdfExport } from "@/features/budgets/hooks/usePdfExport";
@@ -41,6 +33,7 @@ import type { InvoicePricingMode } from "@/features/invoices/types/invoice";
 export function BudgetListItemActions({
   budgetId,
   budgetStatus,
+  budgetLang,
   invoiceId,
   clientName,
   clientTaxId,
@@ -48,14 +41,13 @@ export function BudgetListItemActions({
 }: {
   budgetId: string;
   budgetStatus?: string | null;
+  budgetLang?: string | null;
   invoiceId?: string | null;
   clientName: string | null;
   clientTaxId: string | null;
   variant?: "full" | "icons";
 }) {
   const { exportPdf, generating, pdfError, setPdfError } = usePdfExport();
-  const [pdfMenuOpen, setPdfMenuOpen] = useState(false);
-  const pdfMenuRef = useRef<HTMLDivElement | null>(null);
   const [deleting, setDeleting] = useState(false);
   const [deleteError, setDeleteError] = useState<string | null>(null);
 
@@ -68,16 +60,10 @@ export function BudgetListItemActions({
   const isApproved = normalizeBudgetStatus(budgetStatus) === "approved";
   const isInvoiced = normalizeBudgetStatus(budgetStatus) === "invoiced";
 
-  const closePdfMenu = useCallback(() => setPdfMenuOpen(false), []);
-  useClickOutside(pdfMenuRef, pdfMenuOpen, closePdfMenu);
-
-  async function handleGeneratePdfLang(
-    e: React.MouseEvent<HTMLButtonElement>,
-    lang: "ca" | "es"
-  ) {
+  async function handleGeneratePdf(e: React.MouseEvent<HTMLButtonElement>) {
     e.preventDefault();
     e.stopPropagation();
-    setPdfMenuOpen(false);
+    const lang = budgetLang === "es" ? "es" : "ca";
     try {
       const data = (await getBudgetExportData(budgetId)) as unknown;
       if (typeof data !== "object" || data === null) {
@@ -116,7 +102,7 @@ export function BudgetListItemActions({
         quoteNumber: (budget.quote_number ?? "").trim(),
         date: (budget.document_date ?? "").trim(),
         estimatedTime: (budget.estimated_time ?? "").trim(),
-        lang: "ca" as const,
+        lang,
       };
 
       await exportPdf({
@@ -282,69 +268,31 @@ export function BudgetListItemActions({
             </Link>
           )}
           {!isApproved ? (
-            <div
-              ref={pdfMenuRef}
-              className={styles.dropdown}
-              onClick={(e) => e.stopPropagation()}
-              onKeyDown={(e) => {
-                if (e.key === "Escape") setPdfMenuOpen(false);
-              }}
+            <button
+              type="button"
+              disabled={generating}
+              className={
+                variant === "icons"
+                  ? styles.iconBtn
+                  : `${styles.btn} ${styles.primary}`
+              }
+              aria-busy={generating || undefined}
+              aria-label="Generar PDF"
+              title="PDF"
+              onClick={handleGeneratePdf}
             >
-              <button
-                type="button"
-                disabled={generating}
-                className={
-                  variant === "icons"
-                    ? styles.iconBtn
-                    : `${styles.btn} ${styles.primary}`
-                }
-                aria-busy={generating || undefined}
-                aria-haspopup="menu"
-                aria-expanded={pdfMenuOpen}
-                onClick={(e) => {
-                  e.preventDefault();
-                  setPdfMenuOpen((v) => !v);
-                }}
-                title="PDF"
-              >
-                {variant === "icons" ? (
-                  generating ? (
-                    "…"
-                  ) : (
-                    <FileDown size={18} aria-hidden="true" />
-                  )
-                ) : generating ? (
-                  "PDF…"
+              {variant === "icons" ? (
+                generating ? (
+                  "…"
                 ) : (
-                  <>
-                    PDF <ChevronDown size={16} aria-hidden="true" />
-                  </>
-                )}
-              </button>
-
-              {pdfMenuOpen ? (
-                <div className={styles.dropdownMenu} role="menu">
-                  <button
-                    type="button"
-                    className={styles.menuItem}
-                    role="menuitem"
-                    disabled={generating}
-                    onClick={(e) => handleGeneratePdfLang(e, "ca")}
-                  >
-                    Català <span className={styles.menuHint}>PDF</span>
-                  </button>
-                  <button
-                    type="button"
-                    className={styles.menuItem}
-                    role="menuitem"
-                    disabled={generating}
-                    onClick={(e) => handleGeneratePdfLang(e, "es")}
-                  >
-                    Castellano <span className={styles.menuHint}>PDF</span>
-                  </button>
-                </div>
-              ) : null}
-            </div>
+                  <FileDown size={18} aria-hidden="true" />
+                )
+              ) : generating ? (
+                "PDF…"
+              ) : (
+                "PDF"
+              )}
+            </button>
           ) : null}
 
           <button

@@ -65,6 +65,7 @@ export function BudgetsListCards({
                   <BudgetListItemActions
                     budgetId={b.id}
                     budgetStatus={b.status}
+                    budgetLang={b.lang}
                     invoiceId={b.invoice_id ?? null}
                     clientName={b.title}
                     clientTaxId={null}

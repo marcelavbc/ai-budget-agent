@@ -25,6 +25,7 @@ export function usePdfExport() {
         const blob = await generateBudgetPdf({
           client: args.client,
           items: args.items,
+          lang: args.client.lang,
         });
         const url = URL.createObjectURL(blob);
         const a = document.createElement("a");

@@ -28,6 +28,7 @@ export function BudgetEditView({
       clientDetails={c.clientDetails}
       onClientDetailsChange={c.setClientWithAutoQuote}
       onItemChange={c.updateItem}
+      onItemsReplace={c.replaceItems}
       onItemRemove={c.removeItem}
       itemsFooter={
         <BudgetAIInput

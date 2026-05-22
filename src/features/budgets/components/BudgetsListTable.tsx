@@ -25,6 +25,7 @@ export function BudgetsListTable({
             <th className={styles.th}>Núm. pressupost</th>
             <th className={styles.th}>Client</th>
             <th className={styles.th}>Data</th>
+            <th className={`${styles.th} ${styles.colLang}`}>Idioma</th>
             <th className={`${styles.th} ${styles.colStatus}`}>Estat</th>
             <th className={`${styles.th} ${styles.colActions}`}>Accions</th>
           </tr>
@@ -47,6 +48,17 @@ export function BudgetsListTable({
                 </td>
                 <td className={`${styles.td} ${styles.colClient}`}>{client}</td>
                 <td className={`${styles.td} ${styles.colDate}`}>{docDate}</td>
+                <td className={`${styles.td} ${styles.colLang}`}>
+                  <span
+                    className={
+                      b.lang === "es"
+                        ? `${styles.langBadge} ${styles.langBadgeEs}`
+                        : styles.langBadge
+                    }
+                  >
+                    {b.lang === "es" ? "ES" : "CA"}
+                  </span>
+                </td>
                 <td className={`${styles.td} ${styles.colStatus}`}>
                   <StatusPill
                     budgetId={b.id}
@@ -59,6 +71,7 @@ export function BudgetsListTable({
                     <BudgetListItemActions
                       budgetId={b.id}
                       budgetStatus={b.status}
+                      budgetLang={b.lang}
                       invoiceId={b.invoice_id ?? null}
                       clientName={b.title}
                       clientTaxId={null}

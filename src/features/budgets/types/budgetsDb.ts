@@ -13,6 +13,7 @@ export type BudgetListRow = Pick<
   | "document_date"
   | "quote_number"
   | "created_at"
+  | "lang"
 > & {
   invoice_id?: string | null;
 };
