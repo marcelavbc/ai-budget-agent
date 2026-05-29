@@ -22,6 +22,9 @@ export type InvoiceModalProps = {
   setAddressPostalCode: (v: string) => void;
   addressCity: string;
   setAddressCity: (v: string) => void;
+  hasFiscalAddress: boolean;
+  useDifferentFiscalAddress: boolean;
+  onToggleDifferentFiscalAddress: (checked: boolean) => void;
   clientDataLoading: boolean;
   step: InvoiceModalStep;
   selectedPricingMode: InvoicePricingMode | null;
@@ -58,6 +61,9 @@ export function InvoiceModal({
   setAddressPostalCode,
   addressCity,
   setAddressCity,
+  hasFiscalAddress,
+  useDifferentFiscalAddress,
+  onToggleDifferentFiscalAddress,
   clientDataLoading,
   step,
   selectedPricingMode,
@@ -104,7 +110,6 @@ export function InvoiceModal({
 
   const customTaxRateValid =
     taxRateOption !== "other" || (taxRate > 0 && taxRate <= 100);
-  console.log("taxRateOption:", taxRateOption, typeof taxRateOption);
 
   return (
     <div
@@ -286,6 +291,30 @@ export function InvoiceModal({
                   className={dialogStyles.input}
                 />
               </label>
+              {!hasFiscalAddress ? (
+                <label
+                  className={dialogStyles.field}
+                  style={{
+                    display: "flex",
+                    flexDirection: "row",
+                    alignItems: "center",
+                    gap: "0.5rem",
+                  }}
+                >
+                  <input
+                    type="checkbox"
+                    checked={useDifferentFiscalAddress}
+                    onChange={(e) =>
+                      onToggleDifferentFiscalAddress(e.target.checked)
+                    }
+                    disabled={loading}
+                  />
+                  <span className={`${dialogStyles.body} ${dialogStyles.label}`}>
+                    La direcció fiscal és diferent de l&apos;adreça de
+                    l&apos;obra
+                  </span>
+                </label>
+              ) : null}
               <label className={dialogStyles.field}>
                 <span className={`${dialogStyles.body} ${dialogStyles.label}`}>
                   Carrer i número
@@ -294,7 +323,6 @@ export function InvoiceModal({
                   value={addressStreet}
                   onChange={(e) => setAddressStreet(e.target.value)}
                   className={dialogStyles.input}
-                  disabled={clientDataLoading}
                 />
               </label>
               <div className={dialogStyles.fieldRow}>
@@ -309,7 +337,6 @@ export function InvoiceModal({
                     onChange={(e) => setAddressPostalCode(e.target.value)}
                     inputMode="numeric"
                     className={dialogStyles.input}
-                    disabled={clientDataLoading}
                   />
                 </label>
                 <label className={dialogStyles.field}>
@@ -322,7 +349,6 @@ export function InvoiceModal({
                     value={addressCity}
                     onChange={(e) => setAddressCity(e.target.value)}
                     className={dialogStyles.input}
-                    disabled={clientDataLoading}
                   />
                 </label>
               </div>

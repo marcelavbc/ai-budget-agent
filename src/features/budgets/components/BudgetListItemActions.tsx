@@ -37,6 +37,9 @@ export function BudgetListItemActions({
   invoiceId,
   clientName,
   clientTaxId,
+  jobAddressStreet,
+  jobAddressPostalCode,
+  jobAddressCity,
   variant = "full",
 }: {
   budgetId: string;
@@ -45,6 +48,9 @@ export function BudgetListItemActions({
   invoiceId?: string | null;
   clientName: string | null;
   clientTaxId: string | null;
+  jobAddressStreet?: string | null;
+  jobAddressPostalCode?: string | null;
+  jobAddressCity?: string | null;
   variant?: "full" | "icons";
 }) {
   const { exportPdf, generating, pdfError, setPdfError } = usePdfExport();
@@ -52,7 +58,11 @@ export function BudgetListItemActions({
   const [deleteError, setDeleteError] = useState<string | null>(null);
 
   const [confirmOpen, setConfirmOpen] = useState(false);
-  const modal = useInvoiceModal(clientTaxId, budgetId);
+  const modal = useInvoiceModal(clientTaxId, budgetId, {
+    street: jobAddressStreet,
+    postalCode: jobAddressPostalCode,
+    city: jobAddressCity,
+  });
   const [isInvoicing, startInvoicing] = useTransition();
   const [invoiceError, setInvoiceError] = useState<string | null>(null);
   const router = useRouter();
@@ -352,6 +362,9 @@ export function BudgetListItemActions({
           setAddressPostalCode={modal.setAddressPostalCode}
           addressCity={modal.addressCity}
           setAddressCity={modal.setAddressCity}
+          hasFiscalAddress={modal.hasFiscalAddress}
+          useDifferentFiscalAddress={modal.useDifferentFiscalAddress}
+          onToggleDifferentFiscalAddress={modal.toggleDifferentFiscalAddress}
           clientDataLoading={modal.clientDataLoading}
         />
       ) : null}

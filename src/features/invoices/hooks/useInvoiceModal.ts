@@ -6,7 +6,21 @@ import { getClientByBudgetId } from "@/features/invoices/lib/invoicesClient";
 
 export type InvoiceModalStep = 1 | 1.5 | 2;
 
-export function useInvoiceModal(clientTaxId: string | null, budgetId: string) {
+export type InvoiceModalJobAddress = {
+  street?: string | null;
+  postalCode?: string | null;
+  city?: string | null;
+};
+
+export function useInvoiceModal(
+  clientTaxId: string | null,
+  budgetId: string,
+  jobAddress: InvoiceModalJobAddress = {}
+) {
+  const jobStreet = (jobAddress.street ?? "").trim();
+  const jobPostal = (jobAddress.postalCode ?? "").trim();
+  const jobCity = (jobAddress.city ?? "").trim();
+
   const [open, setOpen] = useState(false);
   const [step, setStep] = useState<InvoiceModalStep>(1);
   const [selectedPricingMode, setSelectedPricingMode] =
@@ -22,21 +36,54 @@ export function useInvoiceModal(clientTaxId: string | null, budgetId: string) {
   const [addressStreet, setAddressStreet] = useState("");
   const [addressPostalCode, setAddressPostalCode] = useState("");
   const [addressCity, setAddressCity] = useState("");
+  const [hasFiscalAddress, setHasFiscalAddress] = useState(false);
+  const [useDifferentFiscalAddress, setUseDifferentFiscalAddress] =
+    useState(false);
   const [clientDataLoading, setClientDataLoading] = useState(false);
 
   async function openModal() {
     setOpen(true);
+    setUseDifferentFiscalAddress(false);
     setClientDataLoading(true);
+
     try {
       const data = await getClientByBudgetId(budgetId);
       if (data) {
         setTaxId(data.tax_id ?? clientTaxId ?? "");
-        setAddressStreet(data.fiscal_address_street ?? "");
-        setAddressPostalCode(data.fiscal_address_postal_code ?? "");
-        setAddressCity(data.fiscal_address_city ?? "");
+        const fiscalStreet = (data.fiscal_address_street ?? "").trim();
+        if (fiscalStreet) {
+          setHasFiscalAddress(true);
+          setAddressStreet(data.fiscal_address_street ?? "");
+          setAddressPostalCode(data.fiscal_address_postal_code ?? "");
+          setAddressCity(data.fiscal_address_city ?? "");
+        } else {
+          setHasFiscalAddress(false);
+          setAddressStreet(jobStreet);
+          setAddressPostalCode(jobPostal);
+          setAddressCity(jobCity);
+        }
+      } else {
+        setTaxId(clientTaxId ?? "");
+        setHasFiscalAddress(false);
+        setAddressStreet(jobStreet);
+        setAddressPostalCode(jobPostal);
+        setAddressCity(jobCity);
       }
     } finally {
       setClientDataLoading(false);
+    }
+  }
+
+  function toggleDifferentFiscalAddress(checked: boolean) {
+    setUseDifferentFiscalAddress(checked);
+    if (checked) {
+      setAddressStreet("");
+      setAddressPostalCode("");
+      setAddressCity("");
+    } else {
+      setAddressStreet(jobStreet);
+      setAddressPostalCode(jobPostal);
+      setAddressCity(jobCity);
     }
   }
 
@@ -49,6 +96,8 @@ export function useInvoiceModal(clientTaxId: string | null, budgetId: string) {
     setAddressStreet("");
     setAddressPostalCode("");
     setAddressCity("");
+    setHasFiscalAddress(false);
+    setUseDifferentFiscalAddress(false);
   }
 
   function selectPricing(mode: InvoicePricingMode) {
@@ -90,6 +139,9 @@ export function useInvoiceModal(clientTaxId: string | null, budgetId: string) {
     setAddressPostalCode,
     addressCity,
     setAddressCity,
+    hasFiscalAddress,
+    useDifferentFiscalAddress,
+    toggleDifferentFiscalAddress,
     clientDataLoading,
     openModal,
     closeModal,

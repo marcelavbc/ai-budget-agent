@@ -73,6 +73,9 @@ export function BudgetsListTable({
                       invoiceId={b.invoice_id ?? null}
                       clientName={b.title}
                       clientTaxId={null}
+                      jobAddressStreet={b.job_address_street}
+                      jobAddressPostalCode={b.job_address_postal_code}
+                      jobAddressCity={b.job_address_city}
                       variant="icons"
                     />
                   </div>

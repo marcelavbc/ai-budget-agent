@@ -15,7 +15,13 @@ export type BudgetListRow = Pick<
   | "quote_number"
   | "created_at"
   | "lang"
-> & {
-  invoice_id?: string | null;
-};
+> &
+  Partial<
+    Pick<
+      BudgetRow,
+      "job_address_street" | "job_address_postal_code" | "job_address_city"
+    >
+  > & {
+    invoice_id?: string | null;
+  };
 
