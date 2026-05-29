@@ -13,7 +13,7 @@ type Props = {
 };
 
 function pillClass(s: string): string {
-  if (s === "issued") return styles.pillSent;
+  if (s === "sent") return styles.pillSent;
   if (s === "paid") return styles.pillApproved;
   return styles.pillDraft;
 }
@@ -55,7 +55,7 @@ export default function InvoiceStatusPill({
     setConfirming(false);
   };
 
-  if (status === "issued" && confirming) {
+  if (status === "sent" && confirming) {
     return (
       <>
         <button
@@ -81,7 +81,7 @@ export default function InvoiceStatusPill({
     );
   }
 
-  if (status === "issued") {
+  if (status === "sent") {
     return (
       <button
         type="button"

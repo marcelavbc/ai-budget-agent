@@ -1,13 +1,11 @@
 "use client";
 
-import { useCallback, useRef, useState } from "react";
+import { useState } from "react";
 import { formatEUR } from "@/shared/lib/formatCurrency";
 import {
   generateInvoicePdf,
   buildInvoicePdfFilename,
 } from "@/features/invoices/lib/generateInvoicePdf";
-import { useClickOutside } from "@/shared/hooks/useClickOutside";
-import { ChevronDown } from "lucide-react";
 import type { ClientRow } from "@/features/budgets/types/budgetsDb";
 import type {
   InvoiceLineRow,
@@ -37,13 +35,8 @@ export function InvoiceView({
   settings: SettingsRow | null;
 }) {
   const [generatingPdf, setGeneratingPdf] = useState(false);
-  const [pdfMenuOpen, setPdfMenuOpen] = useState(false);
-  const pdfMenuRef = useRef<HTMLDivElement | null>(null);
-  const closePdfMenu = useCallback(() => setPdfMenuOpen(false), []);
-  useClickOutside(pdfMenuRef, pdfMenuOpen, closePdfMenu);
 
   async function handleDownloadPdf(lang: "ca" | "es") {
-    setPdfMenuOpen(false);
     setGeneratingPdf(true);
 
     try {
@@ -122,55 +115,18 @@ export function InvoiceView({
             <span className={styles.pricingBadge}>AMB IVA</span>
           )}
         </div>
-        <div
-          className={styles.topActions}
-          ref={pdfMenuRef}
-          onKeyDown={(e) => {
-            if (e.key === "Escape") setPdfMenuOpen(false);
-          }}
-        >
+        <div className={styles.topActions}>
           <button
             type="button"
             className={styles.generateBudgetBtn}
             disabled={generatingPdf}
             aria-busy={generatingPdf || undefined}
-            aria-haspopup="menu"
-            aria-expanded={pdfMenuOpen}
-            onClick={() => setPdfMenuOpen((v) => !v)}
+            onClick={() =>
+              handleDownloadPdf((invoice.lang as "ca" | "es") ?? "ca")
+            }
           >
-            {generatingPdf ? (
-              "Generant…"
-            ) : (
-              <>
-                Descarregar PDF
-                <ChevronDown size={14} aria-hidden="true" />
-              </>
-            )}
+            {generatingPdf ? "Generant…" : "Descarregar PDF"}
           </button>
-          {pdfMenuOpen ? (
-            <div className={styles.generateBudgetMenu} role="menu">
-              <button
-                type="button"
-                className={styles.generateBudgetMenuItem}
-                role="menuitem"
-                disabled={generatingPdf}
-                onClick={() => handleDownloadPdf("ca")}
-              >
-                Català{" "}
-                <span className={styles.generateBudgetMenuHint}>PDF</span>
-              </button>
-              <button
-                type="button"
-                className={styles.generateBudgetMenuItem}
-                role="menuitem"
-                disabled={generatingPdf}
-                onClick={() => handleDownloadPdf("es")}
-              >
-                Castellano{" "}
-                <span className={styles.generateBudgetMenuHint}>PDF</span>
-              </button>
-            </div>
-          ) : null}
         </div>
       </div>
 

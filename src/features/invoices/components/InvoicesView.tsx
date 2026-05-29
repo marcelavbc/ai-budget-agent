@@ -10,15 +10,15 @@ import { useClickOutside } from "@/shared/hooks/useClickOutside";
 import styles from "./InvoicesView.module.css";
 import InvoiceStatusPill from "./InvoiceStatusPill";
 
-type InvoiceStatus = "draft" | "issued" | "paid";
+type InvoiceStatus = "draft" | "sent" | "paid";
 
-const STATUS_OPTIONS: InvoiceStatus[] = ["issued", "paid"];
+const STATUS_OPTIONS: InvoiceStatus[] = ["sent", "paid"];
 
 const statusLabel = (s: string): string => {
   switch (s) {
     case "draft":
       return "Esborrany";
-    case "issued":
+    case "sent":
       return "Emesa";
     case "paid":
       return "Cobrada";
