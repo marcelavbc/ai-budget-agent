@@ -306,6 +306,7 @@ export type Database = {
         Row: {
           budget_id: string | null
           client_id: string | null
+          contact_id: string | null
           created_at: string
           due_date: string | null
           id: string
@@ -325,6 +326,7 @@ export type Database = {
         Insert: {
           budget_id?: string | null
           client_id?: string | null
+          contact_id?: string | null
           created_at?: string
           due_date?: string | null
           id?: string
@@ -344,6 +346,7 @@ export type Database = {
         Update: {
           budget_id?: string | null
           client_id?: string | null
+          contact_id?: string | null
           created_at?: string
           due_date?: string | null
           id?: string
@@ -373,6 +376,13 @@ export type Database = {
             columns: ["client_id"]
             isOneToOne: false
             referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "invoices_contact_id_fkey"
+            columns: ["contact_id"]
+            isOneToOne: false
+            referencedRelation: "contacts"
             referencedColumns: ["id"]
           },
         ]
@@ -418,16 +428,26 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      create_invoice_from_budget: {
-        Args: {
-          p_budget_id: string
-          p_due_date?: string
-          p_issue_date?: string
-          p_pricing_mode: string
-          p_tax_rate?: number
-        }
-        Returns: string
-      }
+      create_invoice_from_budget:
+        | {
+            Args: {
+              p_budget_id: string
+              p_due_date?: string
+              p_issue_date?: string
+              p_pricing_mode: string
+            }
+            Returns: string
+          }
+        | {
+            Args: {
+              p_budget_id: string
+              p_due_date?: string
+              p_issue_date?: string
+              p_pricing_mode: string
+              p_tax_rate?: number
+            }
+            Returns: string
+          }
       emit_invoice: { Args: { p_invoice_id: string }; Returns: undefined }
     }
     Enums: {
