@@ -29,7 +29,7 @@ export function useBudgetCreateController() {
   );
   const [persistedBudget, setPersistedBudget] = useState<{
     budgetId: string;
-    clientId: string;
+    contactId: string;
   } | null>(null);
   const [budgetStatus, setBudgetStatus] = useState<BudgetStatus>("draft");
 
@@ -55,7 +55,7 @@ export function useBudgetCreateController() {
     if (persistedBudget) {
       await updateBudgetWithLines({
         budgetId: persistedBudget.budgetId,
-        clientId: persistedBudget.clientId,
+        contactId: persistedBudget.contactId,
         client,
         items,
         taxRate: 0,
@@ -64,13 +64,13 @@ export function useBudgetCreateController() {
       return;
     }
 
-    const { budgetId, clientId } = await saveBudgetWithLines({
+    const { budgetId, contactId } = await saveBudgetWithLines({
       client,
       items,
       contactId: selectedContactId,
     });
-    setPersistedBudget({ budgetId, clientId });
-    setSelectedContactId(clientId);
+    setPersistedBudget({ budgetId, contactId });
+    setSelectedContactId(contactId);
   }
 
   return {

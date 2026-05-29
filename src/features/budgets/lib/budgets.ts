@@ -39,14 +39,6 @@ export interface CreateBudgetResult {
   id: string;
 }
 
-export interface CreateClientInput {
-  name: string;
-  phone?: string | null;
-  address_street?: string | null;
-  address_postal_code?: string | null;
-  address_city?: string | null;
-}
-
 export interface CreateContactInput {
   name: string;
   phone?: string | null;
@@ -135,76 +127,6 @@ async function ensureContactJobAddress(
 type BudgetListQueryRow = BudgetListRow & {
   invoices?: { id: string | null } | { id: string | null }[] | null;
 };
-
-export async function createClient({
-  name,
-  phone = null,
-  address_street = null,
-  address_postal_code = null,
-  address_city = null,
-}: CreateClientInput): Promise<{ id: string }> {
-  const supabase = getSupabaseClient();
-  const normalizedName = name.trim();
-  const normalizedPhone = (phone ?? "").trim();
-
-  const { data, error } = await supabase
-    .from("clients")
-    .insert([
-      {
-        name: normalizedName,
-        phone: normalizeOptionalString(normalizedPhone),
-        address_street: normalizeOptionalString((address_street ?? "").trim()),
-        address_postal_code: normalizeOptionalString(
-          (address_postal_code ?? "").trim()
-        ),
-        address_city: normalizeOptionalString((address_city ?? "").trim()),
-      },
-    ])
-    .select("id")
-    .single();
-
-  if (error) throw new Error(error.message);
-  if (!data?.id) throw new Error("Supabase did not return a client id.");
-  return { id: String(data.id) };
-}
-
-export async function updateClientById(
-  id: string,
-  patch: Partial<
-    Pick<
-      ClientRow,
-      | "name"
-      | "phone"
-      | "address_street"
-      | "address_postal_code"
-      | "address_city"
-    >
-  >
-): Promise<void> {
-  const supabase = getSupabaseClient();
-  const normalized = {
-    name: typeof patch.name === "string" ? patch.name.trim() : patch.name,
-    phone: typeof patch.phone === "string" ? patch.phone.trim() : patch.phone,
-    address_street:
-      typeof patch.address_street === "string"
-        ? patch.address_street.trim()
-        : patch.address_street,
-    address_postal_code:
-      typeof patch.address_postal_code === "string"
-        ? patch.address_postal_code.trim()
-        : patch.address_postal_code,
-    address_city:
-      typeof patch.address_city === "string"
-        ? patch.address_city.trim()
-        : patch.address_city,
-  };
-
-  const { error } = await supabase
-    .from("clients")
-    .update(normalized)
-    .eq("id", id);
-  if (error) throw new Error(error.message);
-}
 
 export async function getClientById(id: string | null): Promise<ClientRow> {
   const supabase = getSupabaseClient();
@@ -557,7 +479,7 @@ export async function replaceBudgetLines(
 
 export async function updateBudgetWithLines(args: {
   budgetId: string;
-  clientId: string | null;
+  contactId: string | null;
   client: BudgetClientDetails;
   items: BudgetClientItem[];
   taxRate?: number;
@@ -565,27 +487,27 @@ export async function updateBudgetWithLines(args: {
 }): Promise<void> {
   const {
     budgetId,
-    clientId,
+    contactId,
     client,
     items,
     taxRate = 0,
     status = "draft",
   } = args;
-  const normalizedClientId = (clientId ?? "").trim();
+  const normalizedContactId = (contactId ?? "").trim();
 
   const { subtotal, tax_amount } = calcBudgetHeaderAmounts(items, taxRate);
   const derivedTitle = deriveBudgetTitle(client);
 
   const ensuredContactId =
-    normalizedClientId && normalizedClientId.toLowerCase() !== "null"
-      ? normalizedClientId
+    normalizedContactId && normalizedContactId.toLowerCase() !== "null"
+      ? normalizedContactId
       : (
           await createContact({
             name: client.nameOrCompany,
           })
         ).id;
 
-  if (ensuredContactId === normalizedClientId) {
+  if (ensuredContactId === normalizedContactId) {
     await updateContactById(ensuredContactId, {
       name: client.nameOrCompany,
     });
@@ -657,7 +579,7 @@ export async function saveBudgetWithLines({
   client,
   items,
   contactId: providedContactId,
-}: SaveBudgetWithLinesInput): Promise<{ budgetId: string; clientId: string }> {
+}: SaveBudgetWithLinesInput): Promise<{ budgetId: string; contactId: string }> {
   const normalizedProvided = (providedContactId ?? "").trim();
   let contactId: string;
 
@@ -682,5 +604,5 @@ export async function saveBudgetWithLines({
   });
   await createBudgetLines({ budgetId: id, items });
   await ensureContactJobAddress(contactId, client);
-  return { budgetId: id, clientId: contactId };
+  return { budgetId: id, contactId };
 }

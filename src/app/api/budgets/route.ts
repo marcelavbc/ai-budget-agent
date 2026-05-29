@@ -19,12 +19,12 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Invalid request." }, { status: 400 });
     }
 
-    const { budgetId, clientId } = await saveBudgetWithLines({
+    const saved = await saveBudgetWithLines({
       client,
       items,
       contactId,
     });
-    return NextResponse.json({ budgetId, clientId });
+    return NextResponse.json(saved);
   } catch (e) {
     console.error("POST /api/budgets failed:", e);
     const message =

@@ -5,7 +5,7 @@ import type { BudgetStatus } from "@/features/budgets/lib/budgetStatus";
 import { deleteBudgetWithLines, updateBudgetById, updateBudgetWithLines } from "@/features/budgets/lib/budgets";
 
 type PutBody = {
-  clientId: string | null;
+  contactId: string | null;
   client: BudgetClientDetails;
   items: BudgetClientItem[];
   taxRate?: number;
@@ -24,14 +24,14 @@ export async function PUT(
     if (!body || typeof body !== "object") {
       return NextResponse.json({ error: "Invalid request." }, { status: 400 });
     }
-    const { clientId, client, items, taxRate, status } = body;
+    const { contactId, client, items, taxRate, status } = body;
     if (!client || !Array.isArray(items)) {
       return NextResponse.json({ error: "Invalid request." }, { status: 400 });
     }
 
     await updateBudgetWithLines({
       budgetId: id,
-      clientId: clientId ?? null,
+      contactId: contactId ?? null,
       client,
       items,
       taxRate,

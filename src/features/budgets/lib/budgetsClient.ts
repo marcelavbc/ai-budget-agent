@@ -21,7 +21,7 @@ export async function saveBudgetWithLines(args: {
   client: BudgetClientDetails;
   items: BudgetClientItem[];
   contactId?: string | null;
-}): Promise<{ budgetId: string; clientId: string }> {
+}): Promise<{ budgetId: string; contactId: string }> {
   const res = await fetch("/api/budgets", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -33,22 +33,22 @@ export async function saveBudgetWithLines(args: {
     typeof data === "object" && data !== null
       ? (data as { budgetId?: unknown }).budgetId
       : null;
-  const clientId =
+  const contactId =
     typeof data === "object" && data !== null
-      ? (data as { clientId?: unknown }).clientId
+      ? (data as { contactId?: unknown }).contactId
       : null;
   if (typeof budgetId !== "string" || !budgetId.trim()) {
     throw new Error("No s'ha pogut guardar el pressupost.");
   }
-  if (typeof clientId !== "string" || !clientId.trim()) {
+  if (typeof contactId !== "string" || !contactId.trim()) {
     throw new Error("No s'ha pogut guardar el pressupost.");
   }
-  return { budgetId, clientId };
+  return { budgetId, contactId };
 }
 
 export async function updateBudgetWithLines(args: {
   budgetId: string;
-  clientId: string | null;
+  contactId: string | null;
   client: BudgetClientDetails;
   items: BudgetClientItem[];
   taxRate?: number;

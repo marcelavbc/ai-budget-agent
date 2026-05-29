@@ -68,7 +68,7 @@ export function useBudgetEditController(args: {
   }) {
     await updateBudgetWithLines({
       budgetId: budget.id,
-      clientId: selectedContactId ?? budget.contact_id,
+      contactId: selectedContactId ?? budget.contact_id,
       client,
       items,
       taxRate: budget.tax_rate ?? 0,
