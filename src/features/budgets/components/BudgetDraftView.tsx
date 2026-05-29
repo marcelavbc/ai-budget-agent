@@ -1,22 +1,22 @@
 "use client";
 
 import { useState } from "react";
-import { FileDown, Trash2 } from "lucide-react";
+import { FileDown } from "lucide-react";
 import type {
   BudgetClientDetails,
   BudgetClientItem,
 } from "@/features/budgets/types/budget";
 import { isBudgetDraftComplete } from "@/features/budgets/lib/budgetDraft";
-import { saveBudgetWithLines } from "@/features/budgets/lib/budgetsClient";
 import {
   budgetStatusLabel,
   normalizeBudgetStatus,
   type BudgetStatus,
 } from "@/features/budgets/lib/budgetStatus";
 import { usePdfExport } from "@/features/budgets/hooks/usePdfExport";
+import { useTranslation } from "@/features/budgets/hooks/useTranslation";
 import { StatusPill } from "@/features/budgets/components/StatusPill";
 import { BudgetClientForm } from "@/features/budgets/components/BudgetClientForm";
-import { DecimalFieldInput } from "@/shared/components/DecimalFieldInput";
+import { BudgetItemCard } from "@/features/budgets/components/BudgetItemCard";
 import styles from "./BudgetDraftView.module.css";
 
 type DraftSegment =
@@ -109,18 +109,21 @@ export function BudgetDraftView({
 }: Props) {
   const [isSaving, setIsSaving] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
-  const [itemsSnapshot, setItemsSnapshot] = useState<BudgetClientItem[] | null>(
-    null
-  );
-  const [isTranslating, setIsTranslating] = useState(false);
   const { exportPdf, generating, pdfError } = usePdfExport();
+  const {
+    isTranslating,
+    handleTranslate,
+    handleRevertTranslation,
+    hasSnapshot,
+  } = useTranslation({
+    items,
+    onItemsReplace,
+    onItemChange,
+    setClient,
+  });
 
   const draftComplete = isBudgetDraftComplete({ client, items });
   const status = normalizeBudgetStatus(budgetStatus);
-
-  function handleDescriptionChange(id: string, value: string) {
-    onItemChange(id, { description: value });
-  }
 
   async function handleSaveBudget() {
     if (!draftComplete || isSaving) return;
@@ -130,7 +133,7 @@ export function BudgetDraftView({
       if (onSave) {
         await onSave({ client, items });
       } else {
-        await saveBudgetWithLines({ client, items });
+        throw new Error("BudgetDraftView requires onSave prop");
       }
       window.scrollTo({ top: 0, behavior: "smooth" });
     } catch (e) {
@@ -148,52 +151,9 @@ export function BudgetDraftView({
     await exportPdf({ client, items });
   }
 
-  async function handleTranslate() {
-    setItemsSnapshot(items);
-    setIsTranslating(true);
-    try {
-      const res = await fetch("/api/translate-budget-items", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ items, targetLang: "es" }),
-      });
-      if (!res.ok) throw new Error("Translation failed");
-      const data = (await res.json()) as { items: BudgetClientItem[] };
-      if (onItemsReplace) {
-        onItemsReplace(data.items);
-      } else {
-        for (const item of data.items) {
-          onItemChange(item.id, {
-            title: item.title,
-            description: item.description,
-          });
-        }
-      }
-      setClient((prev) => ({ ...prev, lang: "es" }));
-    } finally {
-      setIsTranslating(false);
-    }
-  }
-
-  function handleRevertTranslation() {
-    if (!itemsSnapshot) return;
-    if (onItemsReplace) {
-      onItemsReplace(itemsSnapshot);
-    } else {
-      for (const item of itemsSnapshot) {
-        onItemChange(item.id, {
-          title: item.title,
-          description: item.description,
-        });
-      }
-    }
-    setClient((prev) => ({ ...prev, lang: "ca" }));
-    setItemsSnapshot(null);
-  }
-
   const translationButtons =
     mode === "edit"
-      ? client.lang === "ca" && itemsSnapshot === null
+      ? client.lang === "ca" && !hasSnapshot
         ? (
             <button
               type="button"
@@ -205,7 +165,7 @@ export function BudgetDraftView({
               Traduir al castellà
             </button>
           )
-        : client.lang === "es" || itemsSnapshot !== null
+        : client.lang === "es" || hasSnapshot
           ? (
               <button
                 type="button"
@@ -289,149 +249,16 @@ export function BudgetDraftView({
 
       <ul className={styles.list}>
         {segments.map((seg) => {
-          const renderCard = (
-            item: BudgetClientItem,
-            optionLabel?: string,
-            key?: string
-          ) => (
-            <div key={key ?? item.id} className={styles.card}>
-              <div className={styles.cardHeader}>
-                <div className={styles.cardTitleRow}>
-                  {optionLabel ? (
-                    <span className={styles.optionBadge}>{optionLabel}</span>
-                  ) : null}
-                  <div className={styles.itemTitleInputWrap}>
-                    <input
-                      className={styles.itemTitleInput}
-                      type="text"
-                      value={item.title}
-                      onChange={(e) =>
-                        onItemChange(item.id, { title: e.target.value })
-                      }
-                      placeholder="Títol de la partida"
-                    />
-                  </div>
-                </div>
-                <div className={styles.cardHeaderRight}>
-                  <DecimalFieldInput
-                    className={styles.cardTotalInput}
-                    aria-label="Import total de la partida (€)"
-                    value={item.total ?? 0}
-                    onChange={(t) => {
-                      const total = Math.round(t * 100) / 100;
-                      const quantity = item.quantity ?? 1;
-                      const patch: Partial<BudgetClientItem> = { total };
-                      if (quantity > 0) {
-                        patch.unitPrice =
-                          Math.round((total / quantity) * 100) / 100;
-                      }
-                      onItemChange(item.id, patch);
-                    }}
-                  />
-                  {onItemRemove ? (
-                    <div className={styles.cardIconActions}>
-                      <button
-                        type="button"
-                        className={styles.iconBtnDanger}
-                        onClick={() => onItemRemove(item.id)}
-                        aria-label={`Eliminar ${item.title}`}
-                      >
-                        <Trash2 size={16} />
-                      </button>
-                    </div>
-                  ) : null}
-                </div>
-              </div>
-
-              <div className={styles.itemMetaRow}>
-                <label className={styles.itemField}>
-                  <span className={styles.itemFieldLabel}>Quant.</span>
-                  <DecimalFieldInput
-                    className={styles.itemFieldInput}
-                    value={item.quantity ?? 1}
-                    onChange={(q) => {
-                      const quantity = Math.round(q * 100) / 100;
-                      const unitPrice = item.unitPrice ?? 0;
-                      const total =
-                        Math.round(quantity * unitPrice * 100) / 100;
-                      onItemChange(item.id, { quantity, total });
-                    }}
-                  />
-                </label>
-
-                {item.unitLabel === "m²" ? (
-                  <label className={styles.itemField}>
-                    <span className={styles.itemFieldLabel}>Preu (€/m²)</span>
-                    <DecimalFieldInput
-                      className={styles.itemFieldInput}
-                      value={item.unitPrice ?? 0}
-                      onChange={(unitPrice) => {
-                        const price = Math.round(unitPrice * 100) / 100;
-                        const quantity = item.quantity ?? 0;
-                        const total =
-                          Math.round(quantity * price * 100) / 100;
-                        onItemChange(item.id, { unitPrice: price, total });
-                      }}
-                    />
-                  </label>
-                ) : null}
-
-                <label className={styles.itemField}>
-                  <span className={styles.itemFieldLabel}>Unitat</span>
-                  <select
-                    className={styles.itemFieldInput}
-                    value={item.unitLabel ?? "partida"}
-                    onChange={(e) =>
-                      onItemChange(item.id, {
-                        unitLabel: e.target
-                          .value as BudgetClientItem["unitLabel"],
-                      })
-                    }
-                  >
-                    <option value="partida">partida</option>
-                    <option value="unitat">unitat</option>
-                    <option value="m²">m²</option>
-                  </select>
-                </label>
-              </div>
-
-              <textarea
-                className={styles.descTextarea}
-                value={item.description}
-                onChange={(e) =>
-                  handleDescriptionChange(item.id, e.target.value)
-                }
-                rows={4}
-                placeholder="Descripció de la partida…"
-              />
-              {(item.clientDescription?.trim() ?? "").length > 0 ? (
-                <details className={styles.originalDescBlock}>
-                  <summary className={styles.originalDescSummary}>
-                    Text original
-                  </summary>
-                  <p className={styles.originalDescText}>
-                    {item.clientDescription}
-                  </p>
-                  {item.description !== item.clientDescription ? (
-                    <button
-                      type="button"
-                      className={styles.linkLike}
-                      onClick={() =>
-                        onItemChange(item.id, {
-                          description: item.clientDescription!,
-                        })
-                      }
-                    >
-                      Usar text original
-                    </button>
-                  ) : null}
-                </details>
-              ) : null}
-            </div>
-          );
-
           if (seg.kind === "single") {
-            return <li key={seg.item.id}>{renderCard(seg.item)}</li>;
+            return (
+              <li key={seg.item.id}>
+                <BudgetItemCard
+                  item={seg.item}
+                  onItemChange={onItemChange}
+                  onItemRemove={onItemRemove}
+                />
+              </li>
+            );
           }
 
           return (
@@ -442,13 +269,17 @@ export function BudgetDraftView({
                 </span>
               </div>
               <div className={styles.optionGroupBody}>
-                {seg.items.map((item) =>
-                  renderCard(
-                    item,
-                    (item.optionLabel ?? "").trim() || "Opció",
-                    item.id
-                  )
-                )}
+                {seg.items.map((item) => (
+                  <BudgetItemCard
+                    key={item.id}
+                    item={item}
+                    optionLabel={
+                      (item.optionLabel ?? "").trim() || "Opció"
+                    }
+                    onItemChange={onItemChange}
+                    onItemRemove={onItemRemove}
+                  />
+                ))}
               </div>
             </li>
           );
