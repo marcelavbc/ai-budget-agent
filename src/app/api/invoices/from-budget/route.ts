@@ -7,6 +7,7 @@ type Body = {
   pricingMode?: unknown;
   issueDate?: unknown;
   dueDate?: unknown;
+  taxRate?: unknown;
 };
 
 export async function POST(request: Request) {
@@ -34,12 +35,17 @@ export async function POST(request: Request) {
       typeof body.issueDate === "string" ? body.issueDate.trim() : undefined;
     const dueDate =
       typeof body.dueDate === "string" ? body.dueDate.trim() : undefined;
+    const taxRate =
+      typeof body.taxRate === "number" && Number.isFinite(body.taxRate)
+        ? body.taxRate
+        : undefined;
 
     const { invoiceId } = await createInvoiceFromBudget(
       budgetId,
       pricingMode,
       issueDate || undefined,
-      dueDate || undefined
+      dueDate || undefined,
+      taxRate
     );
     return NextResponse.json({ invoiceId });
   } catch (err) {

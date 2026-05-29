@@ -11,30 +11,30 @@ export async function PATCH(
 
   const { data: budget } = await supabase
     .from("budgets")
-    .select("client_id")
+    .select("contact_id")
     .eq("id", id)
     .maybeSingle();
 
-  if (!budget?.client_id) {
-    return NextResponse.json({ error: "Client no trobat" }, { status: 404 });
+  if (!budget?.contact_id) {
+    return NextResponse.json({ error: "Contacte no trobat" }, { status: 404 });
   }
 
   const patch: {
-    address_street?: string;
-    address_postal_code?: string;
-    address_city?: string;
+    fiscal_address_street?: string;
+    fiscal_address_postal_code?: string;
+    fiscal_address_city?: string;
   } = {};
   if (typeof body.address_street === "string")
-    patch.address_street = body.address_street.trim();
+    patch.fiscal_address_street = body.address_street.trim();
   if (typeof body.address_postal_code === "string")
-    patch.address_postal_code = body.address_postal_code.trim();
+    patch.fiscal_address_postal_code = body.address_postal_code.trim();
   if (typeof body.address_city === "string")
-    patch.address_city = body.address_city.trim();
+    patch.fiscal_address_city = body.address_city.trim();
 
   const { error } = await supabase
-    .from("clients")
+    .from("contacts")
     .update(patch)
-    .eq("id", budget.client_id);
+    .eq("id", budget.contact_id);
 
   if (error)
     return NextResponse.json({ error: error.message }, { status: 500 });

@@ -4,11 +4,14 @@ import { useState } from "react";
 import type { InvoicePricingMode } from "@/features/invoices/types/invoice";
 import { getClientByBudgetId } from "@/features/invoices/lib/invoicesClient";
 
+export type InvoiceModalStep = 1 | 1.5 | 2;
+
 export function useInvoiceModal(clientTaxId: string | null, budgetId: string) {
   const [open, setOpen] = useState(false);
-  const [step, setStep] = useState<1 | 2>(1);
+  const [step, setStep] = useState<InvoiceModalStep>(1);
   const [selectedPricingMode, setSelectedPricingMode] =
     useState<InvoicePricingMode | null>(null);
+  const [taxRate, setTaxRate] = useState(21);
   const [taxId, setTaxId] = useState<string>(clientTaxId ?? "");
   const [issueDate, setIssueDate] = useState<string>(
     new Date().toISOString().split("T")[0]
@@ -28,9 +31,9 @@ export function useInvoiceModal(clientTaxId: string | null, budgetId: string) {
       const data = await getClientByBudgetId(budgetId);
       if (data) {
         setTaxId(data.tax_id ?? clientTaxId ?? "");
-        setAddressStreet(data.address_street ?? "");
-        setAddressPostalCode(data.address_postal_code ?? "");
-        setAddressCity(data.address_city ?? "");
+        setAddressStreet(data.fiscal_address_street ?? "");
+        setAddressPostalCode(data.fiscal_address_postal_code ?? "");
+        setAddressCity(data.fiscal_address_city ?? "");
       }
     } finally {
       setClientDataLoading(false);
@@ -41,6 +44,7 @@ export function useInvoiceModal(clientTaxId: string | null, budgetId: string) {
     setOpen(false);
     setStep(1);
     setSelectedPricingMode(null);
+    setTaxRate(21);
     setTaxId(clientTaxId ?? "");
     setAddressStreet("");
     setAddressPostalCode("");
@@ -49,10 +53,22 @@ export function useInvoiceModal(clientTaxId: string | null, budgetId: string) {
 
   function selectPricing(mode: InvoicePricingMode) {
     setSelectedPricingMode(mode);
+    if (mode === "with_iva") {
+      setStep(1.5);
+    } else {
+      setStep(2);
+    }
+  }
+
+  function confirmTaxRate() {
     setStep(2);
   }
 
   function goBack() {
+    if (step === 2 && selectedPricingMode === "with_iva") {
+      setStep(1.5);
+      return;
+    }
     setStep(1);
   }
 
@@ -60,6 +76,8 @@ export function useInvoiceModal(clientTaxId: string | null, budgetId: string) {
     open,
     step,
     selectedPricingMode,
+    taxRate,
+    setTaxRate,
     taxId,
     setTaxId,
     issueDate,
@@ -76,6 +94,7 @@ export function useInvoiceModal(clientTaxId: string | null, budgetId: string) {
     openModal,
     closeModal,
     selectPricing,
+    confirmTaxRate,
     goBack,
   };
 }

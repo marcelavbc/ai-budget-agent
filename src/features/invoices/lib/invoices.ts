@@ -102,7 +102,8 @@ export async function createInvoiceFromBudget(
   budgetId: string,
   pricingMode: InvoicePricingMode,
   issueDate?: string,
-  dueDate?: string
+  dueDate?: string,
+  taxRate?: number
 ): Promise<{ invoiceId: string }> {
   if (!isInvoicePricingMode(pricingMode)) {
     throw new Error("Mode de facturació no vàlid.");
@@ -120,6 +121,7 @@ export async function createInvoiceFromBudget(
       p_pricing_mode: pricingMode,
       ...(issueDate ? { p_issue_date: issueDate } : {}),
       ...(dueDate ? { p_due_date: dueDate } : {}),
+      ...(taxRate != null ? { p_tax_rate: taxRate } : {}),
     }
   );
 

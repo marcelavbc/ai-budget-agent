@@ -165,7 +165,8 @@ export function BudgetListItemActions({
             budgetId,
             pricingMode,
             modal.issueDate,
-            modal.dueDate
+            modal.dueDate,
+            pricingMode === "with_iva" ? modal.taxRate : undefined
           );
           router.push(`/invoices/${invoiceId}`);
           router.refresh();
@@ -335,7 +336,10 @@ export function BudgetListItemActions({
           setDueDate={modal.setDueDate}
           step={modal.step}
           selectedPricingMode={modal.selectedPricingMode}
+          taxRate={modal.taxRate}
+          setTaxRate={modal.setTaxRate}
           onSelectPricing={modal.selectPricing}
+          onConfirmTaxRate={modal.confirmTaxRate}
           onConfirm={() => {
             if (modal.selectedPricingMode)
               handleCreateInvoice(modal.selectedPricingMode);

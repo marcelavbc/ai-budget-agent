@@ -21,7 +21,8 @@ export async function createInvoiceFromBudget(
   budgetId: string,
   pricingMode: InvoicePricingMode,
   issueDate?: string,
-  dueDate?: string
+  dueDate?: string,
+  taxRate?: number
 ): Promise<{ invoiceId: string }> {
   if (!isInvoicePricingMode(pricingMode)) {
     throw new Error("Mode de facturació no vàlid.");
@@ -30,7 +31,7 @@ export async function createInvoiceFromBudget(
   const res = await fetch("/api/invoices/from-budget", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ budgetId, pricingMode, issueDate, dueDate }),
+    body: JSON.stringify({ budgetId, pricingMode, issueDate, dueDate, taxRate }),
   });
 
   const data = await readJson(res);
@@ -51,17 +52,17 @@ export async function createInvoiceFromBudget(
 
 export async function getClientByBudgetId(budgetId: string): Promise<{
   tax_id: string | null;
-  address_street: string | null;
-  address_postal_code: string | null;
-  address_city: string | null;
+  fiscal_address_street: string | null;
+  fiscal_address_postal_code: string | null;
+  fiscal_address_city: string | null;
 } | null> {
   const res = await fetch(`/api/budgets/${budgetId}/client-data`);
   if (!res.ok) return null;
   return res.json() as Promise<{
     tax_id: string | null;
-    address_street: string | null;
-    address_postal_code: string | null;
-    address_city: string | null;
+    fiscal_address_street: string | null;
+    fiscal_address_postal_code: string | null;
+    fiscal_address_city: string | null;
   } | null>;
 }
 

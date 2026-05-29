@@ -424,6 +424,7 @@ export type Database = {
           p_due_date?: string
           p_issue_date?: string
           p_pricing_mode: string
+          p_tax_rate?: number
         }
         Returns: string
       }

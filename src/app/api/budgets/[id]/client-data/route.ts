@@ -10,19 +10,21 @@ export async function GET(
 
   const { data: budget } = await supabase
     .from("budgets")
-    .select("client_id")
+    .select("contact_id")
     .eq("id", id)
     .maybeSingle();
 
-  if (!budget?.client_id) {
+  if (!budget?.contact_id) {
     return NextResponse.json(null);
   }
 
-  const { data: client } = await supabase
-    .from("clients")
-    .select("tax_id,address_street,address_postal_code,address_city")
-    .eq("id", budget.client_id)
+  const { data: contact } = await supabase
+    .from("contacts")
+    .select(
+      "tax_id,fiscal_address_street,fiscal_address_postal_code,fiscal_address_city"
+    )
+    .eq("id", budget.contact_id)
     .maybeSingle();
 
-  return NextResponse.json(client ?? null);
+  return NextResponse.json(contact ?? null);
 }

@@ -15,15 +15,15 @@ export async function PATCH(
     }
 
     const budget = await getBudgetById(id);
-    if (!budget?.client_id) {
-      return NextResponse.json({ error: "Client no trobat." }, { status: 404 });
+    if (!budget?.contact_id) {
+      return NextResponse.json({ error: "Contacte no trobat." }, { status: 404 });
     }
 
     const supabase = getSupabaseClient();
     const { error } = await supabase
-      .from("clients")
+      .from("contacts")
       .update({ tax_id: taxId })
-      .eq("id", budget.client_id);
+      .eq("id", budget.contact_id);
 
     if (error) throw new Error(error.message);
     return NextResponse.json({ ok: true });
