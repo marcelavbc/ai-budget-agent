@@ -48,6 +48,7 @@ export default function NewBudgetPage() {
           quoteManuallyEdited={c.quoteManuallyEdited}
           onQuoteNumberChange={c.onQuoteNumberChange}
           onResetQuoteAutomation={c.resetAutomation}
+          onContactSelect={c.onContactSelect}
           onSave={c.handleSave}
         />
       </div>

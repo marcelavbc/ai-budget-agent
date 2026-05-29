@@ -3,13 +3,40 @@ import type { BudgetClientDetails } from "@/features/budgets/types/budget";
 import { useClickOutside } from "@/shared/hooks/useClickOutside";
 import styles from "./BudgetDraftView.module.css";
 
+type ContactAddressOption = {
+  id: string;
+  street: string | null;
+  postal_code: string | null;
+  city: string | null;
+  label: string | null;
+};
+
 type ContactSuggestion = {
   id: string;
   name: string;
   fiscal_address_street: string | null;
   fiscal_address_postal_code: string | null;
   fiscal_address_city: string | null;
+  addresses: ContactAddressOption[];
 };
+
+function formatAddressOptionLabel(address: ContactAddressOption): string {
+  if (address.label?.trim()) {
+    return address.label.trim();
+  }
+  const parts = [address.street, address.city]
+    .map((value) => (value ?? "").trim())
+    .filter(Boolean);
+  return parts.join(", ") || "Sense adreça";
+}
+
+function jobAddressFromContactAddress(address: ContactAddressOption) {
+  return {
+    jobAddressStreet: address.street ?? "",
+    jobAddressPostalCode: address.postal_code ?? "",
+    jobAddressCity: address.city ?? "",
+  };
+}
 
 export function BudgetClientForm({
   client,
@@ -17,25 +44,44 @@ export function BudgetClientForm({
   quoteManuallyEdited,
   onQuoteNumberChange,
   onResetQuoteAutomation,
+  onContactSelect,
 }: {
   client: BudgetClientDetails;
   onChange: React.Dispatch<React.SetStateAction<BudgetClientDetails>>;
   quoteManuallyEdited: boolean;
   onQuoteNumberChange: (value: string) => void;
   onResetQuoteAutomation: () => void;
+  onContactSelect?: (contactId: string) => void;
 }) {
   const [collapsed, setCollapsed] = useState(true);
+  const [contactId, setContactId] = useState<string | null>(null);
   const [suggestions, setSuggestions] = useState<ContactSuggestion[]>([]);
   const [suggestionsOpen, setSuggestionsOpen] = useState(false);
+  const [addressOptions, setAddressOptions] = useState<ContactAddressOption[]>(
+    []
+  );
+  const [addressOptionsOpen, setAddressOptionsOpen] = useState(false);
   const [autocompleteDismissed, setAutocompleteDismissed] = useState(false);
   const autocompleteRef = useRef<HTMLDivElement>(null);
+  const addressOptionsRef = useRef<HTMLDivElement>(null);
 
   const closeSuggestions = useCallback(() => {
     setSuggestionsOpen(false);
     setSuggestions([]);
   }, []);
 
+  const closeAddressOptions = useCallback(() => {
+    setAddressOptionsOpen(false);
+  }, []);
+
   useClickOutside(autocompleteRef, suggestionsOpen, closeSuggestions);
+  useClickOutside(addressOptionsRef, addressOptionsOpen, closeAddressOptions);
+
+  function clearContactSelection() {
+    setContactId(null);
+    setAddressOptions([]);
+    setAddressOptionsOpen(false);
+  }
 
   function setClientField<K extends keyof BudgetClientDetails>(
     key: K,
@@ -44,20 +90,42 @@ export function BudgetClientForm({
     onChange((prev) => ({ ...prev, [key]: value }));
   }
 
-  function selectContact(contact: ContactSuggestion) {
+  function applyJobAddress(address: ContactAddressOption) {
     onChange((prev) => ({
       ...prev,
-      nameOrCompany: contact.name,
-      ...(contact.fiscal_address_street
-        ? { jobAddressStreet: contact.fiscal_address_street }
-        : {}),
-      ...(contact.fiscal_address_postal_code
-        ? { jobAddressPostalCode: contact.fiscal_address_postal_code }
-        : {}),
-      ...(contact.fiscal_address_city
-        ? { jobAddressCity: contact.fiscal_address_city }
-        : {}),
+      ...jobAddressFromContactAddress(address),
     }));
+    setAddressOptionsOpen(false);
+  }
+
+  function selectContact(contact: ContactSuggestion) {
+    setContactId(contact.id);
+    onContactSelect?.(contact.id);
+
+    if (contact.addresses.length === 1) {
+      onChange((prev) => ({
+        ...prev,
+        nameOrCompany: contact.name,
+        ...jobAddressFromContactAddress(contact.addresses[0]!),
+      }));
+      setAddressOptions([]);
+      setAddressOptionsOpen(false);
+    } else if (contact.addresses.length > 1) {
+      onChange((prev) => ({
+        ...prev,
+        nameOrCompany: contact.name,
+      }));
+      setAddressOptions(contact.addresses);
+      setAddressOptionsOpen(true);
+    } else {
+      onChange((prev) => ({
+        ...prev,
+        nameOrCompany: contact.name,
+      }));
+      setAddressOptions([]);
+      setAddressOptionsOpen(false);
+    }
+
     setAutocompleteDismissed(true);
     closeSuggestions();
   }
@@ -127,7 +195,10 @@ export function BudgetClientForm({
   }
 
   return (
-    <div className={styles.clientSection}>
+    <div
+      className={styles.clientSection}
+      data-selected-contact-id={contactId ?? undefined}
+    >
       <button
         type="button"
         className={styles.linkLike}
@@ -149,6 +220,7 @@ export function BudgetClientForm({
               value={client.nameOrCompany}
               onChange={(e) => {
                 setAutocompleteDismissed(false);
+                clearContactSelection();
                 setClientField("nameOrCompany", e.target.value);
               }}
               onKeyDown={(e) => {
@@ -189,6 +261,45 @@ export function BudgetClientForm({
             ) : null}
           </div>
         </label>
+
+        {addressOptions.length > 1 ? (
+          <label className={styles.field}>
+            <span className={styles.fieldLabel}>Adreça de l&apos;obra</span>
+            <div className={styles.contactAutocomplete} ref={addressOptionsRef}>
+              <button
+                type="button"
+                className={`${styles.fieldInput} ${styles.addressPickerTrigger}`}
+                aria-expanded={addressOptionsOpen}
+                aria-controls={
+                  addressOptionsOpen ? "job-address-options" : undefined
+                }
+                onClick={() => setAddressOptionsOpen((open) => !open)}
+              >
+                Tria una adreça…
+              </button>
+              {addressOptionsOpen ? (
+                <ul
+                  id="job-address-options"
+                  className={styles.contactSuggestions}
+                  role="listbox"
+                >
+                  {addressOptions.map((address) => (
+                    <li key={address.id} role="presentation">
+                      <button
+                        type="button"
+                        role="option"
+                        className={styles.contactSuggestion}
+                        onClick={() => applyJobAddress(address)}
+                      >
+                        <span>{formatAddressOptionLabel(address)}</span>
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+              ) : null}
+            </div>
+          </label>
+        ) : null}
 
         <label className={styles.field}>
           <span className={styles.fieldLabel}>Carrer i número</span>

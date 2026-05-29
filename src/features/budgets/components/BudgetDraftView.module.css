@@ -363,6 +363,12 @@
   color: var(--text-muted);
 }
 
+.addressPickerTrigger {
+  width: 100%;
+  text-align: left;
+  cursor: pointer;
+}
+
 .quoteField {
   display: flex;
   flex-direction: column;

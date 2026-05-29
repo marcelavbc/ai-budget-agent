@@ -85,6 +85,7 @@ interface Props {
   quoteManuallyEdited: boolean;
   onQuoteNumberChange: (value: string) => void;
   onResetQuoteAutomation: () => void;
+  onContactSelect?: (contactId: string) => void;
 }
 
 export function BudgetDraftView({
@@ -104,6 +105,7 @@ export function BudgetDraftView({
   quoteManuallyEdited,
   onQuoteNumberChange,
   onResetQuoteAutomation,
+  onContactSelect,
 }: Props) {
   const [isSaving, setIsSaving] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
@@ -274,6 +276,7 @@ export function BudgetDraftView({
         quoteManuallyEdited={quoteManuallyEdited}
         onQuoteNumberChange={onQuoteNumberChange}
         onResetQuoteAutomation={onResetQuoteAutomation}
+        onContactSelect={onContactSelect}
       />
 
       <div className={styles.itemsTopBar}>

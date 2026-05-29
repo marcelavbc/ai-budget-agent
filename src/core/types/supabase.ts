@@ -181,6 +181,44 @@ export type Database = {
         }
         Relationships: []
       }
+      contact_addresses: {
+        Row: {
+          city: string | null
+          contact_id: string
+          created_at: string
+          id: string
+          label: string | null
+          postal_code: string | null
+          street: string | null
+        }
+        Insert: {
+          city?: string | null
+          contact_id: string
+          created_at?: string
+          id?: string
+          label?: string | null
+          postal_code?: string | null
+          street?: string | null
+        }
+        Update: {
+          city?: string | null
+          contact_id?: string
+          created_at?: string
+          id?: string
+          label?: string | null
+          postal_code?: string | null
+          street?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "contact_addresses_contact_id_fkey"
+            columns: ["contact_id"]
+            isOneToOne: false
+            referencedRelation: "contacts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       contacts: {
         Row: {
           created_at: string

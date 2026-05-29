@@ -5,6 +5,7 @@ import { saveBudgetWithLines } from "@/features/budgets/lib/budgets";
 type Body = {
   client: BudgetClientDetails;
   items: BudgetClientItem[];
+  contactId?: string | null;
 };
 
 export async function POST(request: Request) {
@@ -13,12 +14,16 @@ export async function POST(request: Request) {
     if (!body || typeof body !== "object") {
       return NextResponse.json({ error: "Invalid request." }, { status: 400 });
     }
-    const { client, items } = body;
+    const { client, items, contactId } = body;
     if (!client || !Array.isArray(items)) {
       return NextResponse.json({ error: "Invalid request." }, { status: 400 });
     }
 
-    const { budgetId, clientId } = await saveBudgetWithLines({ client, items });
+    const { budgetId, clientId } = await saveBudgetWithLines({
+      client,
+      items,
+      contactId,
+    });
     return NextResponse.json({ budgetId, clientId });
   } catch (e) {
     console.error("POST /api/budgets failed:", e);

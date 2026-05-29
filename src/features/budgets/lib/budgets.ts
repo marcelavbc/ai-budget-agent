@@ -79,6 +79,59 @@ function jobAddressFields(client: BudgetClientDetails) {
   };
 }
 
+function normalizedAddressPart(value: string | null | undefined): string | null {
+  const trimmed = (value ?? "").trim();
+  return trimmed ? trimmed : null;
+}
+
+async function ensureContactJobAddress(
+  contactId: string,
+  client: BudgetClientDetails
+): Promise<void> {
+  const street = normalizedAddressPart(client.jobAddressStreet);
+  const postal_code = normalizedAddressPart(client.jobAddressPostalCode);
+  const city = normalizedAddressPart(client.jobAddressCity);
+
+  if (!street && !postal_code && !city) {
+    return;
+  }
+
+  const supabase = getSupabaseClient();
+  const { data: existing, error: fetchError } = await supabase
+    .from("contact_addresses")
+    .select("street, postal_code, city")
+    .eq("contact_id", contactId);
+
+  if (fetchError) {
+    throw new Error(fetchError.message);
+  }
+
+  const alreadyExists = (existing ?? []).some(
+    (row) =>
+      normalizedAddressPart(row.street) === street &&
+      normalizedAddressPart(row.postal_code) === postal_code &&
+      normalizedAddressPart(row.city) === city
+  );
+
+  if (alreadyExists) {
+    return;
+  }
+
+  const { error: insertError } = await supabase.from("contact_addresses").insert([
+    {
+      contact_id: contactId,
+      street,
+      postal_code,
+      city,
+      label: null,
+    },
+  ]);
+
+  if (insertError) {
+    throw new Error(insertError.message);
+  }
+}
+
 type BudgetListQueryRow = BudgetListRow & {
   invoices?: { id: string | null } | { id: string | null }[] | null;
 };
@@ -554,6 +607,7 @@ export async function updateBudgetWithLines(args: {
   });
 
   await replaceBudgetLines(budgetId, items);
+  await ensureContactJobAddress(ensuredContactId, client);
 }
 
 export interface CreateBudgetLinesInput {
@@ -596,16 +650,29 @@ export async function getBudgetLinesByBudgetId(
 export interface SaveBudgetWithLinesInput {
   client: BudgetClientDetails;
   items: BudgetClientItem[];
+  contactId?: string | null;
 }
 
 export async function saveBudgetWithLines({
   client,
   items,
+  contactId: providedContactId,
 }: SaveBudgetWithLinesInput): Promise<{ budgetId: string; clientId: string }> {
-  // TODO: evolve to findOrCreateClient (avoid duplicates) once we define the matching rules.
-  const { id: contactId } = await createContact({
-    name: client.nameOrCompany,
-  });
+  const normalizedProvided = (providedContactId ?? "").trim();
+  let contactId: string;
+
+  if (normalizedProvided && normalizedProvided.toLowerCase() !== "null") {
+    contactId = normalizedProvided;
+    await updateContactById(contactId, {
+      name: client.nameOrCompany,
+    });
+  } else {
+    const created = await createContact({
+      name: client.nameOrCompany,
+    });
+    contactId = created.id;
+  }
+
   const { subtotal } = calcBudgetHeaderAmounts(items, 0);
   const { id } = await createBudget({
     client,
@@ -614,5 +681,6 @@ export async function saveBudgetWithLines({
     status: "draft",
   });
   await createBudgetLines({ budgetId: id, items });
+  await ensureContactJobAddress(contactId, client);
   return { budgetId: id, clientId: contactId };
 }

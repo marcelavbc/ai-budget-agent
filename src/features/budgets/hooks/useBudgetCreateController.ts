@@ -24,6 +24,9 @@ export function useBudgetCreateController() {
     defaultBudgetClientDetails()
   );
   const [items, setItems] = useState<BudgetClientItem[]>([]);
+  const [selectedContactId, setSelectedContactId] = useState<string | null>(
+    null
+  );
   const [persistedBudget, setPersistedBudget] = useState<{
     budgetId: string;
     clientId: string;
@@ -61,8 +64,13 @@ export function useBudgetCreateController() {
       return;
     }
 
-    const { budgetId, clientId } = await saveBudgetWithLines({ client, items });
+    const { budgetId, clientId } = await saveBudgetWithLines({
+      client,
+      items,
+      contactId: selectedContactId,
+    });
     setPersistedBudget({ budgetId, clientId });
+    setSelectedContactId(clientId);
   }
 
   return {
@@ -86,6 +94,7 @@ export function useBudgetCreateController() {
     budgetStatus,
     setBudgetStatus,
     handleSave,
+    onContactSelect: setSelectedContactId,
 
     appendAiLines: (lines: BudgetLine[]) => {
       const newItems = applyPriceToNewItems(

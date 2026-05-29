@@ -43,6 +43,9 @@ export function useBudgetEditController(args: {
   const [clientDetails, setClientDetails] =
     useState<BudgetClientDetails>(initialClient);
   const [items, setItems] = useState<BudgetClientItem[]>(initialItems);
+  const [selectedContactId, setSelectedContactId] = useState<string | null>(
+    budget.contact_id
+  );
 
   const {
     quoteManuallyEdited,
@@ -65,7 +68,7 @@ export function useBudgetEditController(args: {
   }) {
     await updateBudgetWithLines({
       budgetId: budget.id,
-      clientId: budget.contact_id,
+      clientId: selectedContactId ?? budget.contact_id,
       client,
       items,
       taxRate: budget.tax_rate ?? 0,
@@ -92,6 +95,7 @@ export function useBudgetEditController(args: {
 
     // save/back
     handleSave,
+    onContactSelect: setSelectedContactId,
 
     appendAiLines: (lines: BudgetLine[]) => {
       const newItems = applyPriceToNewItems(budgetLinesToClientItems(lines));
