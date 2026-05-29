@@ -2,7 +2,6 @@
 
 import type { BudgetListRow } from "@/features/budgets/types/budgetsDb";
 import styles from "./BudgetsView.module.css";
-import { useBodyOverflowHidden } from "@/features/budgets/hooks/useBodyOverflowHidden";
 import { useBudgetsListData } from "@/features/budgets/hooks/useBudgetsListData";
 import { useBudgetsListFilters } from "@/features/budgets/hooks/useBudgetsListFilters";
 import { BudgetsEmptyResults } from "@/features/budgets/components/BudgetsEmptyResults";
@@ -11,7 +10,6 @@ import { BudgetsListCards } from "@/features/budgets/components/BudgetsListCards
 import { BudgetsListTable } from "@/features/budgets/components/BudgetsListTable";
 
 export function BudgetsView({ budgets }: { budgets: BudgetListRow[] }) {
-  useBodyOverflowHidden("hidden");
   const { items, setBudgetStatus } = useBudgetsListData({
     budgets,
   });
@@ -19,10 +17,7 @@ export function BudgetsView({ budgets }: { budgets: BudgetListRow[] }) {
 
   return (
     <div className={styles.viewRoot}>
-      <BudgetsFiltersSection
-        styles={styles}
-        filters={filters}
-      />
+      <BudgetsFiltersSection filters={filters} />
 
       <div className={styles.resultsScroll}>
         {filters.filtered.length === 0 ? (
@@ -30,7 +25,6 @@ export function BudgetsView({ budgets }: { budgets: BudgetListRow[] }) {
         ) : (
           <>
             <BudgetsListCards
-              styles={styles}
               budgets={filters.filtered}
               onStatusChange={setBudgetStatus}
             />

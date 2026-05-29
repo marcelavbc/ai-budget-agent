@@ -1,14 +1,12 @@
 "use client";
 
 import { Search } from "lucide-react";
-import type { CssModuleStyles } from "@/features/budgets/types/styles";
 import type { BudgetsListFilters } from "@/features/budgets/hooks/useBudgetsListFilters";
+import styles from "./BudgetsFiltersSection.module.css";
 
 export function BudgetsFiltersSection({
-  styles,
   filters,
 }: {
-  styles: CssModuleStyles;
   filters: BudgetsListFilters;
 }) {
   return (

@@ -6,14 +6,12 @@ import { StatusPill } from "@/features/budgets/components/StatusPill";
 import { formatBudgetListDate } from "@/features/budgets/lib/budgetsListFormatting";
 import type { BudgetStatus } from "@/features/budgets/lib/budgetStatus";
 import type { BudgetListRow } from "@/features/budgets/types/budgetsDb";
-import type { CssModuleStyles } from "@/features/budgets/types/styles";
+import styles from "./BudgetsListCards.module.css";
 
 export function BudgetsListCards({
-  styles,
   budgets,
   onStatusChange,
 }: {
-  styles: CssModuleStyles;
   budgets: BudgetListRow[];
   onStatusChange: (budgetId: string, next: BudgetStatus) => void;
 }) {
