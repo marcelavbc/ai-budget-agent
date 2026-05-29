@@ -3,7 +3,7 @@
 import type {
   BudgetLineRow,
   BudgetRow,
-  ClientRow,
+  ContactRow,
 } from "@/features/budgets/types/budgetsDb";
 import { BudgetDraftView } from "@/features/budgets/components/BudgetDraftView";
 import { BudgetAIInput } from "@/features/budgets/components/BudgetAIInput";
@@ -11,14 +11,14 @@ import { useBudgetEditController } from "@/features/budgets/hooks/useBudgetEditC
 
 export function BudgetEditView({
   budget,
-  client,
+  contact,
   lines,
 }: {
   budget: BudgetRow;
-  client: ClientRow;
+  contact: ContactRow;
   lines: BudgetLineRow[];
 }) {
-  const c = useBudgetEditController({ budget, client, lines });
+  const c = useBudgetEditController({ budget, contact, lines });
 
   return (
     <BudgetDraftView

@@ -21,6 +21,7 @@ describe("buildBudgetDraftFromAI", () => {
           label: "Pintura de portes",
           quantity: 5,
           unitLabel: "unitat",
+          clientDescription: "",
         },
       ],
     });
@@ -47,6 +48,7 @@ describe("buildBudgetDraftFromAI", () => {
         label: "Pintura de portes",
         quantity: 5,
         unitLabel: "unitat",
+        clientDescription: "",
       },
     ]);
 

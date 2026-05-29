@@ -9,7 +9,7 @@ import type {
 import type {
   BudgetLineRow,
   BudgetRow,
-  ClientRow,
+  ContactRow,
 } from "@/features/budgets/types/budgetsDb";
 import { normalizeBudgetStatus } from "@/features/budgets/lib/budgetStatus";
 import { updateBudgetWithLines } from "@/features/budgets/lib/budgetsClient";
@@ -24,15 +24,15 @@ import {
 
 export function useBudgetEditController(args: {
   budget: BudgetRow;
-  client: ClientRow;
+  contact: ContactRow;
   lines: BudgetLineRow[];
 }) {
-  const { budget, client, lines } = args;
+  const { budget, contact, lines } = args;
   const { submit, loading, formError } = useGenerateBudgetDraft();
 
   const initialClient: BudgetClientDetails = useMemo(
-    () => buildInitialBudgetEditClientDetails({ budget, client }),
-    [budget, client]
+    () => buildInitialBudgetEditClientDetails({ budget, contact }),
+    [budget, contact]
   );
 
   const initialItems: BudgetClientItem[] = useMemo(
@@ -65,7 +65,7 @@ export function useBudgetEditController(args: {
   }) {
     await updateBudgetWithLines({
       budgetId: budget.id,
-      clientId: budget.client_id,
+      clientId: budget.contact_id,
       client,
       items,
       taxRate: budget.tax_rate ?? 0,

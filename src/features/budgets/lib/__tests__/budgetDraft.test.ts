@@ -8,12 +8,13 @@ import type {
 function baseClient(): BudgetClientDetails {
   return {
     nameOrCompany: "Maria Vila",
-    addressStreet: "Carrer Major 1",
-    addressPostalCode: "08001",
-    addressCity: "Barcelona",
+    jobAddressStreet: "Carrer Major 1",
+    jobAddressPostalCode: "08001",
+    jobAddressCity: "Barcelona",
     quoteNumber: "MV-20260422",
     date: "2026-04-22",
     estimatedTime: "7 a 9 dies hàbils",
+    lang: "ca",
   };
 }
 

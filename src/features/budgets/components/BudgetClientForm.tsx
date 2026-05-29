@@ -78,8 +78,8 @@ export function BudgetClientForm({
           <input
             className={styles.fieldInput}
             type="text"
-            value={client.addressStreet ?? ""}
-            onChange={(e) => setClientField("addressStreet", e.target.value)}
+            value={client.jobAddressStreet ?? ""}
+            onChange={(e) => setClientField("jobAddressStreet", e.target.value)}
           />
         </label>
         <div className={styles.fieldRow}>
@@ -89,9 +89,9 @@ export function BudgetClientForm({
               className={styles.fieldInput}
               type="text"
               inputMode="numeric"
-              value={client.addressPostalCode ?? ""}
+              value={client.jobAddressPostalCode ?? ""}
               onChange={(e) =>
-                setClientField("addressPostalCode", e.target.value)
+                setClientField("jobAddressPostalCode", e.target.value)
               }
             />
           </label>
@@ -100,8 +100,8 @@ export function BudgetClientForm({
             <input
               className={styles.fieldInput}
               type="text"
-              value={client.addressCity ?? ""}
-              onChange={(e) => setClientField("addressCity", e.target.value)}
+              value={client.jobAddressCity ?? ""}
+              onChange={(e) => setClientField("jobAddressCity", e.target.value)}
             />
           </label>
         </div>

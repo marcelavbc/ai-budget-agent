@@ -9,6 +9,7 @@ describe("hydrateBudgetLines", () => {
         label: "Pintura de portes",
         quantity: 5,
         unitLabel: "unitat",
+        clientDescription: "",
       },
     ]);
 
@@ -22,6 +23,9 @@ describe("hydrateBudgetLines", () => {
         unitPrice: 30,
         subtotal: 150,
         pricingMode: "input",
+        clientDescription: "",
+        optionGroupId: undefined,
+        optionLabel: undefined,
       },
     ]);
   });
@@ -33,6 +37,7 @@ describe("hydrateBudgetLines", () => {
         label: "Partida especial",
         quantity: null,
         unitLabel: "partida",
+        clientDescription: "",
       },
     ]);
 
@@ -46,6 +51,9 @@ describe("hydrateBudgetLines", () => {
         unitPrice: 0,
         subtotal: 0,
         pricingMode: "input",
+        clientDescription: "",
+        optionGroupId: undefined,
+        optionLabel: undefined,
       },
     ]);
   });
@@ -57,6 +65,7 @@ describe("hydrateBudgetLines", () => {
         label: "Reparació de desperfectes",
         quantity: null,
         unitLabel: "m²",
+        clientDescription: "",
       },
     ]);
 
@@ -70,6 +79,9 @@ describe("hydrateBudgetLines", () => {
         unitPrice: 4,
         subtotal: 0,
         pricingMode: "range",
+        clientDescription: "",
+        optionGroupId: undefined,
+        optionLabel: undefined,
       },
     ]);
   });
@@ -83,6 +95,7 @@ describe("hydrateBudgetLines", () => {
         label: "Reparació d'esquerdes",
         quantity: 1,
         unitLabel: "partida",
+        clientDescription: "",
       },
     ]);
 
@@ -96,6 +109,9 @@ describe("hydrateBudgetLines", () => {
         unitPrice: 0,
         subtotal: 0,
         pricingMode: "input",
+        clientDescription: "",
+        optionGroupId: undefined,
+        optionLabel: undefined,
       },
     ]);
   });

@@ -14,7 +14,7 @@ import type {
 import type {
   BudgetLineRow,
   BudgetRow,
-  ClientRow,
+  ContactRow,
 } from "@/features/budgets/types/budgetsDb";
 import {
   deleteBudgetWithLines,
@@ -73,7 +73,7 @@ export function BudgetListItemActions({
         | BudgetRow
         | undefined;
       const client = (data as { client?: unknown }).client as
-        | ClientRow
+        | ContactRow
         | undefined;
       const lines = (data as { lines?: unknown }).lines as
         | BudgetLineRow[]
@@ -96,9 +96,9 @@ export function BudgetListItemActions({
 
       const clientForPdf: BudgetClientDetails = {
         nameOrCompany: (client.name ?? "").trim(),
-        addressStreet: (client.address_street ?? "").trim(),
-        addressPostalCode: (client.address_postal_code ?? "").trim(),
-        addressCity: (client.address_city ?? "").trim(),
+        jobAddressStreet: (budget.job_address_street ?? "").trim(),
+        jobAddressPostalCode: (budget.job_address_postal_code ?? "").trim(),
+        jobAddressCity: (budget.job_address_city ?? "").trim(),
         quoteNumber: (budget.quote_number ?? "").trim(),
         date: (budget.document_date ?? "").trim(),
         estimatedTime: (budget.estimated_time ?? "").trim(),

@@ -70,11 +70,15 @@ export type Database = {
       budgets: {
         Row: {
           client_id: string | null
+          contact_id: string | null
           created_at: string
           document_date: string | null
           estimated_time: string | null
           id: string
           job_address: string | null
+          job_address_city: string | null
+          job_address_postal_code: string | null
+          job_address_street: string | null
           lang: string
           notes: string | null
           quote_number: string | null
@@ -87,11 +91,15 @@ export type Database = {
         }
         Insert: {
           client_id?: string | null
+          contact_id?: string | null
           created_at?: string
           document_date?: string | null
           estimated_time?: string | null
           id?: string
           job_address?: string | null
+          job_address_city?: string | null
+          job_address_postal_code?: string | null
+          job_address_street?: string | null
           lang?: string
           notes?: string | null
           quote_number?: string | null
@@ -104,11 +112,15 @@ export type Database = {
         }
         Update: {
           client_id?: string | null
+          contact_id?: string | null
           created_at?: string
           document_date?: string | null
           estimated_time?: string | null
           id?: string
           job_address?: string | null
+          job_address_city?: string | null
+          job_address_postal_code?: string | null
+          job_address_street?: string | null
           lang?: string
           notes?: string | null
           quote_number?: string | null
@@ -125,6 +137,13 @@ export type Database = {
             columns: ["client_id"]
             isOneToOne: false
             referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "budgets_contact_id_fkey"
+            columns: ["contact_id"]
+            isOneToOne: false
+            referencedRelation: "contacts"
             referencedColumns: ["id"]
           },
         ]
@@ -159,6 +178,45 @@ export type Database = {
           name?: string
           phone?: string | null
           tax_id?: string | null
+        }
+        Relationships: []
+      }
+      contacts: {
+        Row: {
+          created_at: string
+          email: string | null
+          fiscal_address_city: string | null
+          fiscal_address_postal_code: string | null
+          fiscal_address_street: string | null
+          id: string
+          name: string
+          phone: string | null
+          tax_id: string | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          email?: string | null
+          fiscal_address_city?: string | null
+          fiscal_address_postal_code?: string | null
+          fiscal_address_street?: string | null
+          id?: string
+          name: string
+          phone?: string | null
+          tax_id?: string | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          email?: string | null
+          fiscal_address_city?: string | null
+          fiscal_address_postal_code?: string | null
+          fiscal_address_street?: string | null
+          id?: string
+          name?: string
+          phone?: string | null
+          tax_id?: string | null
+          updated_at?: string
         }
         Relationships: []
       }

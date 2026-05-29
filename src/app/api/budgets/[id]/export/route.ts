@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import {
   getBudgetById,
   getBudgetLinesByBudgetId,
-  getClientById,
+  getContactById,
 } from "@/features/budgets/lib/budgets";
 
 export async function GET(
@@ -19,12 +19,12 @@ export async function GET(
       );
     }
 
-    const [client, lines] = await Promise.all([
-      getClientById(budget.client_id),
+    const [contact, lines] = await Promise.all([
+      getContactById(budget.contact_id),
       getBudgetLinesByBudgetId(budget.id),
     ]);
 
-    return NextResponse.json({ budget, client, lines });
+    return NextResponse.json({ budget, client: contact, lines });
   } catch {
     return NextResponse.json({ error: "Export failed." }, { status: 500 });
   }

@@ -24,11 +24,12 @@ import type {
   BudgetListRow,
   BudgetRow,
   ClientRow,
+  ContactRow,
 } from "@/features/budgets/types/budgetsDb";
 
 export interface CreateBudgetInput {
   client: BudgetClientDetails;
-  clientId: string;
+  contactId: string;
   subtotal: number;
   status?: BudgetStatus;
   taxRate?: number;
@@ -44,6 +45,38 @@ export interface CreateClientInput {
   address_street?: string | null;
   address_postal_code?: string | null;
   address_city?: string | null;
+}
+
+export interface CreateContactInput {
+  name: string;
+  phone?: string | null;
+}
+
+function formatJobAddress(client: BudgetClientDetails): string | null {
+  return normalizeOptionalString(
+    [
+      client.jobAddressStreet,
+      client.jobAddressPostalCode,
+      client.jobAddressCity,
+    ]
+      .map((value) => (value ?? "").trim())
+      .filter(Boolean)
+      .join(", ")
+  );
+}
+
+function jobAddressFields(client: BudgetClientDetails) {
+  return {
+    job_address_street: normalizeOptionalString(
+      (client.jobAddressStreet ?? "").trim()
+    ),
+    job_address_postal_code: normalizeOptionalString(
+      (client.jobAddressPostalCode ?? "").trim()
+    ),
+    job_address_city: normalizeOptionalString(
+      (client.jobAddressCity ?? "").trim()
+    ),
+  };
 }
 
 type BudgetListQueryRow = BudgetListRow & {
@@ -174,9 +207,110 @@ export async function getClientById(id: string | null): Promise<ClientRow> {
   return data as ClientRow;
 }
 
+export async function createContact({
+  name,
+  phone = null,
+}: CreateContactInput): Promise<{ id: string }> {
+  const supabase = getSupabaseClient();
+  const normalizedName = name.trim();
+  const normalizedPhone = (phone ?? "").trim();
+
+  const { data, error } = await supabase
+    .from("contacts")
+    .insert([
+      {
+        name: normalizedName,
+        phone: normalizeOptionalString(normalizedPhone),
+      },
+    ])
+    .select("id")
+    .single();
+
+  if (error) throw new Error(error.message);
+  if (!data?.id) throw new Error("Supabase did not return a contact id.");
+  return { id: String(data.id) };
+}
+
+export async function updateContactById(
+  id: string,
+  patch: Partial<Pick<ContactRow, "name" | "phone">>
+): Promise<void> {
+  const supabase = getSupabaseClient();
+  const normalized = {
+    name: typeof patch.name === "string" ? patch.name.trim() : patch.name,
+    phone: typeof patch.phone === "string" ? patch.phone.trim() : patch.phone,
+  };
+
+  const { error } = await supabase
+    .from("contacts")
+    .update(normalized)
+    .eq("id", id);
+  if (error) throw new Error(error.message);
+}
+
+export async function getContactById(id: string | null): Promise<ContactRow> {
+  const supabase = getSupabaseClient();
+  const normalizedId = (id ?? "").trim();
+  if (!normalizedId || normalizedId.toLowerCase() === "null") {
+    return {
+      id: normalizedId || "unknown",
+      name: "",
+      phone: null,
+      email: null,
+      tax_id: null,
+      fiscal_address_street: null,
+      fiscal_address_postal_code: null,
+      fiscal_address_city: null,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+    } as ContactRow;
+  }
+
+  const { data, error } = await supabase
+    .from("contacts")
+    .select(
+      "id,name,phone,email,tax_id,fiscal_address_street,fiscal_address_postal_code,fiscal_address_city,created_at,updated_at"
+    )
+    .eq("id", normalizedId)
+    .maybeSingle();
+  if (error) {
+    const code = (error as unknown as { code?: string }).code;
+    if (code === "PGRST116" || code === "22P02") {
+      return {
+        id: normalizedId,
+        name: "",
+        phone: null,
+        email: null,
+        tax_id: null,
+        fiscal_address_street: null,
+        fiscal_address_postal_code: null,
+        fiscal_address_city: null,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+      } as ContactRow;
+    }
+    throw new Error(error.message);
+  }
+  if (!data) {
+    return {
+      id: normalizedId,
+      name: "",
+      phone: null,
+      email: null,
+      tax_id: null,
+      fiscal_address_street: null,
+      fiscal_address_postal_code: null,
+      fiscal_address_city: null,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+    } as ContactRow;
+  }
+  return data as ContactRow;
+}
+
 export async function createBudget({
   client,
-  clientId,
+  contactId,
   status = "draft",
   subtotal,
   taxRate = 0,
@@ -189,14 +323,10 @@ export async function createBudget({
     .from("budgets")
     .insert([
       {
-        client_id: clientId,
+        contact_id: contactId,
         title: derivedTitle ?? "",
-        job_address: normalizeOptionalString(
-          [client.addressStreet, client.addressPostalCode, client.addressCity]
-            .map((value) => (value ?? "").trim())
-            .filter(Boolean)
-            .join(", ")
-        ),
+        ...jobAddressFields(client),
+        job_address: formatJobAddress(client),
         quote_number: normalizeOptionalString(client.quoteNumber),
         document_date: normalizeOptionalString(client.date),
         estimated_time: normalizeOptionalString(client.estimatedTime),
@@ -226,7 +356,7 @@ export async function getBudgetById(id: string): Promise<BudgetRow | null> {
   const { data, error } = await supabase
     .from("budgets")
     .select(
-      "id,client_id,title,job_address,status,document_date,notes,subtotal,tax_rate,tax_amount,created_at,updated_at,quote_number,estimated_time"
+      "id,client_id,contact_id,title,job_address,job_address_street,job_address_postal_code,job_address_city,status,document_date,notes,subtotal,tax_rate,tax_amount,created_at,updated_at,quote_number,estimated_time,lang"
     )
     .eq("id", id)
     .maybeSingle();
@@ -240,8 +370,12 @@ export async function updateBudgetById(
     Pick<
       BudgetRow,
       | "client_id"
+      | "contact_id"
       | "title"
       | "job_address"
+      | "job_address_street"
+      | "job_address_postal_code"
+      | "job_address_city"
       | "quote_number"
       | "document_date"
       | "estimated_time"
@@ -256,11 +390,24 @@ export async function updateBudgetById(
   const supabase = getSupabaseClient();
   const normalized = {
     client_id: patch.client_id,
+    contact_id: patch.contact_id,
     title: typeof patch.title === "string" ? patch.title.trim() : patch.title,
     job_address:
       typeof patch.job_address === "string"
         ? patch.job_address.trim()
         : patch.job_address,
+    job_address_street:
+      typeof patch.job_address_street === "string"
+        ? patch.job_address_street.trim()
+        : patch.job_address_street,
+    job_address_postal_code:
+      typeof patch.job_address_postal_code === "string"
+        ? patch.job_address_postal_code.trim()
+        : patch.job_address_postal_code,
+    job_address_city:
+      typeof patch.job_address_city === "string"
+        ? patch.job_address_city.trim()
+        : patch.job_address_city,
     quote_number:
       typeof patch.quote_number === "string"
         ? patch.quote_number.trim()
@@ -376,37 +523,26 @@ export async function updateBudgetWithLines(args: {
   const { subtotal, tax_amount } = calcBudgetHeaderAmounts(items, taxRate);
   const derivedTitle = deriveBudgetTitle(client);
 
-  const ensuredClientId =
+  const ensuredContactId =
     normalizedClientId && normalizedClientId.toLowerCase() !== "null"
       ? normalizedClientId
       : (
-          await createClient({
+          await createContact({
             name: client.nameOrCompany,
-            address_street: client.addressStreet,
-            address_postal_code: client.addressPostalCode,
-            address_city: client.addressCity,
           })
         ).id;
 
-  // If the client already existed, keep it up to date.
-  if (ensuredClientId === normalizedClientId) {
-    await updateClientById(ensuredClientId, {
+  if (ensuredContactId === normalizedClientId) {
+    await updateContactById(ensuredContactId, {
       name: client.nameOrCompany,
-      address_street: client.addressStreet,
-      address_postal_code: client.addressPostalCode,
-      address_city: client.addressCity,
     });
   }
 
   await updateBudgetById(budgetId, {
-    client_id: ensuredClientId,
+    contact_id: ensuredContactId,
     title: derivedTitle ?? "",
-    job_address: normalizeOptionalString(
-      [client.addressStreet, client.addressPostalCode, client.addressCity]
-        .map((value) => (value ?? "").trim())
-        .filter(Boolean)
-        .join(", ")
-    ),
+    ...jobAddressFields(client),
+    job_address: formatJobAddress(client),
     quote_number: normalizeOptionalString(client.quoteNumber),
     document_date: normalizeOptionalString(client.date),
     estimated_time: normalizeOptionalString(client.estimatedTime),
@@ -467,19 +603,16 @@ export async function saveBudgetWithLines({
   items,
 }: SaveBudgetWithLinesInput): Promise<{ budgetId: string; clientId: string }> {
   // TODO: evolve to findOrCreateClient (avoid duplicates) once we define the matching rules.
-  const { id: clientId } = await createClient({
+  const { id: contactId } = await createContact({
     name: client.nameOrCompany,
-    address_street: client.addressStreet,
-    address_postal_code: client.addressPostalCode,
-    address_city: client.addressCity,
   });
   const { subtotal } = calcBudgetHeaderAmounts(items, 0);
   const { id } = await createBudget({
     client,
-    clientId,
+    contactId,
     subtotal,
     status: "draft",
   });
   await createBudgetLines({ budgetId: id, items });
-  return { budgetId: id, clientId };
+  return { budgetId: id, clientId: contactId };
 }

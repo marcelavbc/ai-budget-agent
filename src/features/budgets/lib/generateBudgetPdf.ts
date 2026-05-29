@@ -276,9 +276,9 @@ export async function generateBudgetPdf({
     const width = pageWidth - marginX * 2;
     const name = safeTrim(client.nameOrCompany);
     const addressText = [
-      client.addressStreet,
-      client.addressPostalCode,
-      client.addressCity,
+      client.jobAddressStreet,
+      client.jobAddressPostalCode,
+      client.jobAddressCity,
     ]
       .map((value) => safeTrim(value ?? ""))
       .filter(Boolean)

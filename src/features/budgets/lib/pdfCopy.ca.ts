@@ -49,9 +49,9 @@ export function formatUnitCa(unit: string, quantityAsString: string): string {
 
 export function buildIntroTextCa(client: BudgetClientDetails): string {
   const address = [
-    client.addressStreet,
-    client.addressPostalCode,
-    client.addressCity,
+    client.jobAddressStreet,
+    client.jobAddressPostalCode,
+    client.jobAddressCity,
   ]
     .map((value) => (value ?? "").trim())
     .filter(Boolean)

@@ -2,7 +2,7 @@ import { BudgetEditView } from "@/features/budgets/components/BudgetEditView";
 import {
   getBudgetById,
   getBudgetLinesByBudgetId,
-  getClientById,
+  getContactById,
 } from "@/features/budgets/lib/budgets";
 import { notFound } from "next/navigation";
 
@@ -17,8 +17,8 @@ export default async function BudgetEditPage({
 
   const budget = await getBudgetById(id);
   if (!budget) notFound();
-  const [client, lines] = await Promise.all([
-    getClientById(budget.client_id),
+  const [contact, lines] = await Promise.all([
+    getContactById(budget.contact_id),
     getBudgetLinesByBudgetId(budget.id),
   ]);
 
@@ -26,7 +26,7 @@ export default async function BudgetEditPage({
     <main className={styles.main}>
       <BudgetEditView
         budget={budget}
-        client={client}
+        contact={contact}
         lines={lines}
       />
     </main>

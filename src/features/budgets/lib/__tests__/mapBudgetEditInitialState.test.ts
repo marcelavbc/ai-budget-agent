@@ -3,7 +3,7 @@ import type { BudgetLine } from "@/features/budgets/types/budget";
 import type {
   BudgetLineRow,
   BudgetRow,
-  ClientRow,
+  ContactRow,
 } from "@/features/budgets/types/budgetsDb";
 import { budgetLinesToClientItems } from "@/features/budgets/lib/budgetLineToClientItem";
 import {
@@ -15,9 +15,12 @@ function makeBudgetRow(overrides: Partial<BudgetRow> = {}): BudgetRow {
   return {
     id: "b1",
     client_id: "c1",
-    invoice_id: null,
+    contact_id: "c1",
     title: "Test budget",
     job_address: "Carrer Major 1",
+    job_address_street: null,
+    job_address_postal_code: null,
+    job_address_city: null,
     quote_number: "2025-01",
     document_date: "2025-01-15",
     estimated_time: "5 dies",
@@ -26,7 +29,6 @@ function makeBudgetRow(overrides: Partial<BudgetRow> = {}): BudgetRow {
     tax_rate: 0,
     tax_amount: 0,
     notes: null,
-    issue_date: "2025-01-01T00:00:00.000Z",
     created_at: "2025-01-01T00:00:00.000Z",
     updated_at: "2025-01-01T00:00:00.000Z",
     lang: "ca",
@@ -34,16 +36,18 @@ function makeBudgetRow(overrides: Partial<BudgetRow> = {}): BudgetRow {
   };
 }
 
-function makeClientRow(overrides: Partial<ClientRow> = {}): ClientRow {
+function makeContactRow(overrides: Partial<ContactRow> = {}): ContactRow {
   return {
     id: "c1",
     name: "Joan García",
     phone: null,
-    address_street: null,
-    address_postal_code: null,
-    address_city: null,
+    email: null,
     tax_id: null,
+    fiscal_address_street: null,
+    fiscal_address_postal_code: null,
+    fiscal_address_city: null,
     created_at: "2025-01-01T00:00:00.000Z",
+    updated_at: "2025-01-01T00:00:00.000Z",
     ...overrides,
   };
 }
@@ -85,23 +89,22 @@ function makeBudgetLine(overrides: Partial<BudgetLine> = {}): BudgetLine {
 describe("buildInitialBudgetEditClientDetails", () => {
   it("maps budget and client fields correctly (nameOrCompany, address fields, quoteNumber, date, estimatedTime)", () => {
     const budget = makeBudgetRow({
-      job_address: "Obra Carrer Nou 9",
+      job_address_street: "Carrer Client 10",
+      job_address_postal_code: "08002",
+      job_address_city: "Barcelona",
       quote_number: "Q-42",
       document_date: "2026-03-01",
       estimated_time: "10 dies",
     });
-    const client = makeClientRow({
+    const contact = makeContactRow({
       name: "Acme SL",
-      address_street: "Carrer Client 10",
-      address_postal_code: "08002",
-      address_city: "Barcelona",
     });
 
-    expect(buildInitialBudgetEditClientDetails({ budget, client })).toEqual({
+    expect(buildInitialBudgetEditClientDetails({ budget, contact })).toEqual({
       nameOrCompany: "Acme SL",
-      addressStreet: "Carrer Client 10",
-      addressPostalCode: "08002",
-      addressCity: "Barcelona",
+      jobAddressStreet: "Carrer Client 10",
+      jobAddressPostalCode: "08002",
+      jobAddressCity: "Barcelona",
       quoteNumber: "Q-42",
       date: "2026-03-01",
       estimatedTime: "10 dies",
@@ -112,26 +115,25 @@ describe("buildInitialBudgetEditClientDetails", () => {
   it("returns empty strings for null/undefined fields (no undefined in output)", () => {
     const budget = makeBudgetRow({
       job_address: null,
+      job_address_street: null,
+      job_address_postal_code: null,
+      job_address_city: null,
       quote_number: null,
       document_date: null,
       estimated_time: null,
     });
-    const client = {
-      ...makeClientRow({
-        address_street: null,
-        address_postal_code: null,
-        address_city: null,
-      }),
+    const contact = {
+      ...makeContactRow(),
       name: null,
-    } as unknown as ClientRow;
+    } as unknown as ContactRow;
 
-    const details = buildInitialBudgetEditClientDetails({ budget, client });
+    const details = buildInitialBudgetEditClientDetails({ budget, contact });
 
     expect(details).toEqual({
       nameOrCompany: "",
-      addressStreet: "",
-      addressPostalCode: "",
-      addressCity: "",
+      jobAddressStreet: "",
+      jobAddressPostalCode: "",
+      jobAddressCity: "",
       quoteNumber: "",
       date: "",
       estimatedTime: "",
@@ -169,7 +171,9 @@ describe("buildInitialBudgetEditItems", () => {
   it('falls back to "Partida" when title is null or empty', () => {
     expect(
       buildInitialBudgetEditItems({
-        lines: [makeBudgetLineRow({ title: null })],
+        lines: [
+          makeBudgetLineRow({ title: null as unknown as string }),
+        ],
       })[0]?.title
     ).toBe("Partida");
     expect(

@@ -12,6 +12,7 @@ function makeBudget(overrides: Partial<BudgetListRow> = {}): BudgetListRow {
     status: "draft",
     document_date: "2025-03-15",
     created_at: "2025-03-15T10:00:00Z",
+    lang: "ca",
     invoice_id: null,
     ...overrides,
   };
