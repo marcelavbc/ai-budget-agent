@@ -137,6 +137,19 @@
   transform: none;
 }
 
+.btnActive {
+  border-color: var(--color-gold-medium);
+  background: var(--color-black);
+  color: var(--text-on-inverse);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .btnActive:hover {
+    opacity: 1;
+    background: var(--color-black-soft);
+  }
+}
+
 .danger {
   border-color: color-mix(in srgb, var(--color-terracotta) 25%, var(--border));
   color: var(--color-terracotta);

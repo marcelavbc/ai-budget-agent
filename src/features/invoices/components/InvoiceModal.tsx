@@ -104,6 +104,7 @@ export function InvoiceModal({
 
   const customTaxRateValid =
     taxRateOption !== "other" || (taxRate > 0 && taxRate <= 100);
+  console.log("taxRateOption:", taxRateOption, typeof taxRateOption);
 
   return (
     <div
@@ -168,7 +169,7 @@ export function InvoiceModal({
                 <button
                   ref={firstActionRef}
                   type="button"
-                  className={dialogStyles.btn}
+                  className={`${dialogStyles.btn} ${taxRateOption === 21 ? dialogStyles.btnActive : ""}`}
                   aria-pressed={taxRateOption === 21}
                   onClick={() => {
                     setTaxRateOption(21);
@@ -180,7 +181,7 @@ export function InvoiceModal({
                 </button>
                 <button
                   type="button"
-                  className={dialogStyles.btn}
+                  className={`${dialogStyles.btn} ${taxRateOption === 10 ? dialogStyles.btnActive : ""}`}
                   aria-pressed={taxRateOption === 10}
                   onClick={() => {
                     setTaxRateOption(10);
@@ -192,7 +193,7 @@ export function InvoiceModal({
                 </button>
                 <button
                   type="button"
-                  className={dialogStyles.btn}
+                  className={`${dialogStyles.btn} ${taxRateOption === "other" ? dialogStyles.btnActive : ""}`}
                   aria-pressed={taxRateOption === "other"}
                   onClick={() => setTaxRateOption("other")}
                   disabled={loading}
