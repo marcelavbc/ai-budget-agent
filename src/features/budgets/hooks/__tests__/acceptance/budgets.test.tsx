@@ -86,6 +86,7 @@ const mockBudgets: BudgetListRow[] = [
     lang: "es",
   },
 ];
+
 describe("Budget list", () => {
   it("displays all budgets", () => {
     render(<BudgetsView budgets={mockBudgets} />);
@@ -236,11 +237,4 @@ describe("Create budget", () => {
     fireEvent.click(screen.getByRole("button", { name: "Eliminar Test Item" }));
     expect(onItemRemove).toHaveBeenCalledWith("1");
   });
-});
-
-describe("Edit budget", () => {
-  it("loads existing budget data correctly");
-  it("user can add line items with AI");
-  it("user can change budget status");
-  it("saves changes correctly");
 });
