@@ -48,7 +48,8 @@ const labelsCa = {
   issueDate: (d: string) => `Data d'emissió: ${d}`,
   dueDate: (d: string) => `Venciment: ${d}`,
   withIva: "AMB IVA",
-  client: "CLIENT",
+  issuer: "",
+  client: "CLIENT:",
   jobAddress: (a: string) => `Obra: ${a}`,
   table: { description: "DESCRIPCIÓ", amount: "IMPORT" },
   subtotal: "Subtotal",
@@ -65,7 +66,8 @@ const labelsEs = {
   issueDate: (d: string) => `Fecha de emisión: ${d}`,
   dueDate: (d: string) => `Vencimiento: ${d}`,
   withIva: "CON IVA",
-  client: "CLIENTE",
+  issuer: "",
+  client: "CLIENTE:",
   jobAddress: (a: string) => `Obra: ${a}`,
   table: { description: "DESCRIPCIÓN", amount: "IMPORTE" },
   subtotal: "Subtotal",
@@ -256,7 +258,7 @@ export async function generateInvoicePdf(
 
     const invoiceNum = safeTrim(invoice.invoice_number);
     if (invoiceNum) {
-      doc.setFont("courier", "normal");
+      doc.setFont("helvetica", "normal");
       doc.setFontSize(10);
       setTextColor(doc, COLORS.muted);
       const numLabel = labels.invoiceNumber(invoiceNum);
@@ -264,31 +266,26 @@ export async function generateInvoicePdf(
       doc.text(numLabel, titleX - numW, titleY);
     }
 
+    titleY += 14;
+    if (invoice.issue_date) {
+      doc.setFont("helvetica", "normal");
+      doc.setFontSize(9);
+      setTextColor(doc, COLORS.muted);
+      const label = labels.issueDate(formatDateDdMmYyyy(invoice.issue_date));
+      const w = doc.getTextWidth(label);
+      doc.text(label, titleX - w, titleY);
+      titleY += 13;
+    }
+    if (invoice.due_date) {
+      const label = labels.dueDate(formatDateDdMmYyyy(invoice.due_date));
+      const w = doc.getTextWidth(label);
+      doc.text(label, titleX - w, titleY);
+    }
+
     // Separator line
     doc.setDrawColor(COLORS.line.r, COLORS.line.g, COLORS.line.b);
     doc.setLineWidth(1);
     doc.line(marginX, headerSeparatorY, pageWidth - marginX, headerSeparatorY);
-
-    // Meta below separator (right column)
-    let metaY = headerSeparatorY + 16;
-
-    doc.setFont("helvetica", "normal");
-    doc.setFontSize(9);
-    setTextColor(doc, COLORS.muted);
-
-    if (invoice.issue_date) {
-      const label = labels.issueDate(formatDateDdMmYyyy(invoice.issue_date));
-      const w = doc.getTextWidth(label);
-      doc.text(label, right - w, metaY);
-      metaY += 13;
-    }
-
-    if (invoice.due_date) {
-      const label = labels.dueDate(formatDateDdMmYyyy(invoice.due_date));
-      const w = doc.getTextWidth(label);
-      doc.text(label, right - w, metaY);
-      metaY += 13;
-    }
   }
 
   function addContinuedPage() {
@@ -325,6 +322,12 @@ export async function generateInvoicePdf(
       .join(" ");
     const nif = safeTrim(owner.owner_nif);
 
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(8);
+    setTextColor(doc, COLORS.muted);
+    doc.text(labels.issuer, marginX, oy);
+    oy += 14;
+
     if (name) {
       doc.setFont("helvetica", "bold");
       doc.setFontSize(10);
@@ -359,22 +362,30 @@ export async function generateInvoicePdf(
   // Section: Client block
   // -------------------------------------------------------------------------
 
-  function drawClientBlock() {
-    ensureSpace(60);
+  function drawClientBlock(startY: number): number {
+    const clientX = pageWidth / 2;
+    const clientMaxW = pageWidth - marginX - clientX - 10;
+    let cy = startY;
 
     doc.setFont("helvetica", "bold");
     doc.setFontSize(8);
     setTextColor(doc, COLORS.muted);
-    doc.text(labels.client, marginX, y);
-    y += 14;
+    doc.text(labels.client, clientX, cy);
+    cy += 14;
 
     const clientName = safeTrim(client.name);
     if (clientName) {
       doc.setFont("helvetica", "bold");
       doc.setFontSize(11);
       setTextColor(doc, COLORS.text);
-      doc.text(clientName, marginX, y);
-      y += 15;
+      const clientNameLines = doc.splitTextToSize(
+        clientName,
+        clientMaxW
+      ) as string[];
+      for (const nameLine of clientNameLines) {
+        doc.text(nameLine, clientX, cy);
+        cy += 15;
+      }
     }
 
     doc.setFont("helvetica", "normal");
@@ -383,15 +394,24 @@ export async function generateInvoicePdf(
 
     const taxId = safeTrim(client.tax_id);
     if (taxId) {
-      doc.text(taxId, marginX, y);
-      y += 13;
+      const taxIdLines = doc.splitTextToSize(taxId, clientMaxW) as string[];
+      for (const line of taxIdLines) {
+        doc.text(line, clientX, cy);
+        cy += 13;
+      }
     }
 
     const street = safeTrim(client.address_street);
     if (street) {
       const localized = localizeAddress(street, lang);
-      doc.text(localized, marginX, y);
-      y += 13;
+      const streetLines = doc.splitTextToSize(
+        localized,
+        clientMaxW
+      ) as string[];
+      for (const line of streetLines) {
+        doc.text(line, clientX, cy);
+        cy += 13;
+      }
     }
 
     const postalCity = [
@@ -401,8 +421,14 @@ export async function generateInvoicePdf(
       .filter(Boolean)
       .join(" ");
     if (postalCity) {
-      doc.text(postalCity, marginX, y);
-      y += 13;
+      const postalCityLines = doc.splitTextToSize(
+        postalCity,
+        clientMaxW
+      ) as string[];
+      for (const line of postalCityLines) {
+        doc.text(line, clientX, cy);
+        cy += 13;
+      }
     }
 
     const jobAddress = safeTrim(invoice.job_address);
@@ -410,11 +436,18 @@ export async function generateInvoicePdf(
       doc.setFont("helvetica", "normal");
       doc.setFontSize(9.5);
       setTextColor(doc, COLORS.muted);
-      doc.text(labels.jobAddress(jobAddress), marginX, y);
-      y += 13;
+      const jobAddressLines = doc.splitTextToSize(
+        labels.jobAddress(jobAddress),
+        clientMaxW
+      ) as string[];
+      for (const line of jobAddressLines) {
+        doc.text(line, clientX, cy);
+        cy += 13;
+      }
     }
 
-    y += 8;
+    cy += 8;
+    return cy;
   }
 
   // -------------------------------------------------------------------------
@@ -483,7 +516,7 @@ export async function generateInvoicePdf(
       remainingDesc = remainingDesc.slice(maxDescLines);
 
       const descH = descChunk.length * lineH;
-      const rowH = Math.max(34, descH + topPad);
+      const rowH = Math.max(28, descH + topPad);
 
       if (y + rowH > contentBottomY) {
         addContinuedPage();
@@ -497,7 +530,8 @@ export async function generateInvoicePdf(
       doc.setFontSize(9.5);
       setTextColor(doc, COLORS.text);
 
-      let descY = y + topPad;
+      const verticalOffset = (rowH - descChunk.length * lineH) / 2 + lineH * 0.7;
+      let descY = y + verticalOffset;
       for (const dl of descChunk) {
         doc.text(dl, descX, descY);
         descY += lineH;
@@ -507,7 +541,7 @@ export async function generateInvoicePdf(
         doc.setFont("helvetica", "bold");
         doc.setFontSize(9.5);
         setTextColor(doc, COLORS.text);
-        doc.text(amount, amountX, y + topPad, { align: "right" });
+        doc.text(amount, amountX, y + verticalOffset, { align: "right" });
       }
 
       y += rowH;
@@ -521,8 +555,9 @@ export async function generateInvoicePdf(
 
   function drawTotalsBlock() {
     const rowH = 18;
-    const labelX = pageWidth - marginX - 200;
-    const valueX = pageWidth - marginX;
+    const pad = 10;
+    const labelX = marginX + tableWidth - 120 - pad;
+    const valueX = marginX + tableWidth - pad;
     const withIva = invoice.pricing_mode === "with_iva";
 
     const rows: Array<{
@@ -596,15 +631,9 @@ export async function generateInvoicePdf(
   drawHeader();
   y = contentStartY;
 
-  // Owner block (left column, below separator)
   const ownerEndY = drawOwnerBlock(y);
-  y = ownerEndY + 12;
-
-  // Divider
-  drawDivider();
-
-  // Client block
-  drawClientBlock();
+  const clientEndY = drawClientBlock(y);
+  y = Math.max(ownerEndY, clientEndY) + 16;
 
   // Table
   drawTableHeader();

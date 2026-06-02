@@ -5,7 +5,7 @@ import {
   getInvoiceLinesByInvoiceId,
   getSettings,
 } from "@/features/invoices/lib/invoices";
-import { getBudgetById, getClientById } from "@/features/budgets/lib/budgets";
+import { getBudgetById, getContactById } from "@/features/budgets/lib/budgets";
 import styles from "./page.module.css";
 
 export default async function InvoicePage({
@@ -17,8 +17,8 @@ export default async function InvoicePage({
   const invoice = await getInvoiceById(id);
   if (!invoice) notFound();
 
-  const [client, lines, budget, settings] = await Promise.all([
-    getClientById(invoice.client_id),
+  const [contact, lines, budget, settings] = await Promise.all([
+    getContactById(invoice.contact_id),
     getInvoiceLinesByInvoiceId(invoice.id),
     invoice.budget_id
       ? getBudgetById(invoice.budget_id)
@@ -32,7 +32,12 @@ export default async function InvoicePage({
     <main className={styles.main}>
       <InvoiceView
         invoice={invoice}
-        client={client}
+        client={{
+          ...contact,
+          address_street: contact.fiscal_address_street ?? null,
+          address_postal_code: contact.fiscal_address_postal_code ?? null,
+          address_city: contact.fiscal_address_city ?? null,
+        }}
         lines={lines}
         quoteNumber={quoteNumber}
         settings={settings}
