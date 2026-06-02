@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { isBudgetDraftComplete } from "../budgetDraft";
+import { isBudgetDraftComplete } from "./budgetDraft";
 import type {
   BudgetClientDetails,
   BudgetClientItem,

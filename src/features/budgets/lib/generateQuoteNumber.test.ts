@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { buildAutoQuoteNumber, deriveInitialsFromName } from "../generateQuoteNumber";
+import { buildAutoQuoteNumber, deriveInitialsFromName } from "./generateQuoteNumber";
 
 describe("deriveInitialsFromName", () => {
   it("returns PRE for blank or whitespace-only name", () => {

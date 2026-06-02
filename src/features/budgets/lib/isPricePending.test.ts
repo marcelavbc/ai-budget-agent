@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { BudgetLine } from "@/features/budgets/types/budget";
-import { isPricePending } from "../isPricePending";
+import { isPricePending } from "./isPricePending";
 
 // ─── helpers ──────────────────────────────────────────────────────────────────
 

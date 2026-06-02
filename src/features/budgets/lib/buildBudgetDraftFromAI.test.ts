@@ -1,16 +1,16 @@
 import { describe, expect, it, vi } from "vitest";
-import { buildBudgetDraftFromAI } from "../buildBudgetDraftFromAI";
+import { buildBudgetDraftFromAI } from "./buildBudgetDraftFromAI";
 
-vi.mock("../parseBudgetLinesWithAI", () => ({
+vi.mock("./parseBudgetLinesWithAI", () => ({
   parseBudgetLinesWithAI: vi.fn(),
 }));
 
-vi.mock("../hydrateBudgetLines", () => ({
+vi.mock("./hydrateBudgetLines", () => ({
   hydrateBudgetLines: vi.fn(),
 }));
 
-import { parseBudgetLinesWithAI } from "../parseBudgetLinesWithAI";
-import { hydrateBudgetLines } from "../hydrateBudgetLines";
+import { parseBudgetLinesWithAI } from "./parseBudgetLinesWithAI";
+import { hydrateBudgetLines } from "./hydrateBudgetLines";
 
 describe("buildBudgetDraftFromAI", () => {
   it("builds a draft by parsing and hydrating AI lines", async () => {

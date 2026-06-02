@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { hydrateBudgetLines } from "../hydrateBudgetLines";
+import { hydrateBudgetLines } from "./hydrateBudgetLines";
 
 describe("hydrateBudgetLines", () => {
   it("hydrates a doors line using template defaults", () => {
