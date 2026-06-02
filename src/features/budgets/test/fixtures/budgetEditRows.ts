@@ -72,6 +72,20 @@ export function createMockBudgetLineRow(
 /** Default budget row for edit-view / controller tests. */
 export const mockBudgetRow = createMockBudgetRow();
 
+/** Second budget row for list / filter tests (different status, title, dates). */
+export const mockBudgetRowTwo = createMockBudgetRow({
+  id: "2",
+  title: "Test Item Two",
+  status: "sent",
+  quote_number: "2025-99",
+  job_address: "Plaça Nova 3",
+  document_date: "2025-06-01",
+  created_at: "2025-06-01T10:00:00Z",
+  updated_at: "2025-06-01T10:00:00Z",
+  contact_id: "2",
+  client_id: "2",
+});
+
 /** Default contact row paired with {@link mockBudgetRow}. */
 export const mockContactRow = createMockContactRow();
 
