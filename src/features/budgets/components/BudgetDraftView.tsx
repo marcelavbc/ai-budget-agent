@@ -152,31 +152,27 @@ export function BudgetDraftView({
   }
 
   const translationButtons =
-    mode === "edit"
-      ? client.lang === "ca" && !hasSnapshot
-        ? (
-            <button
-              type="button"
-              className={styles.generateBudgetBtn}
-              onClick={handleTranslate}
-              disabled={isTranslating}
-              aria-busy={isTranslating || undefined}
-            >
-              Traduir al castellà
-            </button>
-          )
-        : client.lang === "es" || hasSnapshot
-          ? (
-              <button
-                type="button"
-                className={styles.generateBudgetBtn}
-                onClick={handleRevertTranslation}
-              >
-                Tornar al català
-              </button>
-            )
-          : null
-      : null;
+    mode === "edit" ? (
+      client.lang === "ca" && !hasSnapshot ? (
+        <button
+          type="button"
+          className={styles.generateBudgetBtn}
+          onClick={handleTranslate}
+          disabled={isTranslating}
+          aria-busy={isTranslating || undefined}
+        >
+          Traduir al castellà
+        </button>
+      ) : client.lang === "es" || hasSnapshot ? (
+        <button
+          type="button"
+          className={styles.generateBudgetBtn}
+          onClick={handleRevertTranslation}
+        >
+          Tornar al català
+        </button>
+      ) : null
+    ) : null;
 
   const segments = segmentDraftItems(items);
 
@@ -273,9 +269,7 @@ export function BudgetDraftView({
                   <BudgetItemCard
                     key={item.id}
                     item={item}
-                    optionLabel={
-                      (item.optionLabel ?? "").trim() || "Opció"
-                    }
+                    optionLabel={(item.optionLabel ?? "").trim() || "Opció"}
                     onItemChange={onItemChange}
                     onItemRemove={onItemRemove}
                   />

@@ -3,7 +3,7 @@ import type { BudgetClientDetails } from "@/features/budgets/types/budget";
 import { useClickOutside } from "@/shared/hooks/useClickOutside";
 import styles from "./BudgetDraftView.module.css";
 
-type ContactAddressOption = {
+export type ContactAddressOption = {
   id: string;
   street: string | null;
   postal_code: string | null;
@@ -11,7 +11,7 @@ type ContactAddressOption = {
   label: string | null;
 };
 
-type ContactSuggestion = {
+export type ContactSuggestion = {
   id: string;
   name: string;
   fiscal_address_street: string | null;
