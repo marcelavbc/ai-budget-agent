@@ -3,11 +3,11 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { BudgetEditView } from "@/features/budgets/components/BudgetEditView";
-import type {
-  BudgetLineRow,
-  BudgetRow,
-  ContactRow,
-} from "@/features/budgets/types/budgetsDb";
+import {
+  mockBudgetLineRow,
+  mockBudgetRow,
+  mockContactRow,
+} from "@/features/budgets/test/fixtures/budgetEditRows";
 
 vi.mock("next/navigation", () => ({
   useRouter: () => ({
@@ -17,64 +17,14 @@ vi.mock("next/navigation", () => ({
   }),
   usePathname: () => "/budgets/1",
 }));
-
-const mockBudget: BudgetRow = {
-  id: "1",
-  title: "Pressupost test",
-  status: "draft",
-  lang: "ca",
-  subtotal: 100,
-  tax_amount: 21,
-  tax_rate: 21,
-  created_at: "2026-01-01",
-  updated_at: "2026-01-01",
-  client_id: "1",
-  contact_id: "1",
-  document_date: "2026-01-01",
-  estimated_time: "1 hour",
-  job_address: "123 Main St",
-  job_address_street: "123 Main St",
-  job_address_postal_code: "12345",
-  job_address_city: "Anytown",
-  notes: "Test notes",
-  quote_number: "1234567890",
-};
-
-const mockContact: ContactRow = {
-  id: "1",
-  name: "John Doe",
-  email: "john.doe@example.com",
-  phone: "605678905",
-  fiscal_address_street: null,
-  fiscal_address_postal_code: null,
-  fiscal_address_city: null,
-  tax_id: null,
-  created_at: "2026-01-01",
-  updated_at: "2026-01-01",
-};
-
-const mockLine: BudgetLineRow = {
-  id: "line-1",
-  budget_id: "1",
-  title: "Test Item",
-  description: "Test Description",
-  quantity: 1,
-  unit_price: 100,
-  line_total: 100,
-  created_at: "2026-01-01",
-  option_group_id: null,
-  option_label: null,
-  sort_order: 1,
-  unit: null,
-};
 describe("Edit budget", () => {
   afterEach(() => vi.unstubAllGlobals());
   it("loads existing budget data correctly", () => {
     render(
       <BudgetEditView
-        budget={mockBudget}
-        contact={mockContact}
-        lines={[mockLine]}
+        budget={mockBudgetRow}
+        contact={mockContactRow}
+        lines={[mockBudgetLineRow]}
       />
     );
     expect(
@@ -109,9 +59,9 @@ describe("Edit budget", () => {
     );
     render(
       <BudgetEditView
-        budget={mockBudget}
-        contact={mockContact}
-        lines={[mockLine]}
+        budget={mockBudgetRow}
+        contact={mockContactRow}
+        lines={[mockBudgetLineRow]}
       />
     );
     const input = screen.getByPlaceholderText(
@@ -136,9 +86,9 @@ describe("Edit budget", () => {
     );
     render(
       <BudgetEditView
-        budget={mockBudget}
-        contact={mockContact}
-        lines={[mockLine]}
+        budget={mockBudgetRow}
+        contact={mockContactRow}
+        lines={[mockBudgetLineRow]}
       />
     );
     const statusPill = screen.getByRole("button", {
@@ -157,9 +107,9 @@ describe("Edit budget", () => {
     );
     render(
       <BudgetEditView
-        budget={mockBudget}
-        contact={mockContact}
-        lines={[mockLine]}
+        budget={mockBudgetRow}
+        contact={mockContactRow}
+        lines={[mockBudgetLineRow]}
       />
     );
     fireEvent.click(screen.getByRole("button", { name: "Editar dades" }));
