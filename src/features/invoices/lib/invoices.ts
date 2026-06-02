@@ -75,7 +75,7 @@ export async function getInvoiceById(id: string): Promise<InvoiceRow | null> {
   const { data, error } = await supabase
     .from("invoices")
     .select(
-      "id,budget_id,client_id,subtotal,tax_rate,tax_amount,total,pricing_mode,invoice_number,status,issue_date,due_date,notes,job_address,created_at,lang"
+      "id,budget_id,client_id,contact_id,subtotal,tax_rate,tax_amount,total,pricing_mode,invoice_number,status,issue_date,due_date,notes,job_address,created_at,lang"
     )
     .eq("id", id)
     .maybeSingle();
