@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi, afterEach } from "vitest";
 import type { BudgetClientItem } from "@/features/budgets/types/budget";
 import {
   stripLeadingOptionPrefix,
@@ -6,7 +6,15 @@ import {
   extractTexts,
   applyTranslatedTexts,
   parseTranslations,
+  translateBudgetItems,
 } from "@/features/budgets/lib/translateBudgetItems";
+import { callGroq } from "@/features/budgets/lib/ai/groq";
+
+vi.mock("@/features/budgets/lib/ai/groq", async (importOriginal) => {
+  const actual =
+    await importOriginal<typeof import("@/features/budgets/lib/ai/groq")>();
+  return { ...actual, callGroq: vi.fn() };
+});
 
 function makeItem(overrides: Partial<BudgetClientItem> = {}): BudgetClientItem {
   return {
@@ -174,5 +182,49 @@ describe("applyTranslatedTexts", () => {
     expect(next[0].title).toBe("Titol parcial");
     expect(next[0].description).toBe(item.description);
     expect(next[0].optionLabel).toBe("Opció 1");
+  });
+});
+
+describe("translateBudgetItems", () => {
+  afterEach(() => {
+    vi.mocked(callGroq).mockReset();
+  });
+
+  it("array empty returns original items", async () => {
+    const items: BudgetClientItem[] = [];
+    const next = await translateBudgetItems(items, "es");
+    expect(next).toEqual([]);
+    expect(callGroq).not.toHaveBeenCalled();
+  });
+
+  it("returns original items if Groq call fails", async () => {
+    vi.mocked(callGroq).mockRejectedValue(new Error("test"));
+    const items = [makeItem({ id: "i1" })];
+    const next = await translateBudgetItems(items, "es");
+    expect(next).toEqual([makeItem({ id: "i1" })]);
+  });
+
+  it("returns original items if Groq has invalid response", async () => {
+    vi.mocked(callGroq).mockResolvedValue("invalid response");
+    const items = [makeItem({ id: "i1" })];
+    const next = await translateBudgetItems(items, "es");
+    expect(next).toEqual([makeItem({ id: "i1" })]);
+  });
+
+  it("translates items correctly", async () => {
+    vi.mocked(callGroq).mockResolvedValue(
+      JSON.stringify({
+        translations: [
+          "Comedor: pintura paredes",
+          "Protección y pintura plástica Jotun Jotaprof Supermate",
+        ],
+      })
+    );
+    const items = [makeItem({ id: "i1" })];
+    const next = await translateBudgetItems(items, "ca");
+    expect(next[0].title).toBe("Comedor: pintura paredes");
+    expect(next[0].description).toBe(
+      "Protección y pintura plástica Jotun Jotaprof Supermate"
+    );
   });
 });
