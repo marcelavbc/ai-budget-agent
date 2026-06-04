@@ -14,13 +14,13 @@ import type {
 import { normalizeBudgetStatus } from "@/features/budgets/lib/budgetStatus";
 import { updateBudgetWithLines } from "@/features/budgets/lib/budgetsClient";
 import { useGenerateBudgetDraft } from "@/features/budgets/hooks/useGenerateBudgetDraft";
-import { budgetLinesToClientItems } from "@/features/budgets/lib/budgetLineToClientItem";
 import { useQuoteNumber } from "@/features/budgets/hooks/useQuoteNumber";
 import { usePricePerSqm } from "@/features/budgets/hooks/usePricePerSqm";
 import {
   buildInitialBudgetEditClientDetails,
   buildInitialBudgetEditItems,
 } from "@/features/budgets/lib/mapBudgetEditInitialState";
+import { budgetLinesToClientItemsFromAI } from "../lib/budgetLinesToClientItemsFromAI";
 
 export function useBudgetEditController(args: {
   budget: BudgetRow;
@@ -98,7 +98,9 @@ export function useBudgetEditController(args: {
     onContactSelect: setSelectedContactId,
 
     appendAiLines: (lines: BudgetLine[]) => {
-      const newItems = applyPriceToNewItems(budgetLinesToClientItems(lines));
+      const newItems = applyPriceToNewItems(
+        budgetLinesToClientItemsFromAI(lines)
+      );
       setItems((prev) => [...prev, ...newItems]);
     },
     updateItem: (id: string, patch: Partial<BudgetClientItem>) => {

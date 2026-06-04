@@ -121,7 +121,7 @@ async function loadOptimizedImageAsDataUrl(src: string): Promise<string> {
       ctx.fillRect(0, 0, w, h);
       ctx.drawImage(img, 0, 0, w, h);
 
-      resolve(canvas.toDataURL("image/jpeg", 0.90));
+      resolve(canvas.toDataURL("image/jpeg", 0.9));
     };
 
     img.onerror = () => reject(new Error("Failed to load image: " + src));
@@ -610,18 +610,6 @@ export async function generateInvoicePdf(
     }
 
     y += 8;
-  }
-
-  // -------------------------------------------------------------------------
-  // Divider helper
-  // -------------------------------------------------------------------------
-
-  function drawDivider() {
-    ensureSpace(16);
-    doc.setDrawColor(COLORS.line.r, COLORS.line.g, COLORS.line.b);
-    doc.setLineWidth(1);
-    doc.line(marginX, y, pageWidth - marginX, y);
-    y += 16;
   }
 
   // -------------------------------------------------------------------------

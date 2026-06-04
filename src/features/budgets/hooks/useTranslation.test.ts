@@ -97,9 +97,7 @@ describe("useTranslation", () => {
 
   it("sets isTranslating to true while translating", async () => {
     let resolvePromise!: () => void;
-    const promise = new Promise<void>((resolve) => {
-      resolvePromise = () => resolve();
-    });
+
     vi.stubGlobal(
       "fetch",
       vi.fn().mockResolvedValue({

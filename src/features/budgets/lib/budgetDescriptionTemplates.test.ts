@@ -1,12 +1,6 @@
 import { describe, it, expect } from "vitest";
-import {
-  getTemplateDescription,
-  templateZone,
-} from "./budgetDescriptionTemplates";
-import type {
-  BudgetLine,
-  BudgetLineType,
-} from "@/features/budgets/types/budget";
+import { getTemplateDescription } from "./budgetDescriptionTemplates";
+import type { BudgetLine } from "@/features/budgets/types/budget";
 
 function line(overrides: Partial<BudgetLine> = {}): BudgetLine {
   return {

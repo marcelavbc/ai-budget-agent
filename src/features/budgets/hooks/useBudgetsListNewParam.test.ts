@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 
 import { renderHook, waitFor } from "@testing-library/react";
-import { describe, it, expect, vi, afterEach } from "vitest";
+import { describe, it, expect, vi } from "vitest";
 import { useBudgetsListNewParam } from "./useBudgetsListNewParam";
 import { BudgetListRow } from "../types/budgetsDb";
 import { fetchBudgetById } from "@/features/budgets/lib/budgetsClient";
