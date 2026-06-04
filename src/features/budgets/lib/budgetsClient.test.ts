@@ -1,5 +1,11 @@
 import { describe, it, expect, vi, afterEach } from "vitest";
-import { fetchBudgetById, saveBudgetWithLines } from "./budgetsClient";
+import {
+  deleteBudgetWithLines,
+  fetchBudgetById,
+  getBudgetExportData,
+  saveBudgetWithLines,
+  updateBudgetWithLines,
+} from "./budgetsClient";
 import { budgetRowToListRow } from "./budgetRowToListRow";
 import { createMockBudgetRow } from "@/features/budgets/test/fixtures/budgetEditRows";
 
@@ -158,6 +164,143 @@ describe("saveBudgetWithLines", () => {
 
     await expect(saveBudgetWithLines(saveArgs())).rejects.toThrow(
       "No s'ha pogut guardar el pressupost."
+    );
+  });
+
+  it("throws when response omits budgetId", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockResolvedValue({
+        ok: true,
+        json: async () => ({ contactId: "contact-1" }),
+      })
+    );
+    await expect(saveBudgetWithLines(saveArgs())).rejects.toThrow(
+      "No s'ha pogut guardar el pressupost."
+    );
+  });
+});
+
+type UpdateBudgetArgs = Parameters<typeof updateBudgetWithLines>[0];
+
+function updateArgs(
+  overrides: Partial<UpdateBudgetArgs> = {}
+): UpdateBudgetArgs {
+  const { client, items } = saveArgs();
+  return {
+    budgetId: "budget-1",
+    contactId: "contact-1",
+    client,
+    items,
+    taxRate: 21,
+    status: "draft",
+    ...overrides,
+  };
+}
+
+describe("updateBudgetWithLines", () => {
+  afterEach(() => {
+    vi.unstubAllGlobals();
+  });
+
+  it("completes when PUT succeeds", async () => {
+    const args = updateArgs();
+    const { budgetId, ...body } = args;
+
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockResolvedValue({
+        ok: true,
+        json: async () => ({}),
+      })
+    );
+
+    await expect(updateBudgetWithLines(args)).resolves.toBeUndefined();
+
+    expect(fetch).toHaveBeenCalledWith(`/api/budgets/${budgetId}`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body),
+    });
+  });
+  it("throws an error when PUT fails", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockResolvedValue({
+        ok: false,
+        status: 500,
+        json: async () => null,
+      })
+    );
+    await expect(updateBudgetWithLines(updateArgs())).rejects.toThrow(
+      "No s'ha pogut actualitzar el pressupost."
+    );
+  });
+});
+
+describe("deleteBudgetWithLines", () => {
+  afterEach(() => {
+    vi.unstubAllGlobals();
+  });
+
+  it("completes when DELETE succeeds", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockResolvedValue({
+        ok: true,
+        json: async () => null,
+      })
+    );
+    await expect(deleteBudgetWithLines("budget-1")).resolves.toBeUndefined();
+    expect(fetch).toHaveBeenCalledWith("/api/budgets/budget-1", {
+      method: "DELETE",
+    });
+  });
+  it("throws an error when DELETE fails", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockResolvedValue({
+        ok: false,
+        status: 500,
+        json: async () => null,
+      })
+    );
+    await expect(deleteBudgetWithLines("budget-1")).rejects.toThrow(
+      "No s'ha pogut eliminar el pressupost."
+    );
+  });
+});
+
+describe("getBudgetExportData", () => {
+  afterEach(() => {
+    vi.unstubAllGlobals();
+  });
+
+  it("returns the export data when GET succeeds", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockResolvedValue({
+        ok: true,
+        json: async () => "export data",
+      })
+    );
+    const result = await getBudgetExportData("budget-1");
+    expect(result).toEqual("export data");
+    expect(fetch).toHaveBeenCalledWith("/api/budgets/budget-1/export", {
+      method: "GET",
+    });
+  });
+  it("throws an error when GET fails", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockResolvedValue({
+        ok: false,
+        status: 500,
+        json: async () => null,
+      })
+    );
+    await expect(getBudgetExportData("budget-1")).rejects.toThrow(
+      "No s'ha pogut exportar el pressupost."
     );
   });
 });
