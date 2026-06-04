@@ -102,7 +102,7 @@ async function loadOptimizedImageAsDataUrl(src: string): Promise<string> {
     img.crossOrigin = "anonymous";
 
     img.onload = () => {
-      const MAX_WIDTH = 300;
+      const MAX_WIDTH = 600;
       const scale =
         img.naturalWidth > MAX_WIDTH ? MAX_WIDTH / img.naturalWidth : 1;
       const w = Math.round(img.naturalWidth * scale);
@@ -121,7 +121,7 @@ async function loadOptimizedImageAsDataUrl(src: string): Promise<string> {
       ctx.fillRect(0, 0, w, h);
       ctx.drawImage(img, 0, 0, w, h);
 
-      resolve(canvas.toDataURL("image/jpeg", 0.65));
+      resolve(canvas.toDataURL("image/jpeg", 0.90));
     };
 
     img.onerror = () => reject(new Error("Failed to load image: " + src));
@@ -184,7 +184,7 @@ export async function generateInvoicePdf(
   const labels = lang === "es" ? labelsEs : labelsCa;
 
   const doc = new jsPDF({ unit: "pt", format: "a4", compress: true });
-  const logoDataUrl = await loadOptimizedImageAsDataUrl("/logo-sanmarti3.png");
+  const logoDataUrl = await loadOptimizedImageAsDataUrl("/logo-sanmarti.png");
   const logoNatural = await naturalSizeFromDataUrl(logoDataUrl);
   const { w: logoW, h: logoH } = fitLogoSize(
     logoNatural.w,
@@ -243,7 +243,7 @@ export async function generateInvoicePdf(
     const right = pageWidth - marginX;
 
     // Logo
-    doc.addImage(logoDataUrl, "JPEG", marginX, logoTopY, logoW, logoH);
+    doc.addImage(logoDataUrl, "PNG", marginX, logoTopY, logoW, logoH);
 
     // Title block (right of header, above separator)
     const titleX = right;
@@ -291,7 +291,7 @@ export async function generateInvoicePdf(
   function addContinuedPage() {
     doc.addPage();
     // Minimal repeated header: just logo + separator
-    doc.addImage(logoDataUrl, "JPEG", marginX, logoTopY, logoW, logoH);
+    doc.addImage(logoDataUrl, "PNG", marginX, logoTopY, logoW, logoH);
     doc.setDrawColor(COLORS.line.r, COLORS.line.g, COLORS.line.b);
     doc.setLineWidth(1);
     doc.line(marginX, headerSeparatorY, pageWidth - marginX, headerSeparatorY);
@@ -530,7 +530,8 @@ export async function generateInvoicePdf(
       doc.setFontSize(9.5);
       setTextColor(doc, COLORS.text);
 
-      const verticalOffset = (rowH - descChunk.length * lineH) / 2 + lineH * 0.7;
+      const verticalOffset =
+        (rowH - descChunk.length * lineH) / 2 + lineH * 0.7;
       let descY = y + verticalOffset;
       for (const dl of descChunk) {
         doc.text(dl, descX, descY);

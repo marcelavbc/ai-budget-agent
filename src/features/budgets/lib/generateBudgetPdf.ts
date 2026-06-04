@@ -49,7 +49,7 @@ async function loadOptimizedImageAsDataUrl(src: string): Promise<string> {
     img.crossOrigin = "anonymous";
 
     img.onload = () => {
-      const MAX_WIDTH = 300;
+      const MAX_WIDTH = 600;
       const scale =
         img.naturalWidth > MAX_WIDTH ? MAX_WIDTH / img.naturalWidth : 1;
       const w = Math.round(img.naturalWidth * scale);
@@ -69,7 +69,7 @@ async function loadOptimizedImageAsDataUrl(src: string): Promise<string> {
       ctx.fillRect(0, 0, w, h);
       ctx.drawImage(img, 0, 0, w, h);
 
-      resolve(canvas.toDataURL("image/jpeg", 0.65));
+      resolve(canvas.toDataURL("image/jpeg", 0.90));
     };
 
     img.onerror = () => reject(new Error("Failed to load image: " + src));
@@ -162,7 +162,7 @@ export async function generateBudgetPdf({
   lang = "ca",
 }: GenerateBudgetPdfInput): Promise<Blob> {
   const doc = new jsPDF({ unit: "pt", format: "a4", compress: true });
-  const logoDataUrl = await loadOptimizedImageAsDataUrl("/logo-sanmarti3.png");
+  const logoDataUrl = await loadOptimizedImageAsDataUrl("/logo-sanmarti.png");
   const logoNatural = await naturalSizeFromDataUrl(logoDataUrl);
   const { w: logoW, h: logoH } = fitLogoSize(
     logoNatural.w,
@@ -223,7 +223,7 @@ export async function generateBudgetPdf({
     const left = marginX;
     const right = pageWidth - marginX;
 
-    doc.addImage(logoDataUrl, "JPEG", left, logoTopY, logoW, logoH);
+    doc.addImage(logoDataUrl, "PNG", left, logoTopY, logoW, logoH);
 
     const quote = safeTrim(client.quoteNumber);
     if (quote.length > 0) {
