@@ -96,21 +96,36 @@ describe("useTranslation", () => {
   });
 
   it("sets isTranslating to true while translating", async () => {
-    let resolvePromise!: () => void;
+    let resolveFetch!: (value: {
+      ok: boolean;
+      json: () => Promise<{ items: BudgetClientItem[] }>;
+    }) => void;
 
     vi.stubGlobal(
       "fetch",
-      vi.fn().mockResolvedValue({
+      vi.fn(
+        () =>
+          new Promise((resolve) => {
+            resolveFetch = resolve;
+          })
+      )
+    );
+
+    const { result } = renderTranslationHook();
+
+    act(() => {
+      void result.current.handleTranslate();
+    });
+
+    expect(result.current.isTranslating).toBe(true);
+
+    await act(async () => {
+      resolveFetch({
         ok: true,
         json: async () => ({ items: DEFAULT_TRANSLATED_ITEMS }),
-      })
-    );
-    const { result } = renderTranslationHook();
-    act(() => {
-      result.current.handleTranslate();
+      });
     });
-    expect(result.current.isTranslating).toBe(true);
-    resolvePromise();
+
     await waitFor(() => {
       expect(result.current.isTranslating).toBe(false);
     });
