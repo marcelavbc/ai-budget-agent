@@ -1,11 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
-import type {
-  BudgetClientDetails,
-  BudgetClientItem,
-  BudgetLine,
-} from "@/features/budgets/types/budget";
+import { useMemo, useRef } from "react";
 import type {
   BudgetLineRow,
   BudgetRow,
@@ -13,14 +8,11 @@ import type {
 } from "@/features/budgets/types/budgetsDb";
 import { normalizeBudgetStatus } from "@/features/budgets/lib/budgetStatus";
 import { updateBudgetWithLines } from "@/features/budgets/lib/budgetsClient";
-import { useGenerateBudgetDraft } from "@/features/budgets/hooks/useGenerateBudgetDraft";
-import { useQuoteNumber } from "@/features/budgets/hooks/useQuoteNumber";
-import { usePricePerSqm } from "@/features/budgets/hooks/usePricePerSqm";
+import { useBudgetController } from "@/features/budgets/hooks/useBudgetController";
 import {
   buildInitialBudgetEditClientDetails,
   buildInitialBudgetEditItems,
 } from "@/features/budgets/lib/mapBudgetEditInitialState";
-import { budgetLinesToClientItemsFromAI } from "../lib/budgetLinesToClientItemsFromAI";
 
 export function useBudgetEditController(args: {
   budget: BudgetRow;
@@ -28,91 +20,62 @@ export function useBudgetEditController(args: {
   lines: BudgetLineRow[];
 }) {
   const { budget, contact, lines } = args;
-  const { submit, loading, formError } = useGenerateBudgetDraft();
 
-  const initialClient: BudgetClientDetails = useMemo(
+  const initialClient = useMemo(
     () => buildInitialBudgetEditClientDetails({ budget, contact }),
     [budget, contact]
   );
 
-  const initialItems: BudgetClientItem[] = useMemo(
+  const initialItems = useMemo(
     () => buildInitialBudgetEditItems({ lines }),
     [lines]
   );
 
-  const [clientDetails, setClientDetails] =
-    useState<BudgetClientDetails>(initialClient);
-  const [items, setItems] = useState<BudgetClientItem[]>(initialItems);
-  const [selectedContactId, setSelectedContactId] = useState<string | null>(
-    budget.contact_id
-  );
+  const selectedContactIdRef = useRef<string | null>(budget.contact_id);
 
-  const {
-    quoteManuallyEdited,
-    setClientWithAutoQuote,
-    onQuoteNumberChange,
-    resetAutomation,
-  } = useQuoteNumber({ setClientDetails, initialManuallyEdited: true });
-
-  const { pricePerSqm, setPricePerSqm, applyPriceToNewItems } = usePricePerSqm({
-    items,
-    onItemsReplace: (items) => setItems(items),
+  const controller = useBudgetController({
+    initialClientDetails: initialClient,
+    initialItems,
+    initialContactId: budget.contact_id,
+    initialManuallyEdited: true,
+    onSave: async ({ client, items }) => {
+      await updateBudgetWithLines({
+        budgetId: budget.id,
+        contactId: selectedContactIdRef.current ?? budget.contact_id,
+        client,
+        items,
+        taxRate: budget.tax_rate ?? 0,
+        status: normalizeBudgetStatus(budget.status),
+      });
+    },
   });
 
-  async function handleSave({
-    client,
-    items,
-  }: {
-    client: BudgetClientDetails;
-    items: BudgetClientItem[];
-  }) {
-    await updateBudgetWithLines({
-      budgetId: budget.id,
-      contactId: selectedContactId ?? budget.contact_id,
-      client,
-      items,
-      taxRate: budget.tax_rate ?? 0,
-      status: normalizeBudgetStatus(budget.status),
-    });
-  }
+  selectedContactIdRef.current = controller.selectedContactId;
 
   return {
     // AI
-    submit,
-    loading,
-    formError,
-    pricePerSqm,
-    setPricePerSqm,
+    submit: controller.submit,
+    loading: controller.loading,
+    formError: controller.formError,
+    pricePerSqm: controller.pricePerSqm,
+    setPricePerSqm: controller.setPricePerSqm,
 
     // draft state
-    clientDetails,
-    items,
-    setItems,
-    quoteManuallyEdited,
-    setClientWithAutoQuote,
-    onQuoteNumberChange,
-    resetAutomation,
+    clientDetails: controller.clientDetails,
+    items: controller.items,
+    setItems: controller.setItems,
+    quoteManuallyEdited: controller.quoteManuallyEdited,
+    setClientWithAutoQuote: controller.setClientWithAutoQuote,
+    onQuoteNumberChange: controller.onQuoteNumberChange,
+    resetAutomation: controller.resetAutomation,
 
     // save/back
-    handleSave,
-    onContactSelect: setSelectedContactId,
+    handleSave: controller.handleSave,
+    onContactSelect: controller.onContactSelect,
 
-    appendAiLines: (lines: BudgetLine[]) => {
-      const newItems = applyPriceToNewItems(
-        budgetLinesToClientItemsFromAI(lines)
-      );
-      setItems((prev) => [...prev, ...newItems]);
-    },
-    updateItem: (id: string, patch: Partial<BudgetClientItem>) => {
-      setItems((prev) =>
-        prev.map((item) => (item.id === id ? { ...item, ...patch } : item))
-      );
-    },
-    removeItem: (id: string) => {
-      setItems((prev) => prev.filter((item) => item.id !== id));
-    },
-    replaceItems: (items: BudgetClientItem[]) => {
-      setItems(items);
-    },
+    appendAiLines: controller.appendAiLines,
+    updateItem: controller.updateItem,
+    removeItem: controller.removeItem,
+    replaceItems: controller.replaceItems,
   };
 }
