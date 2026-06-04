@@ -12,6 +12,7 @@ vi.mock("next/navigation", () => ({
     replace: vi.fn(),
   }),
   usePathname: () => "/budgets",
+  useSearchParams: () => new URLSearchParams(),
 }));
 
 const mockBudgets: BudgetListRow[] = [

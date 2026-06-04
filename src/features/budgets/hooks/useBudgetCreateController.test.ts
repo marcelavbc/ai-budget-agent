@@ -4,10 +4,19 @@ import { describe, it, expect, vi, afterEach } from "vitest";
 import { renderHook, act } from "@testing-library/react";
 import { useBudgetCreateController } from "@/features/budgets/hooks/useBudgetCreateController";
 
-describe("useBudgetCreateController", () => {
-  afterEach(() => vi.unstubAllGlobals());
+const push = vi.fn();
 
-  it("switches to edit mode after first save", async () => {
+vi.mock("next/navigation", () => ({
+  useRouter: () => ({ push }),
+}));
+
+describe("useBudgetCreateController", () => {
+  afterEach(() => {
+    vi.unstubAllGlobals();
+    push.mockClear();
+  });
+
+  it("navigates to the list with the new budget id after first save", async () => {
     // mock de /api/budgets
     vi.stubGlobal(
       "fetch",
@@ -34,7 +43,6 @@ describe("useBudgetCreateController", () => {
         items: [],
       })
     );
-    // verificar que persistedBudget no es null
-    expect(result.current.persistedBudget).not.toBeNull();
+    expect(push).toHaveBeenCalledWith("/budgets?new=1");
   });
 });

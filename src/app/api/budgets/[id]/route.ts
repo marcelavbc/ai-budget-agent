@@ -2,7 +2,28 @@ import { NextResponse } from "next/server";
 import { revalidatePath } from "next/cache";
 import type { BudgetClientDetails, BudgetClientItem } from "@/features/budgets/types/budget";
 import type { BudgetStatus } from "@/features/budgets/lib/budgetStatus";
-import { deleteBudgetWithLines, updateBudgetById, updateBudgetWithLines } from "@/features/budgets/lib/budgets";
+import {
+  deleteBudgetWithLines,
+  getBudgetById,
+  updateBudgetById,
+  updateBudgetWithLines,
+} from "@/features/budgets/lib/budgets";
+
+export async function GET(
+  _request: Request,
+  context: { params: Promise<{ id: string }> }
+) {
+  try {
+    const { id } = await context.params;
+    const row = await getBudgetById(id);
+    if (!row) {
+      return NextResponse.json({ error: "Not found." }, { status: 404 });
+    }
+    return NextResponse.json(row);
+  } catch {
+    return NextResponse.json({ error: "Fetch failed." }, { status: 500 });
+  }
+}
 
 type PutBody = {
   contactId: string | null;

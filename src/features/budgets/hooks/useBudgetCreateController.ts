@@ -1,5 +1,6 @@
 "use client";
 
+import { useRouter } from "next/navigation";
 import { useState } from "react";
 import type {
   BudgetClientDetails,
@@ -18,6 +19,7 @@ import { usePricePerSqm } from "@/features/budgets/hooks/usePricePerSqm";
 import type { BudgetStatus } from "@/features/budgets/lib/budgetStatus";
 
 export function useBudgetCreateController() {
+  const router = useRouter();
   const { submit, loading, formError } = useGenerateBudgetDraft();
 
   const [clientDetails, setClientDetails] = useState<BudgetClientDetails>(
@@ -27,7 +29,7 @@ export function useBudgetCreateController() {
   const [selectedContactId, setSelectedContactId] = useState<string | null>(
     null
   );
-  const [persistedBudget, setPersistedBudget] = useState<{
+  const [persistedBudget] = useState<{
     budgetId: string;
     contactId: string;
   } | null>(null);
@@ -64,13 +66,12 @@ export function useBudgetCreateController() {
       return;
     }
 
-    const { budgetId, contactId } = await saveBudgetWithLines({
+    const { budgetId } = await saveBudgetWithLines({
       client,
       items,
       contactId: selectedContactId,
     });
-    setPersistedBudget({ budgetId, contactId });
-    setSelectedContactId(contactId);
+    router.push(`/budgets?new=${encodeURIComponent(budgetId)}`);
   }
 
   return {

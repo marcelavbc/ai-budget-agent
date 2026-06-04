@@ -1,5 +1,7 @@
 import type { BudgetClientDetails, BudgetClientItem } from "@/features/budgets/types/budget";
+import type { BudgetListRow, BudgetRow } from "@/features/budgets/types/budgetsDb";
 import type { BudgetStatus } from "@/features/budgets/lib/budgetStatus";
+import { budgetRowToListRow } from "@/features/budgets/lib/budgetRowToListRow";
 
 async function readJson(res: Response): Promise<unknown> {
   try {
@@ -81,6 +83,19 @@ export async function deleteBudgetWithLines(budgetId: string): Promise<void> {
   const res = await fetch(`/api/budgets/${budgetId}`, { method: "DELETE" });
   const data = await readJson(res);
   if (!res.ok) throw new Error(errorMessage(data, "No s'ha pogut eliminar el pressupost."));
+}
+
+export async function fetchBudgetById(
+  budgetId: string
+): Promise<BudgetListRow | null> {
+  const res = await fetch(`/api/budgets/${budgetId}`, { method: "GET" });
+  const data = await readJson(res);
+  if (res.status === 404) return null;
+  if (!res.ok) return null;
+  if (typeof data !== "object" || data === null) return null;
+  const id = (data as { id?: unknown }).id;
+  if (typeof id !== "string" || !id.trim()) return null;
+  return budgetRowToListRow(data as BudgetRow);
 }
 
 export async function getBudgetExportData(budgetId: string): Promise<unknown> {

@@ -1,7 +1,10 @@
-import Link from "next/link";
 import { connection } from "next/server";
+import { Suspense } from "react";
 import { getBudgets } from "@/features/budgets/lib/budgets";
-import { BudgetsView } from "@/features/budgets/components/BudgetsView";
+import {
+  BudgetsListCta,
+  BudgetsListSection,
+} from "@/features/budgets/components/BudgetsListSection";
 import styles from "./page.module.css";
 
 export default async function BudgetsPage() {
@@ -21,24 +24,12 @@ export default async function BudgetsPage() {
             </p>
           </header>
 
-          <div className={styles.actions}>
-            <Link className={styles.cta} href="/budgets/nou">
-              Nou pressupost
-            </Link>
-          </div>
+          <BudgetsListCta />
         </div>
 
-        {budgets.length === 0 ? (
-          <section className={styles.empty}>
-            <h2 className={styles.emptyTitle}>
-              Encara no hi ha pressupostos. Crea el primer!
-            </h2>
-          </section>
-        ) : (
-          <div className={styles.viewMount}>
-            <BudgetsView budgets={budgets} />
-          </div>
-        )}
+        <Suspense fallback={null}>
+          <BudgetsListSection budgets={budgets} />
+        </Suspense>
       </div>
     </div>
   );
