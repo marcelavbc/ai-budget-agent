@@ -41,7 +41,18 @@ export function InvoiceView({
 
     try {
       const blob = await generateInvoicePdf({
-        invoice,
+        invoice: {
+          invoice_number: invoice.invoice_number,
+          issue_date: invoice.issue_date,
+          due_date: invoice.due_date,
+          pricing_mode: invoice.pricing_mode,
+          subtotal: invoice.subtotal,
+          tax_rate: invoice.tax_rate,
+          tax_amount: invoice.tax_amount,
+          total: invoice.total,
+          job_address: invoice.job_address,
+          project_name: invoice.project_name ?? null,
+        },
         owner: settings ?? {
           owner_name: null,
           owner_address: null,

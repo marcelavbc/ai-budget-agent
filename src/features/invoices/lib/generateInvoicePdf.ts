@@ -15,6 +15,7 @@ export interface GenerateInvoicePdfInput {
     tax_amount: number;
     total: number;
     job_address: string | null;
+    project_name: string | null;
   };
   owner: {
     owner_name: string | null;
@@ -444,6 +445,15 @@ export async function generateInvoicePdf(
         doc.text(line, clientX, cy);
         cy += 13;
       }
+    }
+
+    const projectName = safeTrim(invoice.project_name);
+    if (projectName) {
+      doc.setFont("helvetica", "normal");
+      doc.setFontSize(9);
+      setTextColor(doc, COLORS.text);
+      doc.text(`Obra: ${projectName}`, clientX, cy);
+      cy += 13;
     }
 
     cy += 8;

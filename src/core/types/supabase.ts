@@ -316,6 +316,7 @@ export type Database = {
           invoice_number: string | null
           issue_date: string
           job_address: string | null
+          project_name: string | null
           lang: string
           notes: string | null
           pricing_mode: string
@@ -336,6 +337,7 @@ export type Database = {
           invoice_number?: string | null
           issue_date?: string
           job_address?: string | null
+          project_name?: string | null
           lang?: string
           notes?: string | null
           pricing_mode?: string
@@ -356,6 +358,7 @@ export type Database = {
           invoice_number?: string | null
           issue_date?: string
           job_address?: string | null
+          project_name?: string | null
           lang?: string
           notes?: string | null
           pricing_mode?: string
