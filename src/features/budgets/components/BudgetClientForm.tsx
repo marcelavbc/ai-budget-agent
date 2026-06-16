@@ -333,6 +333,16 @@ export function BudgetClientForm({
             />
           </label>
         </div>
+        <label className={styles.field}>
+          <span className={styles.fieldLabel}>Obra</span>
+          <input
+            className={styles.fieldInput}
+            type="text"
+            value={client.projectName ?? ""}
+            onChange={(e) => setClientField("projectName", e.target.value)}
+            placeholder="Escola Pompeu Fabra, Restauració Edifici X…"
+          />
+        </label>
         <label className={`${styles.field} ${styles.estimatedDaysField}`}>
           <span className={styles.fieldLabel}>Durada estimada del treball</span>
           <input

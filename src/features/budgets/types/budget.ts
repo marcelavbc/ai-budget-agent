@@ -83,6 +83,7 @@ export interface BudgetClientDetails {
   jobAddressStreet?: string;
   jobAddressPostalCode?: string;
   jobAddressCity?: string;
+  projectName?: string;
   quoteNumber: string;
   /** ISO YYYY-MM-DD (compatible with input type="date"). */
   date: string;
@@ -102,6 +103,7 @@ export function defaultBudgetClientDetails(): BudgetClientDetails {
     jobAddressStreet: "",
     jobAddressPostalCode: "",
     jobAddressCity: "",
+    projectName: "",
     quoteNumber: buildAutoQuoteNumber("", date),
     date,
     estimatedTime: "",
