@@ -26,6 +26,7 @@ export function createMockBudgetRow(
     job_address_postal_code: "12345",
     job_address_city: "Anytown",
     notes: "Test notes",
+    project_name: null,
     quote_number: "1234567890",
     ...overrides,
   };

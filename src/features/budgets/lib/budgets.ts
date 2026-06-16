@@ -311,6 +311,7 @@ export async function createBudget({
         tax_rate: taxRate,
         tax_amount,
         lang: client.lang,
+        project_name: normalizeOptionalString((client.projectName ?? "").trim()),
       },
     ])
     .select("id")
@@ -331,7 +332,7 @@ export async function getBudgetById(id: string): Promise<BudgetRow | null> {
   const { data, error } = await supabase
     .from("budgets")
     .select(
-      "id,client_id,contact_id,title,job_address,job_address_street,job_address_postal_code,job_address_city,status,document_date,notes,subtotal,tax_rate,tax_amount,created_at,updated_at,quote_number,estimated_time,lang"
+      "id,client_id,contact_id,title,job_address,job_address_street,job_address_postal_code,job_address_city,status,document_date,notes,subtotal,tax_rate,tax_amount,created_at,updated_at,quote_number,estimated_time,lang,project_name"
     )
     .eq("id", id)
     .maybeSingle();
@@ -359,6 +360,7 @@ export async function updateBudgetById(
       | "tax_rate"
       | "tax_amount"
       | "lang"
+      | "project_name"
     >
   >
 ): Promise<void> {
@@ -401,6 +403,10 @@ export async function updateBudgetById(
     tax_rate: patch.tax_rate,
     tax_amount: patch.tax_amount,
     lang: patch.lang,
+    project_name:
+      typeof patch.project_name === "string"
+        ? patch.project_name.trim()
+        : patch.project_name,
   };
 
   const { error } = await supabase
@@ -526,6 +532,7 @@ export async function updateBudgetWithLines(args: {
     tax_rate: taxRate,
     tax_amount,
     lang: client.lang,
+    project_name: normalizeOptionalString((client.projectName ?? "").trim()),
   });
 
   await replaceBudgetLines(budgetId, items);

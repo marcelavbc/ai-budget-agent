@@ -81,6 +81,7 @@ export type Database = {
           job_address_street: string | null
           lang: string
           notes: string | null
+          project_name: string | null
           quote_number: string | null
           status: string
           subtotal: number
@@ -102,6 +103,7 @@ export type Database = {
           job_address_street?: string | null
           lang?: string
           notes?: string | null
+          project_name?: string | null
           quote_number?: string | null
           status?: string
           subtotal?: number
@@ -123,6 +125,7 @@ export type Database = {
           job_address_street?: string | null
           lang?: string
           notes?: string | null
+          project_name?: string | null
           quote_number?: string | null
           status?: string
           subtotal?: number

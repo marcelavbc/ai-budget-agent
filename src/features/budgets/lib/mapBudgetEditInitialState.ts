@@ -29,6 +29,7 @@ export function buildInitialBudgetEditClientDetails(args: {
       jobStreet || (jobPostal || jobCity ? "" : legacyJobAddress),
     jobAddressPostalCode: jobPostal,
     jobAddressCity: jobCity,
+    projectName: (budget.project_name ?? "").trim() || undefined,
     quoteNumber: (budget.quote_number ?? "").trim(),
     date: (budget.document_date ?? "").trim(),
     estimatedTime: (budget.estimated_time ?? "").trim(),
