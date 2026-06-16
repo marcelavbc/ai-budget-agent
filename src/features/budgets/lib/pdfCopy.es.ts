@@ -9,6 +9,7 @@ export const pdfLabelsEs = {
   client: "Cliente",
   date: (formattedDdMmYyyy: string) => `Fecha: ${formattedDdMmYyyy}`,
   estimatedDurationLabel: "Duración estimada de los trabajos",
+  projectName: "Obra",
   table: {
     concept: "CONCEPTO",
     measure: "MEDIDA",

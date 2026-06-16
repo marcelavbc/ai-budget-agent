@@ -346,6 +346,15 @@ export async function generateBudgetPdf({
       y += 2;
     }
 
+    const projectName = safeTrim(client.projectName ?? "");
+    if (projectName.length > 0) {
+      doc.setFont("helvetica", "normal");
+      doc.setFontSize(9);
+      setTextColor(doc, COLORS.text);
+      doc.text(`${labels.projectName}: ${projectName}`, marginX, y);
+      y += 13;
+    }
+
     // y must clear both left and right columns
     if (durationValue.length > 0) {
       y = Math.max(y, durationStartY + 13 + 2);
