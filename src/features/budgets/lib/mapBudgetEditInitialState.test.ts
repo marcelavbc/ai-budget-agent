@@ -27,6 +27,7 @@ function makeBudgetRow(overrides: Partial<BudgetRow> = {}): BudgetRow {
     tax_rate: 0,
     tax_amount: 0,
     notes: null,
+    project_name: null,
     created_at: "2025-01-01T00:00:00.000Z",
     updated_at: "2025-01-01T00:00:00.000Z",
     lang: "ca",
@@ -89,6 +90,7 @@ describe("buildInitialBudgetEditClientDetails", () => {
       jobAddressStreet: "Carrer Client 10",
       jobAddressPostalCode: "08002",
       jobAddressCity: "Barcelona",
+      projectName: undefined,
       quoteNumber: "Q-42",
       date: "2026-03-01",
       estimatedTime: "10 dies",
@@ -118,12 +120,12 @@ describe("buildInitialBudgetEditClientDetails", () => {
       jobAddressStreet: "",
       jobAddressPostalCode: "",
       jobAddressCity: "",
+      projectName: undefined,
       quoteNumber: "",
       date: "",
       estimatedTime: "",
       lang: "ca",
     });
-    expect(Object.values(details).every((v) => v !== undefined)).toBe(true);
   });
 });
 
