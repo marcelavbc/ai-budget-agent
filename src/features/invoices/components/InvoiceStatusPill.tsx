@@ -30,7 +30,7 @@ export default function InvoiceStatusPill({
 
   const handleClick = (e: React.MouseEvent) => {
     e.stopPropagation();
-    if (status !== "issued" || saving) return;
+    if (status !== "sent" || saving) return;
     setConfirming(true);
   };
 
@@ -61,7 +61,7 @@ export default function InvoiceStatusPill({
         <button
           type="button"
           title="Marcar com a cobrada"
-          className={`${styles.pill} ${pillClass("issued")}`}
+          className={`${styles.pill} ${pillClass("sent")}`}
           onClick={handleClick}
           aria-disabled={saving}
         >

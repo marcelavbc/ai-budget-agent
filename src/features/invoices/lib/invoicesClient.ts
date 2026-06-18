@@ -31,7 +31,13 @@ export async function createInvoiceFromBudget(
   const res = await fetch("/api/invoices/from-budget", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ budgetId, pricingMode, issueDate, dueDate, taxRate }),
+    body: JSON.stringify({
+      budgetId,
+      pricingMode,
+      issueDate,
+      dueDate,
+      taxRate,
+    }),
   });
 
   const data = await readJson(res);

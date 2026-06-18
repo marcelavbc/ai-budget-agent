@@ -162,7 +162,8 @@ export async function getInvoiceList(): Promise<InvoiceListRow[]> {
     .select(
       "id, invoice_number, status, issue_date, total, pricing_mode, clients(name)"
     )
-    .order("issue_date", { ascending: false });
+    .order("issue_date", { ascending: false })
+    .order("created_at", { ascending: false });
   if (error) throw new Error(error.message);
   return (data ?? []).map((row) => ({
     id: row.id,
