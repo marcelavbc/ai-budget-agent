@@ -12,7 +12,6 @@ import {
 function makeBudgetRow(overrides: Partial<BudgetRow> = {}): BudgetRow {
   return {
     id: "b1",
-    client_id: "c1",
     contact_id: "c1",
     title: "Test budget",
     job_address: "Carrer Major 1",
@@ -157,9 +156,7 @@ describe("buildInitialBudgetEditItems", () => {
   it('falls back to "Partida" when title is null or empty', () => {
     expect(
       buildInitialBudgetEditItems({
-        lines: [
-          makeBudgetLineRow({ title: null as unknown as string }),
-        ],
+        lines: [makeBudgetLineRow({ title: null as unknown as string })],
       })[0]?.title
     ).toBe("Partida");
     expect(

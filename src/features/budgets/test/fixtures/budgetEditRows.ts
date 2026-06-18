@@ -17,7 +17,6 @@ export function createMockBudgetRow(
     tax_rate: 21,
     created_at: "2026-01-01",
     updated_at: "2026-01-01",
-    client_id: "1",
     contact_id: "1",
     document_date: "2026-01-01",
     estimated_time: "1 hour",
@@ -84,7 +83,6 @@ export const mockBudgetRowTwo = createMockBudgetRow({
   created_at: "2025-06-01T10:00:00Z",
   updated_at: "2025-06-01T10:00:00Z",
   contact_id: "2",
-  client_id: "2",
 });
 
 /** Default contact row paired with {@link mockBudgetRow}. */
