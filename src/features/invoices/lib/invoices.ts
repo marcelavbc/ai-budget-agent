@@ -160,7 +160,7 @@ export async function getInvoiceList(): Promise<InvoiceListRow[]> {
   const { data, error } = await supabase
     .from("invoices")
     .select(
-      "id, invoice_number, status, issue_date, total, pricing_mode, clients(name)"
+      "id, invoice_number, status, issue_date, total, pricing_mode, contacts(name)"
     )
     .order("issue_date", { ascending: false })
     .order("created_at", { ascending: false });
@@ -173,7 +173,7 @@ export async function getInvoiceList(): Promise<InvoiceListRow[]> {
     total: row.total,
     pricing_mode: row.pricing_mode,
     client_name:
-      (row.clients as unknown as { name: string | null } | null)?.name ?? null,
+      (row.contacts as unknown as { name: string | null } | null)?.name ?? null,
   }));
 }
 
