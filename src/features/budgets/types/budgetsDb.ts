@@ -9,8 +9,6 @@ export interface InvoiceClientDisplay {
   address_postal_code: string | null;
   address_city: string | null;
 }
-export type ContactRow = Tables<"contacts">;
-
 export type BudgetListRow = Pick<
   BudgetRow,
   | "id"

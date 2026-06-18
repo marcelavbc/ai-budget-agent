@@ -1,8 +1,8 @@
 import type {
   BudgetLineRow,
   BudgetRow,
-  ContactRow,
 } from "@/features/budgets/types/budgetsDb";
+import type { ContactRow } from "@/features/contacts/lib/contacts";
 
 export function createMockBudgetRow(
   overrides: Partial<BudgetRow> = {}

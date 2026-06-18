@@ -5,7 +5,8 @@ import {
   getInvoiceLinesByInvoiceId,
   getSettings,
 } from "@/features/invoices/lib/invoices";
-import { getBudgetById, getContactById } from "@/features/budgets/lib/budgets";
+import { getBudgetById } from "@/features/budgets/lib/budgets";
+import { getContactById } from "@/features/contacts/lib/contacts";
 import styles from "./page.module.css";
 
 export default async function InvoicePage({

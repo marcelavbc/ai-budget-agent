@@ -2,8 +2,8 @@ import { describe, expect, it } from "vitest";
 import type {
   BudgetLineRow,
   BudgetRow,
-  ContactRow,
 } from "@/features/budgets/types/budgetsDb";
+import type { ContactRow } from "@/features/contacts/lib/contacts";
 import {
   buildInitialBudgetEditClientDetails,
   buildInitialBudgetEditItems,

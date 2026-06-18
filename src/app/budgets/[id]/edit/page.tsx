@@ -2,8 +2,8 @@ import { BudgetEditView } from "@/features/budgets/components/BudgetEditView";
 import {
   getBudgetById,
   getBudgetLinesByBudgetId,
-  getContactById,
 } from "@/features/budgets/lib/budgets";
+import { getContactById } from "@/features/contacts/lib/contacts";
 import { notFound } from "next/navigation";
 
 import styles from "./page.module.css";

@@ -3,8 +3,8 @@
 import type {
   BudgetLineRow,
   BudgetRow,
-  ContactRow,
 } from "@/features/budgets/types/budgetsDb";
+import type { ContactRow } from "@/features/contacts/lib/contacts";
 import { BudgetDraftView } from "@/features/budgets/components/BudgetDraftView";
 import { BudgetAIInput } from "@/features/budgets/components/BudgetAIInput";
 import { useBudgetEditController } from "@/features/budgets/hooks/useBudgetEditController";

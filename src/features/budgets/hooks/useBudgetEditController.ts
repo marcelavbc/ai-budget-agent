@@ -4,8 +4,8 @@ import { useMemo, useRef } from "react";
 import type {
   BudgetLineRow,
   BudgetRow,
-  ContactRow,
 } from "@/features/budgets/types/budgetsDb";
+import type { ContactRow } from "@/features/contacts/lib/contacts";
 import { normalizeBudgetStatus } from "@/features/budgets/lib/budgetStatus";
 import { updateBudgetWithLines } from "@/features/budgets/lib/budgetsClient";
 import { useBudgetController } from "@/features/budgets/hooks/useBudgetController";

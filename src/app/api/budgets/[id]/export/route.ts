@@ -2,8 +2,8 @@ import { NextResponse } from "next/server";
 import {
   getBudgetById,
   getBudgetLinesByBudgetId,
-  getContactById,
 } from "@/features/budgets/lib/budgets";
+import { getContactById } from "@/features/contacts/lib/contacts";
 
 export async function GET(
   _request: Request,

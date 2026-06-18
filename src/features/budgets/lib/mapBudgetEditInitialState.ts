@@ -1,5 +1,6 @@
 import type { BudgetClientDetails, BudgetClientItem } from "@/features/budgets/types/budget";
-import type { BudgetLineRow, BudgetRow, ContactRow } from "@/features/budgets/types/budgetsDb";
+import type { BudgetLineRow, BudgetRow } from "@/features/budgets/types/budgetsDb";
+import type { ContactRow } from "@/features/contacts/lib/contacts";
 
 function round2(n: number) {
   return Math.round(n * 100) / 100;
