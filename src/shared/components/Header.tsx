@@ -17,6 +17,7 @@ export default function Header() {
       { href: "/", label: "Tauler" },
       { href: "/budgets", label: "Pressupostos" },
       { href: "/invoices", label: "Factures" },
+      { href: "/contacts", label: "Contactes" },
     ],
     []
   );
