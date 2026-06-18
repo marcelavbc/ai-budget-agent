@@ -23,7 +23,6 @@ import type {
   BudgetLineRow,
   BudgetListRow,
   BudgetRow,
-  ClientRow,
   ContactRow,
 } from "@/features/budgets/types/budgetsDb";
 
@@ -71,7 +70,9 @@ function jobAddressFields(client: BudgetClientDetails) {
   };
 }
 
-function normalizedAddressPart(value: string | null | undefined): string | null {
+function normalizedAddressPart(
+  value: string | null | undefined
+): string | null {
   const trimmed = (value ?? "").trim();
   return trimmed ? trimmed : null;
 }
@@ -109,15 +110,17 @@ async function ensureContactJobAddress(
     return;
   }
 
-  const { error: insertError } = await supabase.from("contact_addresses").insert([
-    {
-      contact_id: contactId,
-      street,
-      postal_code,
-      city,
-      label: null,
-    },
-  ]);
+  const { error: insertError } = await supabase
+    .from("contact_addresses")
+    .insert([
+      {
+        contact_id: contactId,
+        street,
+        postal_code,
+        city,
+        label: null,
+      },
+    ]);
 
   if (insertError) {
     throw new Error(insertError.message);
@@ -127,60 +130,6 @@ async function ensureContactJobAddress(
 type BudgetListQueryRow = BudgetListRow & {
   invoices?: { id: string | null } | { id: string | null }[] | null;
 };
-
-export async function getClientById(id: string | null): Promise<ClientRow> {
-  const supabase = getSupabaseClient();
-  const normalizedId = (id ?? "").trim();
-  if (!normalizedId || normalizedId.toLowerCase() === "null") {
-    return {
-      id: normalizedId || "unknown",
-      name: "",
-      phone: null,
-      address_street: null,
-      address_postal_code: null,
-      address_city: null,
-      tax_id: null,
-      created_at: new Date().toISOString(),
-    } as ClientRow;
-  }
-
-  const { data, error } = await supabase
-    .from("clients")
-    .select(
-      "id,name,phone,address_street,address_postal_code,address_city,tax_id,created_at"
-    )
-    .eq("id", normalizedId)
-    .maybeSingle();
-  if (error) {
-    const code = (error as unknown as { code?: string }).code;
-    if (code === "PGRST116" || code === "22P02") {
-      return {
-        id: normalizedId,
-        name: "",
-        phone: null,
-        address_street: null,
-        address_postal_code: null,
-        address_city: null,
-        tax_id: null,
-        created_at: new Date().toISOString(),
-      } as ClientRow;
-    }
-    throw new Error(error.message);
-  }
-  if (!data) {
-    return {
-      id: normalizedId,
-      name: "",
-      phone: null,
-      address_street: null,
-      address_postal_code: null,
-      address_city: null,
-      tax_id: null,
-      created_at: new Date().toISOString(),
-    } as ClientRow;
-  }
-  return data as ClientRow;
-}
 
 export async function createContact({
   name,
@@ -311,7 +260,9 @@ export async function createBudget({
         tax_rate: taxRate,
         tax_amount,
         lang: client.lang,
-        project_name: normalizeOptionalString((client.projectName ?? "").trim()),
+        project_name: normalizeOptionalString(
+          (client.projectName ?? "").trim()
+        ),
       },
     ])
     .select("id")
