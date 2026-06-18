@@ -6,7 +6,7 @@ import {
   generateInvoicePdf,
   buildInvoicePdfFilename,
 } from "@/features/invoices/lib/generateInvoicePdf";
-import type { ClientRow } from "@/features/budgets/types/budgetsDb";
+import type { InvoiceClientDisplay } from "@/features/budgets/types/budgetsDb";
 import type {
   InvoiceLineRow,
   InvoiceRow,
@@ -29,7 +29,7 @@ export function InvoiceView({
   settings,
 }: {
   invoice: InvoiceRow;
-  client: ClientRow;
+  client: InvoiceClientDisplay;
   lines: InvoiceLineRow[];
   quoteNumber: string | null;
   settings: SettingsRow | null;

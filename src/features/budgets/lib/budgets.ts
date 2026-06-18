@@ -283,7 +283,7 @@ export async function getBudgetById(id: string): Promise<BudgetRow | null> {
   const { data, error } = await supabase
     .from("budgets")
     .select(
-      "id,client_id,contact_id,title,job_address,job_address_street,job_address_postal_code,job_address_city,status,document_date,notes,subtotal,tax_rate,tax_amount,created_at,updated_at,quote_number,estimated_time,lang,project_name"
+      "id,title,job_address,job_address_street,job_address_postal_code,job_address_city,status,document_date,notes,subtotal,tax_rate,tax_amount,created_at,updated_at,quote_number,estimated_time,lang,project_name"
     )
     .eq("id", id)
     .maybeSingle();
@@ -296,7 +296,6 @@ export async function updateBudgetById(
   patch: Partial<
     Pick<
       BudgetRow,
-      | "client_id"
       | "contact_id"
       | "title"
       | "job_address"
@@ -317,7 +316,6 @@ export async function updateBudgetById(
 ): Promise<void> {
   const supabase = getSupabaseClient();
   const normalized = {
-    client_id: patch.client_id,
     contact_id: patch.contact_id,
     title: typeof patch.title === "string" ? patch.title.trim() : patch.title,
     job_address:

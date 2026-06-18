@@ -2,7 +2,13 @@ import type { Tables } from "@/core/types/supabase";
 
 export type BudgetRow = Tables<"budgets">;
 export type BudgetLineRow = Tables<"budget_lines">;
-export type ClientRow = Tables<"clients">;
+export interface InvoiceClientDisplay {
+  name: string | null;
+  tax_id: string | null;
+  address_street: string | null;
+  address_postal_code: string | null;
+  address_city: string | null;
+}
 export type ContactRow = Tables<"contacts">;
 
 export type BudgetListRow = Pick<
@@ -24,4 +30,3 @@ export type BudgetListRow = Pick<
   > & {
     invoice_id?: string | null;
   };
-
