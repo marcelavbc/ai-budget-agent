@@ -15,6 +15,7 @@ import {
   pdfLabelsEs,
 } from "@/features/budgets/lib/pdfCopy.es";
 import { localizeAddress } from "@/shared/lib/addressLocale";
+import { formatEstimatedTimeForPdf } from "@/features/budgets/lib/formatEstimatedTime";
 
 export interface GenerateBudgetPdfInput {
   client: BudgetClientDetails;
@@ -69,7 +70,7 @@ async function loadOptimizedImageAsDataUrl(src: string): Promise<string> {
       ctx.fillRect(0, 0, w, h);
       ctx.drawImage(img, 0, 0, w, h);
 
-      resolve(canvas.toDataURL("image/jpeg", 0.90));
+      resolve(canvas.toDataURL("image/jpeg", 0.9));
     };
 
     img.onerror = () => reject(new Error("Failed to load image: " + src));
@@ -306,7 +307,10 @@ export async function generateBudgetPdf({
     y += 12;
 
     // Duration: single right-aligned line "Durada estimada del treball: 5-6 dies"
-    const durationValue = safeTrim(client.estimatedTime).replace(/\n+/g, " – ");
+    const durationValue = formatEstimatedTimeForPdf(
+      safeTrim(client.estimatedTime).replace(/\n+/g, " – "),
+      client.lang
+    );
     const durationStartY = y;
     if (durationValue.length > 0) {
       const durationLine = `${labels.estimatedDurationLabel}: ${durationValue}`;
