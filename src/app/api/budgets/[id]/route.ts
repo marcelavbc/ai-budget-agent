@@ -58,6 +58,7 @@ export async function PUT(
       taxRate,
       status,
     });
+    revalidatePath("/contacts");
     return NextResponse.json({ ok: true });
   } catch {
     return NextResponse.json({ error: "Update failed." }, { status: 500 });

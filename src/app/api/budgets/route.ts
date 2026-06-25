@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { revalidatePath } from "next/cache";
 import type { BudgetClientDetails, BudgetClientItem } from "@/features/budgets/types/budget";
 import { saveBudgetWithLines } from "@/features/budgets/lib/budgets";
 
@@ -24,6 +25,7 @@ export async function POST(request: Request) {
       items,
       contactId,
     });
+    revalidatePath("/contacts");
     return NextResponse.json(saved);
   } catch (e) {
     console.error("POST /api/budgets failed:", e);
