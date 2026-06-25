@@ -27,6 +27,11 @@ function makeBudgetRow(overrides: Partial<BudgetRow> = {}): BudgetRow {
     tax_amount: 0,
     notes: null,
     project_name: null,
+    client_name: null,
+    client_tax_id: null,
+    client_address_street: null,
+    client_address_postal_code: null,
+    client_address_city: null,
     created_at: "2025-01-01T00:00:00.000Z",
     updated_at: "2025-01-01T00:00:00.000Z",
     lang: "ca",
@@ -86,6 +91,7 @@ describe("buildInitialBudgetEditClientDetails", () => {
 
     expect(buildInitialBudgetEditClientDetails({ budget, contact })).toEqual({
       nameOrCompany: "Acme SL",
+      identityLocked: false,
       jobAddressStreet: "Carrer Client 10",
       jobAddressPostalCode: "08002",
       jobAddressCity: "Barcelona",
@@ -116,6 +122,7 @@ describe("buildInitialBudgetEditClientDetails", () => {
 
     expect(details).toEqual({
       nameOrCompany: "",
+      identityLocked: false,
       jobAddressStreet: "",
       jobAddressPostalCode: "",
       jobAddressCity: "",

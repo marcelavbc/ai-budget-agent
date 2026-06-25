@@ -90,6 +90,7 @@ export interface BudgetClientDetails {
   /** Durada estimada del treball (text lliure, p. ex. dies hàbils). */
   estimatedTime: string;
   lang: "ca" | "es";
+  identityLocked?: boolean;
 }
 
 export function defaultBudgetClientDetails(): BudgetClientDetails {

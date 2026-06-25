@@ -45,6 +45,7 @@ export function BudgetClientForm({
   onQuoteNumberChange,
   onResetQuoteAutomation,
   onContactSelect,
+  identityLocked = false,
 }: {
   client: BudgetClientDetails;
   onChange: React.Dispatch<React.SetStateAction<BudgetClientDetails>>;
@@ -52,6 +53,7 @@ export function BudgetClientForm({
   onQuoteNumberChange: (value: string) => void;
   onResetQuoteAutomation: () => void;
   onContactSelect?: (contactId: string) => void;
+  identityLocked?: boolean;
 }) {
   const [collapsed, setCollapsed] = useState(true);
   const [contactId, setContactId] = useState<string | null>(null);
@@ -133,7 +135,7 @@ export function BudgetClientForm({
   useEffect(() => {
     const query = client.nameOrCompany.trim();
 
-    if (query.length < 2 || autocompleteDismissed) {
+    if (identityLocked || query.length < 2 || autocompleteDismissed) {
       setSuggestions([]);
       setSuggestionsOpen(false);
       return;
@@ -169,7 +171,7 @@ export function BudgetClientForm({
       window.clearTimeout(timer);
       controller.abort();
     };
-  }, [client.nameOrCompany, autocompleteDismissed]);
+  }, [client.nameOrCompany, autocompleteDismissed, identityLocked]);
 
   const clientName = client.nameOrCompany || "Client sense nom";
   const quoteNumber = client.quoteNumber || "—";
@@ -218,7 +220,9 @@ export function BudgetClientForm({
               className={styles.fieldInput}
               type="text"
               value={client.nameOrCompany}
+              disabled={identityLocked}
               onChange={(e) => {
+                if (identityLocked) return;
                 setAutocompleteDismissed(false);
                 clearContactSelection();
                 setClientField("nameOrCompany", e.target.value);
@@ -234,6 +238,13 @@ export function BudgetClientForm({
                 suggestionsOpen ? "contact-suggestions" : undefined
               }
             />
+            {identityLocked ? (
+              <p className={styles.fieldHint}>
+                Dades de facturació congelades en aprovar el pressupost. Per
+                corregir-les, edita el contacte des de /contacts (només
+                afectarà documents futurs).
+              </p>
+            ) : null}
             {suggestionsOpen ? (
               <ul
                 id="contact-suggestions"

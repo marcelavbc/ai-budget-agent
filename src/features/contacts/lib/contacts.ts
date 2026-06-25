@@ -1,7 +1,7 @@
 import "server-only";
 
 import { getSupabaseClient } from "@/core/lib/supabaseClient";
-import type { Tables } from "@/core/types/supabase";
+import type { Tables, TablesUpdate } from "@/core/types/supabase";
 
 export type ContactRow = Tables<"contacts">;
 
@@ -96,17 +96,37 @@ export async function createContact({
 
 export async function updateContactById(
   id: string,
-  patch: Partial<Pick<ContactRow, "name" | "phone">>
+  patch: Partial<
+    Pick<
+      ContactRow,
+      | "name"
+      | "phone"
+      | "tax_id"
+      | "fiscal_address_street"
+      | "fiscal_address_postal_code"
+      | "fiscal_address_city"
+    >
+  >
 ): Promise<void> {
   const supabase = getSupabaseClient();
-  const normalized = {
-    name: typeof patch.name === "string" ? patch.name.trim() : patch.name,
-    phone: typeof patch.phone === "string" ? patch.phone.trim() : patch.phone,
-  };
+  const normalized: Record<string, string | null> = {};
+  for (const key of [
+    "name",
+    "phone",
+    "tax_id",
+    "fiscal_address_street",
+    "fiscal_address_postal_code",
+    "fiscal_address_city",
+  ] as const) {
+    if (key in patch) {
+      const value = patch[key];
+      normalized[key] = typeof value === "string" ? value.trim() : value ?? null;
+    }
+  }
 
   const { error } = await supabase
     .from("contacts")
-    .update(normalized)
+    .update(normalized as TablesUpdate<"contacts">)
     .eq("id", id);
   if (error) throw new Error(error.message);
 }

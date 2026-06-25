@@ -1,6 +1,7 @@
 import type { BudgetClientDetails, BudgetClientItem } from "@/features/budgets/types/budget";
 import type { BudgetLineRow, BudgetRow } from "@/features/budgets/types/budgetsDb";
 import type { ContactRow } from "@/features/contacts/lib/contacts";
+import { resolveBudgetClientIdentity } from "@/features/budgets/lib/resolveBudgetClientIdentity";
 
 function round2(n: number) {
   return Math.round(n * 100) / 100;
@@ -19,13 +20,15 @@ export function buildInitialBudgetEditClientDetails(args: {
   contact: ContactRow;
 }): BudgetClientDetails {
   const { budget, contact } = args;
+  const identity = resolveBudgetClientIdentity(budget, contact);
   const jobStreet = (budget.job_address_street ?? "").trim();
   const jobPostal = (budget.job_address_postal_code ?? "").trim();
   const jobCity = (budget.job_address_city ?? "").trim();
   const legacyJobAddress = (budget.job_address ?? "").trim();
 
   return {
-    nameOrCompany: (contact.name ?? "").trim(),
+    nameOrCompany: identity.name.trim(),
+    identityLocked: identity.locked,
     jobAddressStreet:
       jobStreet || (jobPostal || jobCity ? "" : legacyJobAddress),
     jobAddressPostalCode: jobPostal,

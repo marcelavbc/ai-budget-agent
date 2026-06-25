@@ -18,7 +18,10 @@ import {
   normalizeOptionalString,
   toBudgetLineRows,
 } from "@/features/budgets/lib/helpers";
-import type { BudgetStatus } from "@/features/budgets/lib/budgetStatus";
+import {
+  normalizeBudgetStatus,
+  type BudgetStatus,
+} from "@/features/budgets/lib/budgetStatus";
 import type {
   BudgetLineRow,
   BudgetListRow,
@@ -175,12 +178,19 @@ export async function createBudget({
   return { id: String(data.id) };
 }
 
+function shouldSyncContactNameFromBudget(
+  status: string | null | undefined
+): boolean {
+  const normalized = normalizeBudgetStatus(status);
+  return normalized !== "approved" && normalized !== "invoiced";
+}
+
 export async function getBudgetById(id: string): Promise<BudgetRow | null> {
   const supabase = getSupabaseClient();
   const { data, error } = await supabase
     .from("budgets")
     .select(
-      "id,contact_id,title,job_address,job_address_street,job_address_postal_code,job_address_city,status,document_date,notes,subtotal,tax_rate,tax_amount,created_at,updated_at,quote_number,estimated_time,lang,project_name"
+      "id,contact_id,title,job_address,job_address_street,job_address_postal_code,job_address_city,status,document_date,notes,subtotal,tax_rate,tax_amount,created_at,updated_at,quote_number,estimated_time,lang,project_name,client_name,client_tax_id,client_address_street,client_address_postal_code,client_address_city"
     )
     .eq("id", id)
     .maybeSingle();
@@ -212,6 +222,36 @@ export async function updateBudgetById(
   >
 ): Promise<void> {
   const supabase = getSupabaseClient();
+
+  let snapshotPatch: Record<string, string | null> = {};
+  if (patch.status === "approved" || patch.status === "invoiced") {
+    const { data: current } = await supabase
+      .from("budgets")
+      .select("client_name,contact_id")
+      .eq("id", id)
+      .maybeSingle();
+
+    if (current && !current.client_name && current.contact_id) {
+      const { data: contact } = await supabase
+        .from("contacts")
+        .select(
+          "name,tax_id,fiscal_address_street,fiscal_address_postal_code,fiscal_address_city"
+        )
+        .eq("id", current.contact_id)
+        .maybeSingle();
+
+      if (contact) {
+        snapshotPatch = {
+          client_name: contact.name,
+          client_tax_id: contact.tax_id,
+          client_address_street: contact.fiscal_address_street,
+          client_address_postal_code: contact.fiscal_address_postal_code,
+          client_address_city: contact.fiscal_address_city,
+        };
+      }
+    }
+  }
+
   const normalized = {
     contact_id: patch.contact_id,
     title: typeof patch.title === "string" ? patch.title.trim() : patch.title,
@@ -253,6 +293,7 @@ export async function updateBudgetById(
       typeof patch.project_name === "string"
         ? patch.project_name.trim()
         : patch.project_name,
+    ...snapshotPatch,
   };
 
   const { error } = await supabase
@@ -360,9 +401,11 @@ export async function updateBudgetWithLines(args: {
         ).id;
 
   if (ensuredContactId === normalizedContactId) {
-    await updateContactById(ensuredContactId, {
-      name: client.nameOrCompany,
-    });
+    if (shouldSyncContactNameFromBudget(status)) {
+      await updateContactById(ensuredContactId, {
+        name: client.nameOrCompany,
+      });
+    }
   }
 
   await updateBudgetById(budgetId, {
@@ -438,9 +481,11 @@ export async function saveBudgetWithLines({
 
   if (normalizedProvided && normalizedProvided.toLowerCase() !== "null") {
     contactId = normalizedProvided;
-    await updateContactById(contactId, {
-      name: client.nameOrCompany,
-    });
+    if (shouldSyncContactNameFromBudget("draft")) {
+      await updateContactById(contactId, {
+        name: client.nameOrCompany,
+      });
+    }
   } else {
     const created = await createContact({
       name: client.nameOrCompany,

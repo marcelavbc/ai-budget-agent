@@ -75,7 +75,7 @@ export async function getInvoiceById(id: string): Promise<InvoiceRow | null> {
   const { data, error } = await supabase
     .from("invoices")
     .select(
-      "id,budget_id,contact_id,subtotal,tax_rate,tax_amount,total,pricing_mode,invoice_number,status,issue_date,due_date,notes,job_address,project_name,created_at,lang"
+      "id,budget_id,contact_id,subtotal,tax_rate,tax_amount,total,pricing_mode,invoice_number,status,issue_date,due_date,notes,job_address,project_name,created_at,lang,client_name,client_tax_id,client_address_street,client_address_postal_code,client_address_city"
     )
     .eq("id", id)
     .maybeSingle();
@@ -160,7 +160,7 @@ export async function getInvoiceList(): Promise<InvoiceListRow[]> {
   const { data, error } = await supabase
     .from("invoices")
     .select(
-      "id, invoice_number, status, issue_date, total, pricing_mode, contacts(name)"
+      "id, invoice_number, status, issue_date, total, pricing_mode, client_name"
     )
     .order("issue_date", { ascending: false })
     .order("created_at", { ascending: false });
@@ -172,8 +172,7 @@ export async function getInvoiceList(): Promise<InvoiceListRow[]> {
     issue_date: row.issue_date,
     total: row.total,
     pricing_mode: row.pricing_mode,
-    client_name:
-      (row.contacts as unknown as { name: string | null } | null)?.name ?? null,
+    client_name: row.client_name,
   }));
 }
 

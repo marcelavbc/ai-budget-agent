@@ -233,6 +233,7 @@ export function BudgetDraftView({
         onQuoteNumberChange={onQuoteNumberChange}
         onResetQuoteAutomation={onResetQuoteAutomation}
         onContactSelect={onContactSelect}
+        identityLocked={client.identityLocked}
       />
 
       <div className={styles.itemsTopBar}>

@@ -34,10 +34,18 @@ export default async function InvoicePage({
       <InvoiceView
         invoice={invoice}
         client={{
-          ...contact,
-          address_street: contact.fiscal_address_street ?? null,
-          address_postal_code: contact.fiscal_address_postal_code ?? null,
-          address_city: contact.fiscal_address_city ?? null,
+          name: invoice.client_name ?? contact.name,
+          tax_id: invoice.client_tax_id ?? contact.tax_id,
+          address_street:
+            invoice.client_address_street ??
+            contact.fiscal_address_street ??
+            null,
+          address_postal_code:
+            invoice.client_address_postal_code ??
+            contact.fiscal_address_postal_code ??
+            null,
+          address_city:
+            invoice.client_address_city ?? contact.fiscal_address_city ?? null,
         }}
         lines={lines}
         quoteNumber={quoteNumber}

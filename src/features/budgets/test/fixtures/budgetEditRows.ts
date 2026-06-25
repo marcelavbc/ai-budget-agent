@@ -27,6 +27,11 @@ export function createMockBudgetRow(
     notes: "Test notes",
     project_name: null,
     quote_number: "1234567890",
+    client_name: null,
+    client_tax_id: null,
+    client_address_street: null,
+    client_address_postal_code: null,
+    client_address_city: null,
     ...overrides,
   };
 }

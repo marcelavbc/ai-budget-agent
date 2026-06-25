@@ -4,6 +4,7 @@ import {
   getBudgetLinesByBudgetId,
 } from "@/features/budgets/lib/budgets";
 import { getContactById } from "@/features/contacts/lib/contacts";
+import { resolveBudgetClientIdentity } from "@/features/budgets/lib/resolveBudgetClientIdentity";
 
 export async function GET(
   _request: Request,
@@ -24,7 +25,17 @@ export async function GET(
       getBudgetLinesByBudgetId(budget.id),
     ]);
 
-    return NextResponse.json({ budget, client: contact, lines });
+    const identity = resolveBudgetClientIdentity(budget, contact);
+    const client = {
+      ...contact,
+      name: identity.name,
+      tax_id: identity.tax_id,
+      fiscal_address_street: identity.fiscal_address_street,
+      fiscal_address_postal_code: identity.fiscal_address_postal_code,
+      fiscal_address_city: identity.fiscal_address_city,
+    };
+
+    return NextResponse.json({ budget, client, lines });
   } catch {
     return NextResponse.json({ error: "Export failed." }, { status: 500 });
   }
