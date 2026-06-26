@@ -89,10 +89,15 @@ export async function DELETE(
 ) {
   try {
     const { id } = await context.params;
-    await deleteBudgetWithLines(id);
-    return NextResponse.json({ ok: true });
-  } catch {
-    return NextResponse.json({ error: "Delete failed." }, { status: 500 });
+    const result = await deleteBudgetWithLines(id);
+    revalidatePath("/contacts");
+    return NextResponse.json(result);
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : "";
+    return NextResponse.json(
+      { error: msg || "No s'ha pogut eliminar el pressupost." },
+      { status: 500 }
+    );
   }
 }
 

@@ -20,6 +20,7 @@ import {
   deleteBudgetWithLines,
   getBudgetExportData,
 } from "@/features/budgets/lib/budgetsClient";
+import { deleteContact } from "@/features/contacts/lib/contactsClient";
 import {
   createInvoiceFromBudget,
   updateClientAddress,
@@ -58,6 +59,11 @@ export function BudgetListItemActions({
   const [deleteError, setDeleteError] = useState<string | null>(null);
 
   const [confirmOpen, setConfirmOpen] = useState(false);
+  const [orphanContactId, setOrphanContactId] = useState<string | null>(null);
+  const [contactDeleting, setContactDeleting] = useState(false);
+  const [contactDeleteError, setContactDeleteError] = useState<string | null>(
+    null
+  );
   const modal = useInvoiceModal(clientTaxId, budgetId, {
     street: jobAddressStreet,
     postalCode: jobAddressPostalCode,
@@ -139,8 +145,12 @@ export function BudgetListItemActions({
     setDeleting(true);
     setDeleteError(null);
     try {
-      await deleteBudgetWithLines(budgetId);
-      router.refresh();
+      const result = await deleteBudgetWithLines(budgetId);
+      if (result.contactStatus === "pending_confirmation") {
+        setOrphanContactId(result.contactId);
+      } else {
+        router.refresh();
+      }
     } catch (err) {
       setDeleteError(
         err instanceof Error
@@ -150,6 +160,29 @@ export function BudgetListItemActions({
     } finally {
       setDeleting(false);
       setConfirmOpen(false);
+    }
+  }
+
+  function closeOrphanDialog() {
+    setOrphanContactId(null);
+    router.refresh();
+  }
+
+  async function handleConfirmDeleteContact() {
+    if (!orphanContactId) return;
+    setContactDeleting(true);
+    setContactDeleteError(null);
+    try {
+      await deleteContact(orphanContactId);
+    } catch (err) {
+      setContactDeleteError(
+        err instanceof Error
+          ? err.message
+          : "No s'ha pogut eliminar el contacte."
+      );
+    } finally {
+      setContactDeleting(false);
+      closeOrphanDialog();
     }
   }
 
@@ -380,6 +413,24 @@ export function BudgetListItemActions({
         onClose={() => setConfirmOpen(false)}
         onConfirm={handleConfirmDelete}
       />
+
+      <ConfirmDialog
+        open={orphanContactId !== null}
+        title="Eliminar contacte sense dades?"
+        description="El contacte ja no té pressupostos ni factures associades. Vols eliminar-lo també?"
+        confirmLabel="Eliminar contacte"
+        cancelLabel="Mantenir"
+        destructive
+        loading={contactDeleting}
+        onClose={closeOrphanDialog}
+        onConfirm={handleConfirmDeleteContact}
+      />
+
+      {contactDeleteError ? (
+        <p className={styles.error} role="alert">
+          {contactDeleteError}
+        </p>
+      ) : null}
 
       {!isInvoiced && !isApproved && pdfError ? (
         <p className={styles.error} role="alert">

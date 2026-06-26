@@ -120,7 +120,8 @@ export async function updateContactById(
   ] as const) {
     if (key in patch) {
       const value = patch[key];
-      normalized[key] = typeof value === "string" ? value.trim() : value ?? null;
+      normalized[key] =
+        typeof value === "string" ? value.trim() : (value ?? null);
     }
   }
 
@@ -200,7 +201,9 @@ export function buildContactDetailTotals(
   };
 }
 
-export async function getContactDetail(id: string): Promise<ContactDetail | null> {
+export async function getContactDetail(
+  id: string
+): Promise<ContactDetail | null> {
   const supabase = getSupabaseClient();
   const normalizedId = id.trim();
   if (!normalizedId) return null;
@@ -216,19 +219,21 @@ export async function getContactDetail(id: string): Promise<ContactDetail | null
   if (contactError) throw new Error(contactError.message);
   if (!contactData) return null;
 
-  const [{ data: budgetsData, error: budgetsError }, { data: invoicesData, error: invoicesError }] =
-    await Promise.all([
-      supabase
-        .from("budgets")
-        .select("id,title,status,quote_number,document_date,subtotal")
-        .eq("contact_id", normalizedId)
-        .order("document_date", { ascending: false, nullsFirst: false }),
-      supabase
-        .from("invoices")
-        .select("id,invoice_number,status,issue_date,total")
-        .eq("contact_id", normalizedId)
-        .order("issue_date", { ascending: false, nullsFirst: false }),
-    ]);
+  const [
+    { data: budgetsData, error: budgetsError },
+    { data: invoicesData, error: invoicesError },
+  ] = await Promise.all([
+    supabase
+      .from("budgets")
+      .select("id,title,status,quote_number,document_date,subtotal")
+      .eq("contact_id", normalizedId)
+      .order("document_date", { ascending: false, nullsFirst: false }),
+    supabase
+      .from("invoices")
+      .select("id,invoice_number,status,issue_date,total")
+      .eq("contact_id", normalizedId)
+      .order("issue_date", { ascending: false, nullsFirst: false }),
+  ]);
 
   if (budgetsError) throw new Error(budgetsError.message);
   if (invoicesError) throw new Error(invoicesError.message);
@@ -242,4 +247,86 @@ export async function getContactDetail(id: string): Promise<ContactDetail | null
     invoices,
     totals: buildContactDetailTotals(budgets, invoices),
   };
+}
+export interface ContactReferenceCounts {
+  budgetCount: number;
+  invoiceCount: number;
+}
+
+/** Pure: testable without Supabase. */
+export function contactHasReferences(counts: ContactReferenceCounts): boolean {
+  return counts.budgetCount > 0 || counts.invoiceCount > 0;
+}
+
+export interface ContactExtraDataInput {
+  phone: string | null;
+  email: string | null;
+  tax_id: string | null;
+  addressCount: number;
+}
+
+/** Pure: true if the contact has any data beyond just a name. */
+export function contactHasExtraData(input: ContactExtraDataInput): boolean {
+  return Boolean(
+    (input.phone ?? "").trim() ||
+      (input.email ?? "").trim() ||
+      (input.tax_id ?? "").trim() ||
+      input.addressCount > 0
+  );
+}
+
+export async function getContactAddressCount(contactId: string): Promise<number> {
+  const supabase = getSupabaseClient();
+  const { count, error } = await supabase
+    .from("contact_addresses")
+    .select("id", { count: "exact", head: true })
+    .eq("contact_id", contactId);
+  if (error) throw new Error(error.message);
+  return count ?? 0;
+}
+
+export async function getContactReferenceCounts(
+  contactId: string
+): Promise<ContactReferenceCounts> {
+  const supabase = getSupabaseClient();
+  const [
+    { count: budgetCount, error: budgetsError },
+    { count: invoiceCount, error: invoicesError },
+  ] = await Promise.all([
+    supabase
+      .from("budgets")
+      .select("id", { count: "exact", head: true })
+      .eq("contact_id", contactId),
+    supabase
+      .from("invoices")
+      .select("id", { count: "exact", head: true })
+      .eq("contact_id", contactId),
+  ]);
+
+  if (budgetsError) throw new Error(budgetsError.message);
+  if (invoicesError) throw new Error(invoicesError.message);
+
+  return {
+    budgetCount: budgetCount ?? 0,
+    invoiceCount: invoiceCount ?? 0,
+  };
+}
+
+export async function deleteContactById(id: string): Promise<void> {
+  const normalizedId = id.trim();
+  if (!normalizedId) throw new Error("Identificador de contacte invàlid.");
+
+  const counts = await getContactReferenceCounts(normalizedId);
+  if (contactHasReferences(counts)) {
+    throw new Error(
+      "No es pot eliminar: el contacte té pressupostos o factures associades."
+    );
+  }
+
+  const supabase = getSupabaseClient();
+  const { error } = await supabase
+    .from("contacts")
+    .delete()
+    .eq("id", normalizedId);
+  if (error) throw new Error(error.message);
 }

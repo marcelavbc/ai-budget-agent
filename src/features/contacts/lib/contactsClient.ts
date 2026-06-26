@@ -28,3 +28,13 @@ export async function updateContact(
     throw new Error(errorMessage(data, "No s'ha pogut actualitzar el contacte."));
   }
 }
+
+export async function deleteContact(contactId: string): Promise<void> {
+  const res = await fetch(`/api/contacts/${contactId}`, {
+    method: "DELETE",
+  });
+  const data = await readJson(res);
+  if (!res.ok) {
+    throw new Error(errorMessage(data, "No s'ha pogut eliminar el contacte."));
+  }
+}

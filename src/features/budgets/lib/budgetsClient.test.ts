@@ -248,10 +248,12 @@ describe("deleteBudgetWithLines", () => {
       "fetch",
       vi.fn().mockResolvedValue({
         ok: true,
-        json: async () => null,
+        json: async () => ({ contactStatus: "kept" }),
       })
     );
-    await expect(deleteBudgetWithLines("budget-1")).resolves.toBeUndefined();
+    await expect(deleteBudgetWithLines("budget-1")).resolves.toEqual({
+      contactStatus: "kept",
+    });
     expect(fetch).toHaveBeenCalledWith("/api/budgets/budget-1", {
       method: "DELETE",
     });

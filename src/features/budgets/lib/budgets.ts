@@ -28,7 +28,13 @@ import type {
   BudgetRow,
 } from "@/features/budgets/types/budgetsDb";
 import {
+  contactHasExtraData,
+  contactHasReferences,
   createContact,
+  deleteContactById,
+  getContactAddressCount,
+  getContactById,
+  getContactReferenceCounts,
   updateContactById,
 } from "@/features/contacts/lib/contacts";
 
@@ -350,9 +356,45 @@ export async function deleteBudgetById(budgetId: string): Promise<void> {
   if (error) throw new Error(error.message);
 }
 
-export async function deleteBudgetWithLines(budgetId: string): Promise<void> {
+export type DeleteBudgetResult =
+  | { contactStatus: "kept" }
+  | { contactStatus: "deleted_orphan"; contactId: string }
+  | { contactStatus: "pending_confirmation"; contactId: string };
+
+export async function deleteBudgetWithLines(
+  budgetId: string
+): Promise<DeleteBudgetResult> {
+  const budget = await getBudgetById(budgetId);
+  if (!budget) {
+    throw new Error("No s'ha trobat el pressupost.");
+  }
+
+  if (normalizeBudgetStatus(budget.status) === "invoiced") {
+    throw new Error("No es pot eliminar un pressupost facturat.");
+  }
+
+  const contactId = budget.contact_id;
+
   await deleteBudgetLines(budgetId);
   await deleteBudgetById(budgetId);
+
+  if (!contactId) {
+    return { contactStatus: "kept" };
+  }
+
+  const counts = await getContactReferenceCounts(contactId);
+  if (contactHasReferences(counts)) {
+    return { contactStatus: "kept" };
+  }
+
+  const contact = await getContactById(contactId);
+  const addressCount = await getContactAddressCount(contactId);
+  if (!contactHasExtraData({ ...contact, addressCount })) {
+    await deleteContactById(contactId);
+    return { contactStatus: "deleted_orphan", contactId };
+  }
+
+  return { contactStatus: "pending_confirmation", contactId };
 }
 
 export async function replaceBudgetLines(

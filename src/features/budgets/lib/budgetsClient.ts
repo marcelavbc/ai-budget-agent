@@ -79,10 +79,18 @@ export async function updateBudgetById(
   if (!res.ok) throw new Error(errorMessage(data, "No s'ha pogut actualitzar el pressupost."));
 }
 
-export async function deleteBudgetWithLines(budgetId: string): Promise<void> {
+export type DeleteBudgetResult =
+  | { contactStatus: "kept" }
+  | { contactStatus: "deleted_orphan"; contactId: string }
+  | { contactStatus: "pending_confirmation"; contactId: string };
+
+export async function deleteBudgetWithLines(
+  budgetId: string
+): Promise<DeleteBudgetResult> {
   const res = await fetch(`/api/budgets/${budgetId}`, { method: "DELETE" });
   const data = await readJson(res);
   if (!res.ok) throw new Error(errorMessage(data, "No s'ha pogut eliminar el pressupost."));
+  return data as DeleteBudgetResult;
 }
 
 export async function fetchBudgetById(
