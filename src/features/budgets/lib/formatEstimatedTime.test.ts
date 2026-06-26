@@ -30,16 +30,6 @@ describe("formatEstimatedTimeForPdf", () => {
     expect(formatEstimatedTimeForPdf("1", "es")).toBe("1 día hábil");
   });
 
-  it('leaves "5-7 dies" unchanged in Catalan', () => {
-    expect(formatEstimatedTimeForPdf("5-7 dies", "ca")).toBe("5-7 dies");
-  });
-
-  it('leaves "unes 2 setmanes" unchanged in Catalan', () => {
-    expect(formatEstimatedTimeForPdf("unes 2 setmanes", "ca")).toBe(
-      "unes 2 setmanes"
-    );
-  });
-
   it('trims trailing space before formatting "10 "', () => {
     expect(formatEstimatedTimeForPdf("10 ", "ca")).toBe("10 dies hàbils");
   });

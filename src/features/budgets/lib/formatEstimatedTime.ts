@@ -5,11 +5,6 @@ export function formatEstimatedTimeForPdf(
   const trimmed = value.trim();
   if (trimmed.length === 0) return "";
 
-  const isPureNumberOrRange = /^[\d\s,-]+$/.test(trimmed);
-  if (!isPureNumberOrRange) {
-    return trimmed; // is already formatted, don't touch
-  }
-
   const isSingular = trimmed === "1";
   const unit =
     lang === "es"
