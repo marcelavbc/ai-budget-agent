@@ -276,19 +276,14 @@ export async function generateBudgetPdf({
   function drawClientIntroBlock() {
     const width = pageWidth - marginX * 2;
     const name = safeTrim(client.nameOrCompany);
-    const addressText = [
-      client.jobAddressStreet,
-      client.jobAddressPostalCode,
-      client.jobAddressCity,
+    const street = localizeAddress(safeTrim(client.jobAddressStreet ?? ""), lang);
+    const postalCity = [
+      safeTrim(client.jobAddressPostalCode ?? ""),
+      safeTrim(client.jobAddressCity ?? ""),
     ]
-      .map((value) => safeTrim(value ?? ""))
       .filter(Boolean)
       .join(", ");
-    const addressLines = compactLines(
-      localizeAddress(addressText, lang)
-        .split("\n")
-        .map((l) => l.trim())
-    );
+    const addressLines = compactLines([street, postalCity].filter(Boolean));
     const date = safeTrim(client.date);
     const right = pageWidth - marginX;
     const topY = y;
