@@ -2,8 +2,11 @@
 
 import { useMemo, useState } from "react";
 import Link from "next/link";
-import { Eye, Search } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { Eye, Search, Trash2 } from "lucide-react";
+import { ConfirmDialog } from "@/shared/components/ConfirmDialog";
 import type { ContactWithFlags } from "@/features/contacts/lib/contacts";
+import { deleteContact } from "@/features/contacts/lib/contactsClient";
 import styles from "./ContactsView.module.css";
 
 type Props = {
@@ -20,15 +23,57 @@ function filterContacts(
 }
 
 export function ContactsView({ contacts }: Props) {
+  const router = useRouter();
   const [query, setQuery] = useState("");
+  const [deleteError, setDeleteError] = useState<string | null>(null);
+  const [pendingDelete, setPendingDelete] = useState<{
+    id: string;
+    name: string | null;
+  } | null>(null);
+  const [deleting, setDeleting] = useState(false);
 
   const filtered = useMemo(
     () => filterContacts(contacts, query),
     [contacts, query]
   );
 
+  function handleDeleteClick(id: string, name: string | null) {
+    setDeleteError(null);
+    setPendingDelete({ id, name });
+  }
+
+  async function handleDeleteContact(id: string) {
+    await deleteContact(id);
+    router.refresh();
+  }
+
+  async function handleConfirmDelete() {
+    if (!pendingDelete) return;
+    setDeleting(true);
+    setDeleteError(null);
+    try {
+      await handleDeleteContact(pendingDelete.id);
+      setPendingDelete(null);
+    } catch (err) {
+      setDeleteError(
+        err instanceof Error
+          ? err.message
+          : "No s'ha pogut eliminar el contacte."
+      );
+      setPendingDelete(null);
+    } finally {
+      setDeleting(false);
+    }
+  }
+
   return (
     <div className={styles.viewRoot}>
+      {deleteError ? (
+        <p className={styles.deleteError} role="alert">
+          {deleteError}
+        </p>
+      ) : null}
+
       <div className={styles.filterRow}>
         <div className={styles.search}>
           <span className={styles.searchIcon} aria-hidden="true">
@@ -54,8 +99,6 @@ export function ContactsView({ contacts }: Props) {
           <thead>
             <tr>
               <th className={styles.th}>Nom</th>
-              <th className={styles.th}>Ciutat</th>
-              <th className={styles.th}>NIF</th>
               <th className={`${styles.th} ${styles.colActions}`}>Accions</th>
             </tr>
           </thead>
@@ -70,29 +113,53 @@ export function ContactsView({ contacts }: Props) {
                     </span>
                   )}
                 </td>
-                <td className={styles.td}>
-                  {contact.fiscal_address_city ?? "—"}
-                </td>
-                <td className={styles.td}>{contact.tax_id ?? "—"}</td>
                 <td className={`${styles.td} ${styles.colActions}`}>
-                  <Link
-                    href={`/contacts/${contact.id}`}
-                    aria-label="Veure contacte"
-                  >
+                  <div className={styles.rowActions}>
+                    <Link
+                      href={`/contacts/${contact.id}`}
+                      aria-label="Veure contacte"
+                    >
+                      <button
+                        className={styles.iconBtn}
+                        type="button"
+                        tabIndex={-1}
+                      >
+                        <Eye size={16} />
+                      </button>
+                    </Link>
                     <button
                       className={styles.iconBtn}
                       type="button"
-                      tabIndex={-1}
+                      aria-label="Eliminar contacte"
+                      onClick={() =>
+                        handleDeleteClick(contact.id, contact.name)
+                      }
                     >
-                      <Eye size={16} />
+                      <Trash2 size={16} />
                     </button>
-                  </Link>
+                  </div>
                 </td>
               </tr>
             ))}
           </tbody>
         </table>
       </div>
+
+      <ConfirmDialog
+        open={pendingDelete !== null}
+        title="Eliminar contacte?"
+        description={
+          pendingDelete?.name
+            ? `Vols eliminar «${pendingDelete.name}»? Aquesta acció no es pot desfer.`
+            : "Vols eliminar aquest contacte? Aquesta acció no es pot desfer."
+        }
+        confirmLabel="Eliminar"
+        cancelLabel="Cancel·lar"
+        destructive
+        loading={deleting}
+        onClose={() => setPendingDelete(null)}
+        onConfirm={handleConfirmDelete}
+      />
     </div>
   );
 }
