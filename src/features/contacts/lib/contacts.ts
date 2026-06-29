@@ -145,6 +145,46 @@ export async function getContactList(): Promise<ContactRow[]> {
   return (data ?? []) as ContactRow[];
 }
 
+export interface ContactWithFlags extends ContactRow {
+  hasNoBudgetsOrInvoices: boolean;
+}
+
+export async function getContactListWithFlags(): Promise<ContactWithFlags[]> {
+  const supabase = getSupabaseClient();
+
+  const [
+    { data: contactsData, error: contactsError },
+    { data: budgetRows, error: budgetsError },
+    { data: invoiceRows, error: invoicesError },
+  ] = await Promise.all([
+    supabase
+      .from("contacts")
+      .select(
+        "id,name,phone,email,tax_id,fiscal_address_street,fiscal_address_postal_code,fiscal_address_city,created_at,updated_at"
+      )
+      .order("name", { ascending: true }),
+    supabase.from("budgets").select("contact_id"),
+    supabase.from("invoices").select("contact_id"),
+  ]);
+
+  if (contactsError) throw new Error(contactsError.message);
+  if (budgetsError) throw new Error(budgetsError.message);
+  if (invoicesError) throw new Error(invoicesError.message);
+
+  const referencedIds = new Set<string>();
+  for (const row of budgetRows ?? []) {
+    if (row.contact_id) referencedIds.add(row.contact_id);
+  }
+  for (const row of invoiceRows ?? []) {
+    if (row.contact_id) referencedIds.add(row.contact_id);
+  }
+
+  return ((contactsData ?? []) as ContactRow[]).map((contact) => ({
+    ...contact,
+    hasNoBudgetsOrInvoices: !referencedIds.has(contact.id),
+  }));
+}
+
 export interface ContactDetailBudgetRow {
   id: string;
   title: string | null;

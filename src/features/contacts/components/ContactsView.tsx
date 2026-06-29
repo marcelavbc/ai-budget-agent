@@ -3,14 +3,17 @@
 import { useMemo, useState } from "react";
 import Link from "next/link";
 import { Eye, Search } from "lucide-react";
-import type { ContactRow } from "@/features/contacts/lib/contacts";
+import type { ContactWithFlags } from "@/features/contacts/lib/contacts";
 import styles from "./ContactsView.module.css";
 
 type Props = {
-  contacts: ContactRow[];
+  contacts: ContactWithFlags[];
 };
 
-function filterContacts(contacts: ContactRow[], query: string): ContactRow[] {
+function filterContacts(
+  contacts: ContactWithFlags[],
+  query: string
+): ContactWithFlags[] {
   const q = query.trim().toLowerCase();
   if (!q) return contacts;
   return contacts.filter((c) => (c.name ?? "").toLowerCase().includes(q));
@@ -59,7 +62,14 @@ export function ContactsView({ contacts }: Props) {
           <tbody>
             {filtered.map((contact) => (
               <tr key={contact.id} className={styles.tr}>
-                <td className={styles.td}>{contact.name ?? "—"}</td>
+                <td className={styles.td}>
+                  {contact.name ?? "—"}
+                  {contact.hasNoBudgetsOrInvoices && (
+                    <span className={styles.badgeEmpty}>
+                      Sense pressupostos
+                    </span>
+                  )}
+                </td>
                 <td className={styles.td}>
                   {contact.fiscal_address_city ?? "—"}
                 </td>

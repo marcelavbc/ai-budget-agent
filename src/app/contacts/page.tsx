@@ -1,9 +1,9 @@
-import { getContactList } from "@/features/contacts/lib/contacts";
+import { getContactListWithFlags } from "@/features/contacts/lib/contacts";
 import { ContactsView } from "@/features/contacts/components/ContactsView";
 import styles from "./page.module.css";
 
 export default async function ContactsPage() {
-  const contacts = await getContactList();
+  const contacts = await getContactListWithFlags();
 
   return (
     <div className={styles.wrap}>
