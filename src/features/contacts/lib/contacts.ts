@@ -315,6 +315,36 @@ export function contactHasExtraData(input: ContactExtraDataInput): boolean {
   );
 }
 
+function countFilledFields(contact: ContactRow): number {
+  return [
+    contact.phone,
+    contact.email,
+    contact.tax_id,
+    contact.fiscal_address_street,
+    contact.fiscal_address_postal_code,
+    contact.fiscal_address_city,
+  ].filter((value) => Boolean((value ?? "").trim())).length;
+}
+
+/**
+ * Suggests which of the two contacts should be the merge survivor,
+ * based on how many fields are filled in. On a tie, suggests the
+ * older contact (earlier created_at).
+ *
+ * This is only a SUGGESTION for the UI — Roger manually chooses which
+ * one to keep; this function never decides on its own.
+ */
+export function suggestMergeSurvivor(a: ContactRow, b: ContactRow): ContactRow {
+  const filledA = countFilledFields(a);
+  const filledB = countFilledFields(b);
+
+  if (filledA !== filledB) {
+    return filledA > filledB ? a : b;
+  }
+
+  return new Date(a.created_at) <= new Date(b.created_at) ? a : b;
+}
+
 export async function getContactAddressCount(contactId: string): Promise<number> {
   const supabase = getSupabaseClient();
   const { count, error } = await supabase

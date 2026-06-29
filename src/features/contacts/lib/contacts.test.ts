@@ -76,7 +76,25 @@ import {
   contactHasReferences,
   contactHasExtraData,
   getContactListWithFlags,
+  suggestMergeSurvivor,
+  type ContactRow,
 } from "./contacts";
+
+function makeContactRow(overrides: Partial<ContactRow> = {}): ContactRow {
+  return {
+    id: "c1",
+    name: "Joan García",
+    phone: null,
+    email: null,
+    tax_id: null,
+    fiscal_address_street: null,
+    fiscal_address_postal_code: null,
+    fiscal_address_city: null,
+    created_at: "2025-01-01T00:00:00.000Z",
+    updated_at: "2025-01-01T00:00:00.000Z",
+    ...overrides,
+  };
+}
 
 describe("getContactListWithFlags", () => {
   it("marks contacts with no budgets or invoices as hasNoBudgetsOrInvoices: true", async () => {
@@ -138,5 +156,70 @@ describe("contactHasExtraData", () => {
     expect(
       contactHasExtraData({ phone: null, email: null, tax_id: null, addressCount: 1 })
     ).toBe(true);
+  });
+});
+
+describe("suggestMergeSurvivor", () => {
+  it("returns a when a has more filled fields than b", () => {
+    const a = makeContactRow({
+      id: "a",
+      phone: "600111222",
+      email: "a@example.com",
+    });
+    const b = makeContactRow({ id: "b" });
+
+    expect(suggestMergeSurvivor(a, b)).toBe(a);
+  });
+
+  it("returns b when b has more filled fields than a", () => {
+    const a = makeContactRow({ id: "a" });
+    const b = makeContactRow({
+      id: "b",
+      phone: "600333444",
+      tax_id: "12345678A",
+    });
+
+    expect(suggestMergeSurvivor(a, b)).toBe(b);
+  });
+
+  it("returns a when both have the same filled fields and a was created earlier", () => {
+    const a = makeContactRow({
+      id: "a",
+      phone: "600111222",
+      created_at: "2024-01-01T00:00:00.000Z",
+    });
+    const b = makeContactRow({
+      id: "b",
+      phone: "600333444",
+      created_at: "2025-01-01T00:00:00.000Z",
+    });
+
+    expect(suggestMergeSurvivor(a, b)).toBe(a);
+  });
+
+  it("returns b when both have the same filled fields and b was created earlier", () => {
+    const a = makeContactRow({
+      id: "a",
+      phone: "600111222",
+      created_at: "2025-06-01T00:00:00.000Z",
+    });
+    const b = makeContactRow({
+      id: "b",
+      phone: "600333444",
+      created_at: "2024-06-01T00:00:00.000Z",
+    });
+
+    expect(suggestMergeSurvivor(a, b)).toBe(b);
+  });
+
+  it("returns the contact with tax_id over a name-only contact", () => {
+    const nameOnly = makeContactRow({ id: "name-only", name: "Roger" });
+    const withTaxId = makeContactRow({
+      id: "with-tax-id",
+      name: "Roger SL",
+      tax_id: "B12345678",
+    });
+
+    expect(suggestMergeSurvivor(nameOnly, withTaxId)).toBe(withTaxId);
   });
 });
