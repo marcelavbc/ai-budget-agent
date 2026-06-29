@@ -315,34 +315,53 @@ export function contactHasExtraData(input: ContactExtraDataInput): boolean {
   );
 }
 
-function countFilledFields(contact: ContactRow): number {
-  return [
-    contact.phone,
-    contact.email,
-    contact.tax_id,
-    contact.fiscal_address_street,
-    contact.fiscal_address_postal_code,
-    contact.fiscal_address_city,
-  ].filter((value) => Boolean((value ?? "").trim())).length;
+export {
+  suggestMergeSurvivor,
+  suggestMergeSurvivorAmong,
+  suggestMergeSurvivorWithJobAddresses,
+  suggestMergeSurvivorAmongWithJobAddresses,
+} from "./contactMerge";
+
+export interface JobAddress {
+  street: string | null;
+  postalCode: string | null;
+  city: string | null;
 }
 
-/**
- * Suggests which of the two contacts should be the merge survivor,
- * based on how many fields are filled in. On a tie, suggests the
- * older contact (earlier created_at).
- *
- * This is only a SUGGESTION for the UI — Roger manually chooses which
- * one to keep; this function never decides on its own.
- */
-export function suggestMergeSurvivor(a: ContactRow, b: ContactRow): ContactRow {
-  const filledA = countFilledFields(a);
-  const filledB = countFilledFields(b);
+function formatJobAddressKey(addr: JobAddress): string {
+  return [addr.street, addr.postalCode, addr.city]
+    .map((v) => (v ?? "").trim())
+    .join("|");
+}
 
-  if (filledA !== filledB) {
-    return filledA > filledB ? a : b;
+export async function getContactJobAddresses(
+  contactId: string
+): Promise<JobAddress[]> {
+  const supabase = getSupabaseClient();
+  const { data, error } = await supabase
+    .from("budgets")
+    .select("job_address_street,job_address_postal_code,job_address_city")
+    .eq("contact_id", contactId)
+    .order("document_date", { ascending: false, nullsFirst: false });
+
+  if (error) throw new Error(error.message);
+
+  const seen = new Set<string>();
+  const result: JobAddress[] = [];
+  for (const row of data ?? []) {
+    const addr: JobAddress = {
+      street: row.job_address_street,
+      postalCode: row.job_address_postal_code,
+      city: row.job_address_city,
+    };
+    const hasAny = addr.street || addr.postalCode || addr.city;
+    if (!hasAny) continue;
+    const key = formatJobAddressKey(addr);
+    if (seen.has(key)) continue;
+    seen.add(key);
+    result.push(addr);
   }
-
-  return new Date(a.created_at) <= new Date(b.created_at) ? a : b;
+  return result;
 }
 
 export async function getContactAddressCount(contactId: string): Promise<number> {

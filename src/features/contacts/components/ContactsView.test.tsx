@@ -42,7 +42,13 @@ const protectedContact: ContactWithFlags = {
   hasNoBudgetsOrInvoices: false,
 };
 
-const mockContacts: ContactWithFlags[] = [deletableContact];
+const secondContact: ContactWithFlags = {
+  ...deletableContact,
+  id: "contact-3",
+  name: "Berta Test",
+};
+
+const mockContacts: ContactWithFlags[] = [deletableContact, secondContact];
 
 function renderView(contacts: ContactWithFlags[] = mockContacts) {
   return render(<ContactsView contacts={contacts} />);
@@ -53,19 +59,33 @@ describe("ContactsView", () => {
     vi.clearAllMocks();
   });
 
-  it("renders only Nom and Accions columns", () => {
+  it("renders Nom and Accions columns with a selection column", () => {
     renderView();
 
     const headers = screen.getAllByRole("columnheader");
-    expect(headers).toHaveLength(2);
-    expect(headers[0]).toHaveTextContent("Nom");
-    expect(headers[1]).toHaveTextContent("Accions");
+    expect(headers).toHaveLength(3);
+    expect(headers[0]).toHaveTextContent("Seleccionar");
+    expect(headers[1]).toHaveTextContent("Nom");
+    expect(headers[2]).toHaveTextContent("Accions");
     expect(screen.queryByText("Ciutat")).not.toBeInTheDocument();
     expect(screen.queryByText("NIF")).not.toBeInTheDocument();
   });
 
-  it("opens the confirmation dialog when delete is clicked", async () => {
+  it("shows selected count when two checkboxes are checked", () => {
     renderView();
+
+    fireEvent.click(
+      screen.getByRole("checkbox", { name: "Seleccionar Anna Test" })
+    );
+    fireEvent.click(
+      screen.getByRole("checkbox", { name: "Seleccionar Berta Test" })
+    );
+
+    expect(screen.getByText("2 seleccionats")).toBeInTheDocument();
+  });
+
+  it("opens the confirmation dialog when delete is clicked", async () => {
+    renderView([deletableContact]);
 
     fireEvent.click(
       screen.getByRole("button", { name: "Eliminar contacte" })
@@ -103,7 +123,7 @@ describe("ContactsView", () => {
       )
     );
 
-    renderView();
+    renderView([deletableContact]);
 
     fireEvent.click(
       screen.getByRole("button", { name: "Eliminar contacte" })

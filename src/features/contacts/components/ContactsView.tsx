@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Eye, Search, Trash2 } from "lucide-react";
 import { ConfirmDialog } from "@/shared/components/ConfirmDialog";
+import { MergeContactsDialog } from "@/features/contacts/components/MergeContactsDialog";
 import type { ContactWithFlags } from "@/features/contacts/lib/contacts";
 import { deleteContact } from "@/features/contacts/lib/contactsClient";
 import styles from "./ContactsView.module.css";
@@ -31,11 +32,38 @@ export function ContactsView({ contacts }: Props) {
     name: string | null;
   } | null>(null);
   const [deleting, setDeleting] = useState(false);
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const [mergeDialogOpen, setMergeDialogOpen] = useState(false);
 
   const filtered = useMemo(
     () => filterContacts(contacts, query),
     [contacts, query]
   );
+
+  function toggleSelected(id: string) {
+    setSelectedIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) {
+        next.delete(id);
+      } else {
+        next.add(id);
+      }
+      return next;
+    });
+  }
+
+  function handleMergeClick() {
+    setMergeDialogOpen(true);
+  }
+
+  function handleMergeConfirm(survivorId: string, discardedIds: string[]) {
+    console.log("Merge confirmado (todavía sin persistir):", {
+      survivorId,
+      discardedIds,
+    });
+    alert(`Próximo paso: ejecutar el merge real (superviviente: ${survivorId})`);
+    setMergeDialogOpen(false);
+  }
 
   function handleDeleteClick(id: string, name: string | null) {
     setDeleteError(null);
@@ -91,6 +119,20 @@ export function ContactsView({ contacts }: Props) {
           <span className={styles.results}>
             {filtered.length} de {contacts.length}
           </span>
+          {selectedIds.size > 0 && (
+            <span className={styles.selectedCount}>
+              {selectedIds.size} seleccionat{selectedIds.size !== 1 ? "s" : ""}
+            </span>
+          )}
+          {selectedIds.size >= 2 && (
+            <button
+              type="button"
+              className={styles.mergeButton}
+              onClick={handleMergeClick}
+            >
+              Fusionar ({selectedIds.size})
+            </button>
+          )}
         </div>
       </div>
 
@@ -98,6 +140,9 @@ export function ContactsView({ contacts }: Props) {
         <table className={styles.table}>
           <thead>
             <tr>
+              <th className={styles.th} style={{ width: 32 }}>
+                <span className={styles.srOnly}>Seleccionar</span>
+              </th>
               <th className={styles.th}>Nom</th>
               <th className={`${styles.th} ${styles.colActions}`}>Accions</th>
             </tr>
@@ -105,6 +150,14 @@ export function ContactsView({ contacts }: Props) {
           <tbody>
             {filtered.map((contact) => (
               <tr key={contact.id} className={styles.tr}>
+                <td className={styles.td}>
+                  <input
+                    type="checkbox"
+                    checked={selectedIds.has(contact.id)}
+                    onChange={() => toggleSelected(contact.id)}
+                    aria-label={`Seleccionar ${contact.name ?? "contacte"}`}
+                  />
+                </td>
                 <td className={styles.td}>
                   {contact.name ?? "—"}
                   {contact.hasNoBudgetsOrInvoices && (
@@ -170,6 +223,14 @@ export function ContactsView({ contacts }: Props) {
         onClose={() => setPendingDelete(null)}
         onConfirm={handleConfirmDelete}
       />
+
+      {mergeDialogOpen && (
+        <MergeContactsDialog
+          contacts={contacts.filter((c) => selectedIds.has(c.id))}
+          onClose={() => setMergeDialogOpen(false)}
+          onConfirm={handleMergeConfirm}
+        />
+      )}
     </div>
   );
 }

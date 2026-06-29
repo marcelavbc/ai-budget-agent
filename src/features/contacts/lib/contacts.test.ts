@@ -77,6 +77,7 @@ import {
   contactHasExtraData,
   getContactListWithFlags,
   suggestMergeSurvivor,
+  suggestMergeSurvivorAmong,
   type ContactRow,
 } from "./contacts";
 
@@ -221,5 +222,20 @@ describe("suggestMergeSurvivor", () => {
     });
 
     expect(suggestMergeSurvivor(nameOnly, withTaxId)).toBe(withTaxId);
+  });
+});
+
+describe("suggestMergeSurvivorAmong", () => {
+  it("returns the contact with the most filled fields among three", () => {
+    const sparse = makeContactRow({ id: "sparse" });
+    const medium = makeContactRow({ id: "medium", phone: "600111222" });
+    const rich = makeContactRow({
+      id: "rich",
+      phone: "600333444",
+      email: "rich@example.com",
+      tax_id: "B12345678",
+    });
+
+    expect(suggestMergeSurvivorAmong([sparse, medium, rich])).toBe(rich);
   });
 });
