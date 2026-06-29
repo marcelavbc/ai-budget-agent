@@ -376,3 +376,12 @@
     color: var(--text);
   }
 }
+
+.iconBtn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.iconBtnWrap {
+  display: inline-block;
+}

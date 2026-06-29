@@ -127,16 +127,26 @@ export function ContactsView({ contacts }: Props) {
                         <Eye size={16} />
                       </button>
                     </Link>
-                    <button
-                      className={styles.iconBtn}
-                      type="button"
-                      aria-label="Eliminar contacte"
-                      onClick={() =>
-                        handleDeleteClick(contact.id, contact.name)
+                    <span
+                      className={styles.iconBtnWrap}
+                      title={
+                        contact.hasNoBudgetsOrInvoices
+                          ? undefined
+                          : "No es pot eliminar: té pressupostos o factures associades"
                       }
                     >
-                      <Trash2 size={16} />
-                    </button>
+                      <button
+                        className={styles.iconBtn}
+                        type="button"
+                        aria-label="Eliminar contacte"
+                        disabled={!contact.hasNoBudgetsOrInvoices}
+                        onClick={() =>
+                          handleDeleteClick(contact.id, contact.name)
+                        }
+                      >
+                        <Trash2 size={16} />
+                      </button>
+                    </span>
                   </div>
                 </td>
               </tr>

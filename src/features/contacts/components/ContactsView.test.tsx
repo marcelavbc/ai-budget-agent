@@ -21,24 +21,31 @@ vi.mock("@/features/contacts/lib/contactsClient", () => ({
 
 import { deleteContact } from "@/features/contacts/lib/contactsClient";
 
-const mockContacts: ContactWithFlags[] = [
-  {
-    id: "contact-1",
-    name: "Anna Test",
-    phone: null,
-    email: null,
-    tax_id: null,
-    fiscal_address_street: null,
-    fiscal_address_postal_code: null,
-    fiscal_address_city: null,
-    created_at: "2024-01-01T00:00:00.000Z",
-    updated_at: "2024-01-01T00:00:00.000Z",
-    hasNoBudgetsOrInvoices: true,
-  },
-];
+const deletableContact: ContactWithFlags = {
+  id: "contact-1",
+  name: "Anna Test",
+  phone: null,
+  email: null,
+  tax_id: null,
+  fiscal_address_street: null,
+  fiscal_address_postal_code: null,
+  fiscal_address_city: null,
+  created_at: "2024-01-01T00:00:00.000Z",
+  updated_at: "2024-01-01T00:00:00.000Z",
+  hasNoBudgetsOrInvoices: true,
+};
 
-function renderView() {
-  return render(<ContactsView contacts={mockContacts} />);
+const protectedContact: ContactWithFlags = {
+  ...deletableContact,
+  id: "contact-2",
+  name: "Credeos",
+  hasNoBudgetsOrInvoices: false,
+};
+
+const mockContacts: ContactWithFlags[] = [deletableContact];
+
+function renderView(contacts: ContactWithFlags[] = mockContacts) {
+  return render(<ContactsView contacts={contacts} />);
 }
 
 describe("ContactsView", () => {
@@ -68,6 +75,25 @@ describe("ContactsView", () => {
       expect(screen.getByRole("dialog")).toBeInTheDocument();
       expect(screen.getByText("Eliminar contacte?")).toBeInTheDocument();
     });
+  });
+
+  it("disables delete button when contact has budgets or invoices", () => {
+    renderView([protectedContact]);
+
+    const deleteBtn = screen.getByRole("button", { name: "Eliminar contacte" });
+    expect(deleteBtn).toBeDisabled();
+    expect(deleteBtn.parentElement).toHaveAttribute(
+      "title",
+      "No es pot eliminar: té pressupostos o factures associades"
+    );
+  });
+
+  it("enables delete button without title when contact has no budgets or invoices", () => {
+    renderView([deletableContact]);
+
+    const deleteBtn = screen.getByRole("button", { name: "Eliminar contacte" });
+    expect(deleteBtn).toBeEnabled();
+    expect(deleteBtn.parentElement).not.toHaveAttribute("title");
   });
 
   it("shows delete error from deleteContact in an alert", async () => {
