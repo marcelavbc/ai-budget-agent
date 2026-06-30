@@ -35,7 +35,6 @@ import {
   getContactAddressCount,
   getContactById,
   getContactReferenceCounts,
-  updateContactById,
 } from "@/features/contacts/lib/contacts";
 
 export interface CreateBudgetInput {
@@ -169,6 +168,7 @@ export async function createBudget({
         project_name: normalizeOptionalString(
           (client.projectName ?? "").trim()
         ),
+        client_name: normalizeOptionalString((client.nameOrCompany ?? "").trim()),
       },
     ])
     .select("id")
@@ -182,13 +182,6 @@ export async function createBudget({
   }
 
   return { id: String(data.id) };
-}
-
-function shouldSyncContactNameFromBudget(
-  status: string | null | undefined
-): boolean {
-  const normalized = normalizeBudgetStatus(status);
-  return normalized !== "approved" && normalized !== "invoiced";
 }
 
 export async function getBudgetById(id: string): Promise<BudgetRow | null> {
@@ -224,6 +217,7 @@ export async function updateBudgetById(
       | "tax_amount"
       | "lang"
       | "project_name"
+      | "client_name"
     >
   >
 ): Promise<void> {
@@ -240,19 +234,13 @@ export async function updateBudgetById(
     if (current && !current.client_name && current.contact_id) {
       const { data: contact } = await supabase
         .from("contacts")
-        .select(
-          "name,tax_id,fiscal_address_street,fiscal_address_postal_code,fiscal_address_city"
-        )
+        .select("name")
         .eq("id", current.contact_id)
         .maybeSingle();
 
       if (contact) {
         snapshotPatch = {
           client_name: contact.name,
-          client_tax_id: contact.tax_id,
-          client_address_street: contact.fiscal_address_street,
-          client_address_postal_code: contact.fiscal_address_postal_code,
-          client_address_city: contact.fiscal_address_city,
         };
       }
     }
@@ -300,6 +288,13 @@ export async function updateBudgetById(
         ? patch.project_name.trim()
         : patch.project_name,
     ...snapshotPatch,
+    ...(patch.client_name !== undefined
+      ? {
+          client_name: normalizeOptionalString(
+            (patch.client_name ?? "").trim()
+          ),
+        }
+      : {}),
   };
 
   const { error } = await supabase
@@ -442,14 +437,6 @@ export async function updateBudgetWithLines(args: {
           })
         ).id;
 
-  if (ensuredContactId === normalizedContactId) {
-    if (shouldSyncContactNameFromBudget(status)) {
-      await updateContactById(ensuredContactId, {
-        name: client.nameOrCompany,
-      });
-    }
-  }
-
   await updateBudgetById(budgetId, {
     contact_id: ensuredContactId,
     title: derivedTitle ?? "",
@@ -464,6 +451,7 @@ export async function updateBudgetWithLines(args: {
     tax_amount,
     lang: client.lang,
     project_name: normalizeOptionalString((client.projectName ?? "").trim()),
+    client_name: client.nameOrCompany,
   });
 
   await replaceBudgetLines(budgetId, items);
@@ -523,11 +511,6 @@ export async function saveBudgetWithLines({
 
   if (normalizedProvided && normalizedProvided.toLowerCase() !== "null") {
     contactId = normalizedProvided;
-    if (shouldSyncContactNameFromBudget("draft")) {
-      await updateContactById(contactId, {
-        name: client.nameOrCompany,
-      });
-    }
   } else {
     const created = await createContact({
       name: client.nameOrCompany,

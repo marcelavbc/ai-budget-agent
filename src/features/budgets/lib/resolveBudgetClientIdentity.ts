@@ -12,11 +12,10 @@ export interface ResolvedClientIdentity {
 }
 
 /**
- * Una vegada un pressupost passa a "approved" o "invoiced", les dades
- * d'identitat del client queden congelades en el propi pressupost
- * (client_name, client_tax_id, client_address_*). Si existeixen,
- * SEMPRE prevalen sobre el contacte en viu, encara que el contacte
- * s'hagi editat després.
+ * Once a budget reaches "invoiced", client identity data is frozen on the
+ * budget itself (client_name, client_tax_id, client_address_*). When present,
+ * those fields always take precedence over the live contact, even if the
+ * contact was edited later.
  */
 export function resolveBudgetClientIdentity(
   budget: Pick<
@@ -31,17 +30,17 @@ export function resolveBudgetClientIdentity(
   contact: ContactRow
 ): ResolvedClientIdentity {
   const status = normalizeBudgetStatus(budget.status);
-  const isFrozenStage = status === "approved" || status === "invoiced";
+  const isFrozenStage = status === "invoiced";
   const hasSnapshot = Boolean((budget.client_name ?? "").trim());
 
-  if (isFrozenStage && hasSnapshot) {
+  if (hasSnapshot) {
     return {
       name: budget.client_name ?? "",
       tax_id: budget.client_tax_id,
       fiscal_address_street: budget.client_address_street,
       fiscal_address_postal_code: budget.client_address_postal_code,
       fiscal_address_city: budget.client_address_city,
-      locked: true,
+      locked: isFrozenStage,
     };
   }
 
