@@ -433,19 +433,6 @@ export async function generateInvoicePdf(
     }
 
     const jobAddress = safeTrim(invoice.job_address);
-    if (jobAddress) {
-      doc.setFont("helvetica", "normal");
-      doc.setFontSize(9.5);
-      setTextColor(doc, COLORS.muted);
-      const jobAddressLines = doc.splitTextToSize(
-        labels.jobAddress(jobAddress),
-        clientMaxW
-      ) as string[];
-      for (const line of jobAddressLines) {
-        doc.text(line, clientX, cy);
-        cy += 13;
-      }
-    }
 
     const projectName = safeTrim(invoice.project_name);
     if (projectName) {
