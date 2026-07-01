@@ -16,8 +16,9 @@ function getGroqContent(data: unknown): string | null {
   return typeof content === "string" ? content : null;
 }
 
-const GROQ_CHAT_COMPLETIONS_URL = "https://api.groq.com/openai/v1/chat/completions";
-const GROQ_DEFAULT_MODEL = "llama-3.3-70b-versatile";
+const GROQ_CHAT_COMPLETIONS_URL =
+  "https://api.groq.com/openai/v1/chat/completions";
+const GROQ_DEFAULT_MODEL = "openai/gpt-oss-120b";
 
 export type GroqResponseFormat = "json_object";
 
@@ -78,4 +79,3 @@ export async function callGroq(
 
   return content;
 }
-
