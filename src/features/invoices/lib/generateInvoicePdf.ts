@@ -432,17 +432,6 @@ export async function generateInvoicePdf(
       }
     }
 
-    const jobAddress = safeTrim(invoice.job_address);
-
-    const projectName = safeTrim(invoice.project_name);
-    if (projectName) {
-      doc.setFont("helvetica", "normal");
-      doc.setFontSize(9);
-      setTextColor(doc, COLORS.text);
-      doc.text(`Obra: ${projectName}`, clientX, cy);
-      cy += 13;
-    }
-
     cy += 8;
     return cy;
   }
@@ -620,6 +609,16 @@ export async function generateInvoicePdf(
   const ownerEndY = drawOwnerBlock(y);
   const clientEndY = drawClientBlock(y);
   y = Math.max(ownerEndY, clientEndY) + 16;
+
+  const projectName = safeTrim(invoice.project_name);
+  if (projectName) {
+    ensureSpace(30);
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(10);
+    setTextColor(doc, COLORS.text);
+    doc.text(`Obra: ${projectName}`, marginX, y);
+    y += 20;
+  }
 
   // Table
   drawTableHeader();
