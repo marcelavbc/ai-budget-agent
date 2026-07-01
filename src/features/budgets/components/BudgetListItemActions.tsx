@@ -192,18 +192,24 @@ export function BudgetListItemActions({
     startInvoicing(() => {
       void (async () => {
         try {
-          // Guardar NIF al client si s'ha introduït
           if (
             modal.taxId.trim() &&
             modal.taxId.trim() !== (clientTaxId ?? "").trim()
           ) {
             await updateClientTaxId(budgetId, modal.taxId.trim());
           }
-          await updateClientAddress(budgetId, {
-            address_street: modal.addressStreet,
-            address_postal_code: modal.addressPostalCode,
-            address_city: modal.addressCity,
-          });
+
+          const shouldUpdateAddress =
+            !modal.useDifferentFiscalAddress || modal.addressStreet.trim();
+
+          if (shouldUpdateAddress) {
+            await updateClientAddress(budgetId, {
+              address_street: modal.addressStreet,
+              address_postal_code: modal.addressPostalCode,
+              address_city: modal.addressCity,
+            });
+          }
+
           const { invoiceId } = await createInvoiceFromBudget(
             budgetId,
             pricingMode,

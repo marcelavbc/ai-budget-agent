@@ -77,10 +77,12 @@ export function useInvoiceModal(
   function toggleDifferentFiscalAddress(checked: boolean) {
     setUseDifferentFiscalAddress(checked);
     if (checked) {
+      // Vaciar para que Roger introduzca la dirección fiscal
       setAddressStreet("");
       setAddressPostalCode("");
       setAddressCity("");
     } else {
+      // Restaurar la dirección de la obra
       setAddressStreet(jobStreet);
       setAddressPostalCode(jobPostal);
       setAddressCity(jobCity);
