@@ -80,9 +80,14 @@ export interface BudgetClientItem {
 /** Budget header (client + reference); used for UI and PDF export. */
 export interface BudgetClientDetails {
   nameOrCompany: string;
+  clientTaxId?: string;
+  clientAddressStreet?: string;
+  clientAddressPostalCode?: string;
+  clientAddressCity?: string;
   jobAddressStreet?: string;
   jobAddressPostalCode?: string;
   jobAddressCity?: string;
+  taxRate: number;
   projectName?: string;
   quoteNumber: string;
   /** ISO YYYY-MM-DD (compatible with input type="date"). */
@@ -101,9 +106,14 @@ export function defaultBudgetClientDetails(): BudgetClientDetails {
   const date = `${y}-${m}-${d}`;
   return {
     nameOrCompany: "",
+    clientTaxId: "",
+    clientAddressStreet: "",
+    clientAddressPostalCode: "",
+    clientAddressCity: "",
     jobAddressStreet: "",
     jobAddressPostalCode: "",
     jobAddressCity: "",
+    taxRate: 0,
     projectName: "",
     quoteNumber: buildAutoQuoteNumber("", date),
     date,

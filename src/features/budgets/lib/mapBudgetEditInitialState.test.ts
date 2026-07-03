@@ -91,10 +91,15 @@ describe("buildInitialBudgetEditClientDetails", () => {
 
     expect(buildInitialBudgetEditClientDetails({ budget, contact })).toEqual({
       nameOrCompany: "Acme SL",
+      clientTaxId: "",
+      clientAddressStreet: "",
+      clientAddressPostalCode: "",
+      clientAddressCity: "",
       identityLocked: false,
       jobAddressStreet: "Carrer Client 10",
       jobAddressPostalCode: "08002",
       jobAddressCity: "Barcelona",
+      taxRate: 0,
       projectName: undefined,
       quoteNumber: "Q-42",
       date: "2026-03-01",
@@ -122,10 +127,15 @@ describe("buildInitialBudgetEditClientDetails", () => {
 
     expect(details).toEqual({
       nameOrCompany: "",
+      clientTaxId: "",
+      clientAddressStreet: "",
+      clientAddressPostalCode: "",
+      clientAddressCity: "",
       identityLocked: false,
       jobAddressStreet: "",
       jobAddressPostalCode: "",
       jobAddressCity: "",
+      taxRate: 0,
       projectName: undefined,
       quoteNumber: "",
       date: "",

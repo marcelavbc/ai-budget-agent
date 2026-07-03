@@ -38,6 +38,31 @@ function jobAddressFromContactAddress(address: ContactAddressOption) {
   };
 }
 
+function trimOrEmpty(value: string | null | undefined): string {
+  return (value ?? "").trim();
+}
+
+function hasAnyAddressValue(
+  street: string | null | undefined,
+  postalCode: string | null | undefined,
+  city: string | null | undefined
+): boolean {
+  return Boolean(
+    trimOrEmpty(street) || trimOrEmpty(postalCode) || trimOrEmpty(city)
+  );
+}
+
+function addressesEqual(
+  aStreet: string,
+  aPostal: string,
+  aCity: string,
+  bStreet: string,
+  bPostal: string,
+  bCity: string
+): boolean {
+  return aStreet === bStreet && aPostal === bPostal && aCity === bCity;
+}
+
 export function BudgetClientForm({
   client,
   onChange,
@@ -46,6 +71,7 @@ export function BudgetClientForm({
   onResetQuoteAutomation,
   onContactSelect,
   identityLocked = false,
+  mode = "create",
 }: {
   client: BudgetClientDetails;
   onChange: React.Dispatch<React.SetStateAction<BudgetClientDetails>>;
@@ -54,6 +80,7 @@ export function BudgetClientForm({
   onResetQuoteAutomation: () => void;
   onContactSelect?: (contactId: string) => void;
   identityLocked?: boolean;
+  mode?: "create" | "edit";
 }) {
   const [collapsed, setCollapsed] = useState(true);
   const [contactId, setContactId] = useState<string | null>(null);
@@ -64,8 +91,12 @@ export function BudgetClientForm({
   );
   const [addressOptionsOpen, setAddressOptionsOpen] = useState(false);
   const [autocompleteDismissed, setAutocompleteDismissed] = useState(false);
+  const [useDifferentFiscalAddress, setUseDifferentFiscalAddress] =
+    useState(false);
+  const [fiscalMirrorsJob, setFiscalMirrorsJob] = useState(false);
   const autocompleteRef = useRef<HTMLDivElement>(null);
   const addressOptionsRef = useRef<HTMLDivElement>(null);
+  const initializedFiscalAddressRef = useRef(false);
 
   const closeSuggestions = useCallback(() => {
     setSuggestionsOpen(false);
@@ -85,12 +116,15 @@ export function BudgetClientForm({
     setAddressOptionsOpen(false);
   }
 
-  function setClientField<K extends keyof BudgetClientDetails>(
-    key: K,
-    value: BudgetClientDetails[K]
-  ) {
-    onChange((prev) => ({ ...prev, [key]: value }));
-  }
+  const setClientField = useCallback(
+    <K extends keyof BudgetClientDetails>(
+      key: K,
+      value: BudgetClientDetails[K]
+    ) => {
+      onChange((prev) => ({ ...prev, [key]: value }));
+    },
+    [onChange]
+  );
 
   function applyJobAddress(address: ContactAddressOption) {
     onChange((prev) => ({
@@ -100,7 +134,30 @@ export function BudgetClientForm({
     setAddressOptionsOpen(false);
   }
 
-  function selectContact(contact: ContactSuggestion) {
+  const applyFiscalAddress = useCallback(
+    (args: {
+      taxId?: string | null;
+      street?: string | null;
+      postalCode?: string | null;
+      city?: string | null;
+    }) => {
+      if (args.taxId !== undefined) {
+        setClientField("clientTaxId", args.taxId ?? "");
+      }
+      if (args.street !== undefined) {
+        setClientField("clientAddressStreet", args.street ?? "");
+      }
+      if (args.postalCode !== undefined) {
+        setClientField("clientAddressPostalCode", args.postalCode ?? "");
+      }
+      if (args.city !== undefined) {
+        setClientField("clientAddressCity", args.city ?? "");
+      }
+    },
+    [setClientField]
+  );
+
+  async function selectContact(contact: ContactSuggestion) {
     setContactId(contact.id);
     onContactSelect?.(contact.id);
 
@@ -130,6 +187,105 @@ export function BudgetClientForm({
 
     setAutocompleteDismissed(true);
     closeSuggestions();
+
+    if (mode !== "create") return;
+
+    const currentJobStreet = client.jobAddressStreet ?? "";
+    const currentJobPostal = client.jobAddressPostalCode ?? "";
+    const currentJobCity = client.jobAddressCity ?? "";
+    const currentFiscalStreet = trimOrEmpty(client.clientAddressStreet);
+    const currentFiscalPostal = trimOrEmpty(client.clientAddressPostalCode);
+    const currentFiscalCity = trimOrEmpty(client.clientAddressCity);
+    const currentTaxId = trimOrEmpty(client.clientTaxId);
+
+    const shouldReplaceCurrentFiscal =
+      !hasAnyAddressValue(
+        currentFiscalStreet,
+        currentFiscalPostal,
+        currentFiscalCity
+      ) ||
+      addressesEqual(
+        currentFiscalStreet,
+        currentFiscalPostal,
+        currentFiscalCity,
+        currentJobStreet,
+        currentJobPostal,
+        currentJobCity
+      );
+
+    try {
+      const res = await fetch(`/api/contacts/${contact.id}`);
+      if (!res.ok) return;
+
+      const data = (await res.json()) as {
+        tax_id: string | null;
+        fiscal_address_street: string | null;
+        fiscal_address_postal_code: string | null;
+        fiscal_address_city: string | null;
+      } | null;
+
+      if (!data) return;
+
+      const fiscalStreet = trimOrEmpty(data.fiscal_address_street);
+      const fiscalPostal = trimOrEmpty(data.fiscal_address_postal_code);
+      const fiscalCity = trimOrEmpty(data.fiscal_address_city);
+      if (!hasAnyAddressValue(fiscalStreet, fiscalPostal, fiscalCity)) {
+        setFiscalMirrorsJob(true);
+        return;
+      }
+
+      if (shouldReplaceCurrentFiscal) {
+        applyFiscalAddress({
+          taxId: currentTaxId ? undefined : data.tax_id,
+          street: fiscalStreet,
+          postalCode: fiscalPostal,
+          city: fiscalCity,
+        });
+      } else if (!currentTaxId && data.tax_id) {
+        setClientField("clientTaxId", data.tax_id);
+      }
+
+      setFiscalMirrorsJob(false);
+
+      setUseDifferentFiscalAddress(
+        !addressesEqual(
+          shouldReplaceCurrentFiscal ? fiscalStreet : currentFiscalStreet,
+          shouldReplaceCurrentFiscal ? fiscalPostal : currentFiscalPostal,
+          shouldReplaceCurrentFiscal ? fiscalCity : currentFiscalCity,
+          currentJobStreet,
+          currentJobPostal,
+          currentJobCity
+        )
+      );
+    } catch {
+      const fiscalStreet = trimOrEmpty(contact.fiscal_address_street);
+      const fiscalPostal = trimOrEmpty(contact.fiscal_address_postal_code);
+      const fiscalCity = trimOrEmpty(contact.fiscal_address_city);
+      if (!hasAnyAddressValue(fiscalStreet, fiscalPostal, fiscalCity)) {
+        setFiscalMirrorsJob(true);
+        return;
+      }
+
+      if (shouldReplaceCurrentFiscal) {
+        applyFiscalAddress({
+          street: fiscalStreet,
+          postalCode: fiscalPostal,
+          city: fiscalCity,
+        });
+      }
+
+      setUseDifferentFiscalAddress(
+        !addressesEqual(
+          shouldReplaceCurrentFiscal ? fiscalStreet : currentFiscalStreet,
+          shouldReplaceCurrentFiscal ? fiscalPostal : currentFiscalPostal,
+          shouldReplaceCurrentFiscal ? fiscalCity : currentFiscalCity,
+          currentJobStreet,
+          currentJobPostal,
+          currentJobCity
+        )
+      );
+      setFiscalMirrorsJob(false);
+    }
   }
 
   useEffect(() => {
@@ -172,6 +328,92 @@ export function BudgetClientForm({
       controller.abort();
     };
   }, [client.nameOrCompany, autocompleteDismissed, identityLocked]);
+
+  useEffect(() => {
+    if (initializedFiscalAddressRef.current) return;
+
+    const jobStreet = trimOrEmpty(client.jobAddressStreet);
+    const jobPostal = trimOrEmpty(client.jobAddressPostalCode);
+    const jobCity = trimOrEmpty(client.jobAddressCity);
+    const fiscalStreet = trimOrEmpty(client.clientAddressStreet);
+    const fiscalPostal = trimOrEmpty(client.clientAddressPostalCode);
+    const fiscalCity = trimOrEmpty(client.clientAddressCity);
+    const hasFiscal = hasAnyAddressValue(
+      fiscalStreet,
+      fiscalPostal,
+      fiscalCity
+    );
+
+    if (hasFiscal) {
+      setFiscalMirrorsJob(false);
+      setUseDifferentFiscalAddress(
+        !addressesEqual(
+          fiscalStreet,
+          fiscalPostal,
+          fiscalCity,
+          jobStreet,
+          jobPostal,
+          jobCity
+        )
+      );
+    } else {
+      setUseDifferentFiscalAddress(false);
+      setFiscalMirrorsJob(mode === "create");
+      if (
+        mode === "create" &&
+        hasAnyAddressValue(jobStreet, jobPostal, jobCity)
+      ) {
+        applyFiscalAddress({
+          street: client.jobAddressStreet ?? "",
+          postalCode: client.jobAddressPostalCode ?? "",
+          city: client.jobAddressCity ?? "",
+        });
+      }
+    }
+
+    initializedFiscalAddressRef.current = true;
+  }, [
+    client.jobAddressStreet,
+    client.jobAddressPostalCode,
+    client.jobAddressCity,
+    client.clientAddressStreet,
+    client.clientAddressPostalCode,
+    client.clientAddressCity,
+    mode,
+    applyFiscalAddress,
+  ]);
+
+  useEffect(() => {
+    if (mode !== "create") return;
+    if (!fiscalMirrorsJob) return;
+
+    applyFiscalAddress({
+      street: client.jobAddressStreet ?? "",
+      postalCode: client.jobAddressPostalCode ?? "",
+      city: client.jobAddressCity ?? "",
+    });
+  }, [
+    mode,
+    fiscalMirrorsJob,
+    client.jobAddressStreet,
+    client.jobAddressPostalCode,
+    client.jobAddressCity,
+    applyFiscalAddress,
+  ]);
+
+  function toggleDifferentFiscalAddress(checked: boolean) {
+    setUseDifferentFiscalAddress(checked);
+    if (!checked) {
+      setFiscalMirrorsJob(true);
+      applyFiscalAddress({
+        street: client.jobAddressStreet ?? "",
+        postalCode: client.jobAddressPostalCode ?? "",
+        city: client.jobAddressCity ?? "",
+      });
+    } else {
+      setFiscalMirrorsJob(false);
+    }
+  }
 
   const clientName = client.nameOrCompany || "Client sense nom";
   const quoteNumber = client.quoteNumber || "—";
@@ -240,9 +482,8 @@ export function BudgetClientForm({
             />
             {identityLocked ? (
               <p className={styles.fieldHint}>
-                Dades de facturació congelades en aprovar el pressupost. Per
-                corregir-les, edita el contacte des de /contacts (només
-                afectarà documents futurs).
+                Dades de facturació bloquejades perquè el pressupost està
+                facturat.
               </p>
             ) : null}
             {suggestionsOpen ? (
@@ -311,7 +552,6 @@ export function BudgetClientForm({
             </div>
           </label>
         ) : null}
-
         <label className={styles.field}>
           <span className={styles.fieldLabel}>Carrer i número</span>
           <input
@@ -400,6 +640,105 @@ export function BudgetClientForm({
               onChange={(e) => setClientField("date", e.target.value)}
             />
           </label>
+        </div>
+
+        <div className={styles.fiscalSection}>
+          <h4 className={styles.fiscalSectionTitle}>Dades fiscals</h4>
+          <div className={styles.fiscalFields}>
+            <label className={styles.field}>
+              <span className={styles.fieldLabel}>NIF/NIE</span>
+              <input
+                className={styles.fieldInput}
+                type="text"
+                value={client.clientTaxId ?? ""}
+                disabled={identityLocked}
+                onChange={(e) => setClientField("clientTaxId", e.target.value)}
+                placeholder="Ex: B12345678"
+              />
+            </label>
+
+            <label
+              className={styles.field}
+              style={{
+                display: "flex",
+                flexDirection: "row",
+                alignItems: "center",
+                gap: "0.5rem",
+              }}
+            >
+              <input
+                type="checkbox"
+                checked={useDifferentFiscalAddress}
+                onChange={(e) => toggleDifferentFiscalAddress(e.target.checked)}
+                disabled={identityLocked}
+              />
+              <span className={styles.fieldLabel}>
+                La direcció fiscal és diferent de l&apos;adreça de l&apos;obra
+              </span>
+            </label>
+
+            <label className={styles.field}>
+              <span className={styles.fieldLabel}>
+                Adreça fiscal (carrer i número)
+              </span>
+              <input
+                className={styles.fieldInput}
+                type="text"
+                value={client.clientAddressStreet ?? ""}
+                disabled={identityLocked}
+                onChange={(e) =>
+                  setClientField("clientAddressStreet", e.target.value)
+                }
+              />
+            </label>
+
+            <div className={styles.fieldRow}>
+              <label className={styles.field}>
+                <span className={styles.fieldLabel}>Codi postal fiscal</span>
+                <input
+                  className={styles.fieldInput}
+                  type="text"
+                  inputMode="numeric"
+                  value={client.clientAddressPostalCode ?? ""}
+                  disabled={identityLocked}
+                  onChange={(e) =>
+                    setClientField("clientAddressPostalCode", e.target.value)
+                  }
+                />
+              </label>
+              <label className={styles.field}>
+                <span className={styles.fieldLabel}>Població fiscal</span>
+                <input
+                  className={styles.fieldInput}
+                  type="text"
+                  value={client.clientAddressCity ?? ""}
+                  disabled={identityLocked}
+                  onChange={(e) =>
+                    setClientField("clientAddressCity", e.target.value)
+                  }
+                />
+              </label>
+            </div>
+
+            <fieldset className={styles.radioFieldset}>
+              <legend className={styles.fieldLabel}>IVA</legend>
+              <div className={styles.radioGroup}>
+                {[0, 10, 21].map((rate) => (
+                  <label key={rate} className={styles.radioOption}>
+                    <input
+                      type="radio"
+                      name="taxRate"
+                      value={rate}
+                      checked={Number(client.taxRate ?? 0) === rate}
+                      disabled={identityLocked}
+                      onChange={() => setClientField("taxRate", rate)}
+                    />
+                    <span>{rate}%</span>
+                  </label>
+                ))}
+              </div>
+            </fieldset>
+          </div>
         </div>
       </div>
     </div>

@@ -3,6 +3,7 @@ import { revalidatePath } from "next/cache";
 import {
   deleteContactById,
   updateContactById,
+  getContactById,
 } from "@/features/contacts/lib/contacts";
 
 type PatchBody = Parameters<typeof updateContactById>[1];
@@ -25,6 +26,23 @@ export async function PATCH(
     const msg = err instanceof Error ? err.message : "";
     return NextResponse.json(
       { error: msg || "No s'ha pogut actualitzar el contacte." },
+      { status: 500 }
+    );
+  }
+}
+
+export async function GET(
+  _request: Request,
+  context: { params: Promise<{ id: string }> }
+) {
+  try {
+    const { id } = await context.params;
+    const contact = await getContactById(id);
+    return NextResponse.json(contact);
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : "";
+    return NextResponse.json(
+      { error: msg || "No s'ha pogut recuperar el contacte." },
       { status: 500 }
     );
   }

@@ -34,7 +34,9 @@ import {
   deleteContactById,
   getContactAddressCount,
   getContactById,
+  updateContactById,
   getContactReferenceCounts,
+  type ContactRow,
 } from "@/features/contacts/lib/contacts";
 
 export interface CreateBudgetInput {
@@ -133,6 +135,54 @@ async function ensureContactJobAddress(
   }
 }
 
+/**
+ * Seed contact fiscal fields (tax_id and fiscal address) from a budget's
+ * client details. Only writes each field if the contact doesn't already have
+ * a value. This is a one-time seed and will never overwrite existing values.
+ */
+export async function ensureContactFiscalData(
+  contactId: string,
+  client: BudgetClientDetails
+): Promise<void> {
+  const normalizedId = (contactId ?? "").trim();
+  if (!normalizedId || normalizedId.toLowerCase() === "null") return;
+
+  const contact = await getContactById(normalizedId);
+
+  const patch: Partial<
+    Pick<
+      ContactRow,
+      | "tax_id"
+      | "fiscal_address_street"
+      | "fiscal_address_postal_code"
+      | "fiscal_address_city"
+    >
+  > = {};
+
+  const contactTax = (contact.tax_id ?? "").trim();
+  const clientTax = (client.clientTaxId ?? "").trim();
+  if (!contactTax && clientTax) patch.tax_id = clientTax;
+
+  const contactStreet = (contact.fiscal_address_street ?? "").trim();
+  const clientStreet = (client.clientAddressStreet ?? "").trim();
+  if (!contactStreet && clientStreet)
+    patch.fiscal_address_street = clientStreet;
+
+  const contactPostal = (contact.fiscal_address_postal_code ?? "").trim();
+  const clientPostal = (client.clientAddressPostalCode ?? "").trim();
+  if (!contactPostal && clientPostal)
+    patch.fiscal_address_postal_code = clientPostal;
+
+  const contactCity = (contact.fiscal_address_city ?? "").trim();
+  const clientCity = (client.clientAddressCity ?? "").trim();
+  if (!contactCity && clientCity) patch.fiscal_address_city = clientCity;
+
+  // If there's nothing to update, return early.
+  if (Object.keys(patch).length === 0) return;
+
+  await updateContactById(normalizedId, patch);
+}
+
 type BudgetListQueryRow = BudgetListRow & {
   invoices?: { id: string | null } | { id: string | null }[] | null;
 };
@@ -145,7 +195,8 @@ export async function createBudget({
   taxRate = 0,
 }: CreateBudgetInput): Promise<CreateBudgetResult> {
   const supabase = getSupabaseClient();
-  const { tax_amount } = calcTotalsFromSubtotal(subtotal, taxRate);
+  const appliedTaxRate = Number(client.taxRate ?? taxRate);
+  const { tax_amount } = calcTotalsFromSubtotal(subtotal, appliedTaxRate);
   const derivedTitle = deriveBudgetTitle(client);
 
   const { data, error } = await supabase
@@ -162,13 +213,27 @@ export async function createBudget({
         status,
         notes: null,
         subtotal,
-        tax_rate: taxRate,
+        tax_rate: appliedTaxRate,
         tax_amount,
         lang: client.lang,
         project_name: normalizeOptionalString(
           (client.projectName ?? "").trim()
         ),
-        client_name: normalizeOptionalString((client.nameOrCompany ?? "").trim()),
+        client_name: normalizeOptionalString(
+          (client.nameOrCompany ?? "").trim()
+        ),
+        client_tax_id: normalizeOptionalString(
+          (client.clientTaxId ?? "").trim()
+        ),
+        client_address_street: normalizeOptionalString(
+          (client.clientAddressStreet ?? "").trim()
+        ),
+        client_address_postal_code: normalizeOptionalString(
+          (client.clientAddressPostalCode ?? "").trim()
+        ),
+        client_address_city: normalizeOptionalString(
+          (client.clientAddressCity ?? "").trim()
+        ),
       },
     ])
     .select("id")
@@ -218,33 +283,14 @@ export async function updateBudgetById(
       | "lang"
       | "project_name"
       | "client_name"
+      | "client_tax_id"
+      | "client_address_street"
+      | "client_address_postal_code"
+      | "client_address_city"
     >
   >
 ): Promise<void> {
   const supabase = getSupabaseClient();
-
-  let snapshotPatch: Record<string, string | null> = {};
-  if (patch.status === "approved" || patch.status === "invoiced") {
-    const { data: current } = await supabase
-      .from("budgets")
-      .select("client_name,contact_id")
-      .eq("id", id)
-      .maybeSingle();
-
-    if (current && !current.client_name && current.contact_id) {
-      const { data: contact } = await supabase
-        .from("contacts")
-        .select("name")
-        .eq("id", current.contact_id)
-        .maybeSingle();
-
-      if (contact) {
-        snapshotPatch = {
-          client_name: contact.name,
-        };
-      }
-    }
-  }
 
   const normalized = {
     contact_id: patch.contact_id,
@@ -287,11 +333,38 @@ export async function updateBudgetById(
       typeof patch.project_name === "string"
         ? patch.project_name.trim()
         : patch.project_name,
-    ...snapshotPatch,
     ...(patch.client_name !== undefined
       ? {
           client_name: normalizeOptionalString(
             (patch.client_name ?? "").trim()
+          ),
+        }
+      : {}),
+    ...(patch.client_tax_id !== undefined
+      ? {
+          client_tax_id: normalizeOptionalString(
+            (patch.client_tax_id ?? "").trim()
+          ),
+        }
+      : {}),
+    ...(patch.client_address_street !== undefined
+      ? {
+          client_address_street: normalizeOptionalString(
+            (patch.client_address_street ?? "").trim()
+          ),
+        }
+      : {}),
+    ...(patch.client_address_postal_code !== undefined
+      ? {
+          client_address_postal_code: normalizeOptionalString(
+            (patch.client_address_postal_code ?? "").trim()
+          ),
+        }
+      : {}),
+    ...(patch.client_address_city !== undefined
+      ? {
+          client_address_city: normalizeOptionalString(
+            (patch.client_address_city ?? "").trim()
           ),
         }
       : {}),
@@ -425,7 +498,11 @@ export async function updateBudgetWithLines(args: {
   } = args;
   const normalizedContactId = (contactId ?? "").trim();
 
-  const { subtotal, tax_amount } = calcBudgetHeaderAmounts(items, taxRate);
+  const appliedTaxRate = Number(client.taxRate ?? taxRate);
+  const { subtotal, tax_amount } = calcBudgetHeaderAmounts(
+    items,
+    appliedTaxRate
+  );
   const derivedTitle = deriveBudgetTitle(client);
 
   const ensuredContactId =
@@ -447,15 +524,20 @@ export async function updateBudgetWithLines(args: {
     estimated_time: normalizeOptionalString(client.estimatedTime),
     status,
     subtotal,
-    tax_rate: taxRate,
+    tax_rate: appliedTaxRate,
     tax_amount,
     lang: client.lang,
     project_name: normalizeOptionalString((client.projectName ?? "").trim()),
     client_name: client.nameOrCompany,
+    client_tax_id: client.clientTaxId,
+    client_address_street: client.clientAddressStreet,
+    client_address_postal_code: client.clientAddressPostalCode,
+    client_address_city: client.clientAddressCity,
   });
 
   await replaceBudgetLines(budgetId, items);
   await ensureContactJobAddress(ensuredContactId, client);
+  await ensureContactFiscalData(ensuredContactId, client);
 }
 
 export interface CreateBudgetLinesInput {
@@ -524,8 +606,10 @@ export async function saveBudgetWithLines({
     contactId,
     subtotal,
     status: "draft",
+    taxRate: client.taxRate,
   });
   await createBudgetLines({ budgetId: id, items });
   await ensureContactJobAddress(contactId, client);
+  await ensureContactFiscalData(contactId, client);
   return { budgetId: id, contactId };
 }

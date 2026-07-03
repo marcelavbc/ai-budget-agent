@@ -115,6 +115,7 @@ export function BudgetListItemActions({
         jobAddressStreet: (budget.job_address_street ?? "").trim(),
         jobAddressPostalCode: (budget.job_address_postal_code ?? "").trim(),
         jobAddressCity: (budget.job_address_city ?? "").trim(),
+        taxRate: budget.tax_rate ?? 0,
         quoteNumber: (budget.quote_number ?? "").trim(),
         date: (budget.document_date ?? "").trim(),
         estimatedTime: (budget.estimated_time ?? "").trim(),

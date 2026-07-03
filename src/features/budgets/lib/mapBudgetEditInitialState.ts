@@ -1,5 +1,11 @@
-import type { BudgetClientDetails, BudgetClientItem } from "@/features/budgets/types/budget";
-import type { BudgetLineRow, BudgetRow } from "@/features/budgets/types/budgetsDb";
+import type {
+  BudgetClientDetails,
+  BudgetClientItem,
+} from "@/features/budgets/types/budget";
+import type {
+  BudgetLineRow,
+  BudgetRow,
+} from "@/features/budgets/types/budgetsDb";
 import type { ContactRow } from "@/features/contacts/lib/contacts";
 import { resolveBudgetClientIdentity } from "@/features/budgets/lib/resolveBudgetClientIdentity";
 
@@ -28,11 +34,16 @@ export function buildInitialBudgetEditClientDetails(args: {
 
   return {
     nameOrCompany: identity.name.trim(),
+    clientTaxId: (identity.tax_id ?? "").trim(),
+    clientAddressStreet: (identity.fiscal_address_street ?? "").trim(),
+    clientAddressPostalCode: (identity.fiscal_address_postal_code ?? "").trim(),
+    clientAddressCity: (identity.fiscal_address_city ?? "").trim(),
     identityLocked: identity.locked,
     jobAddressStreet:
       jobStreet || (jobPostal || jobCity ? "" : legacyJobAddress),
     jobAddressPostalCode: jobPostal,
     jobAddressCity: jobCity,
+    taxRate: budget.tax_rate ?? 0,
     projectName: (budget.project_name ?? "").trim() || undefined,
     quoteNumber: (budget.quote_number ?? "").trim(),
     date: (budget.document_date ?? "").trim(),
@@ -57,4 +68,3 @@ export function buildInitialBudgetEditItems(args: {
     optionLabel: (l.option_label ?? undefined) || undefined,
   }));
 }
-

@@ -15,9 +15,9 @@ import {
 import { usePdfExport } from "@/features/budgets/hooks/usePdfExport";
 import { useTranslation } from "@/features/budgets/hooks/useTranslation";
 import { StatusPill } from "@/features/budgets/components/StatusPill";
-import { BudgetClientForm } from "@/features/budgets/components/BudgetClientForm";
 import { BudgetItemCard } from "@/features/budgets/components/BudgetItemCard";
 import styles from "./BudgetDraftView.module.css";
+import { BudgetClientForm } from "./BudgetClientForm";
 
 type DraftSegment =
   | { kind: "single"; item: BudgetClientItem }
@@ -234,6 +234,7 @@ export function BudgetDraftView({
         onResetQuoteAutomation={onResetQuoteAutomation}
         onContactSelect={onContactSelect}
         identityLocked={client.identityLocked}
+        mode={mode}
       />
 
       <div className={styles.itemsTopBar}>
