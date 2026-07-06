@@ -24,12 +24,6 @@ function renderActions(
       budgetStatus="draft"
       budgetLang="ca"
       invoiceId={null}
-      clientName="Test Client"
-      clientTaxId={null}
-      clientAddressStreet={null}
-      clientAddressPostalCode={null}
-      clientAddressCity={null}
-      taxRate={null}
       variant="icons"
       {...overrides}
     />
@@ -51,14 +45,13 @@ function mockFetchSequence(responses: Array<{ ok: boolean; json: unknown }>) {
   );
 }
 
-describe("BudgetListItemActions — orphan contact dialog", () => {
+describe("BudgetListItemActions - orphan contact dialog", () => {
   afterEach(() => {
     vi.unstubAllGlobals();
     refresh.mockClear();
   });
 
-  it("keeps the orphan-contact dialog open after deleting the budget, instead of unmounting with the row", async () => {
-    // DELETE /api/budgets/budget-1 -> pending_confirmation
+  it("keeps orphan-contact dialog open after deleting the budget", async () => {
     mockFetchSequence([
       {
         ok: true,
@@ -68,33 +61,34 @@ describe("BudgetListItemActions — orphan contact dialog", () => {
 
     renderActions();
 
-    fireEvent.click(screen.getByRole("button", { name: "Eliminar pressupost" }));
+    fireEvent.click(
+      screen.getByRole("button", { name: "Eliminar pressupost" })
+    );
     fireEvent.click(screen.getByRole("button", { name: "Eliminar" }));
 
-    // The second dialog must appear and stay visible.
     await waitFor(() => {
       expect(
         screen.getByText("Eliminar contacte sense dades?")
       ).toBeInTheDocument();
     });
 
-    // Crucially: router.refresh() must NOT have been called yet — refreshing
-    // here would unmount the row (and this dialog) before the user answers.
     expect(refresh).not.toHaveBeenCalled();
   });
 
-  it("refreshes the list after confirming deletion of the orphan contact", async () => {
+  it("refreshes list after confirming orphan contact deletion", async () => {
     mockFetchSequence([
       {
         ok: true,
         json: { contactStatus: "pending_confirmation", contactId: "contact-1" },
       },
-      { ok: true, json: {} }, // DELETE /api/contacts/contact-1
+      { ok: true, json: {} },
     ]);
 
     renderActions();
 
-    fireEvent.click(screen.getByRole("button", { name: "Eliminar pressupost" }));
+    fireEvent.click(
+      screen.getByRole("button", { name: "Eliminar pressupost" })
+    );
     fireEvent.click(screen.getByRole("button", { name: "Eliminar" }));
 
     await waitFor(() => {
@@ -110,7 +104,7 @@ describe("BudgetListItemActions — orphan contact dialog", () => {
     });
   });
 
-  it("refreshes the list after choosing to keep the orphan contact (the bug: this used to never refresh)", async () => {
+  it("refreshes list after choosing to keep orphan contact", async () => {
     mockFetchSequence([
       {
         ok: true,
@@ -120,7 +114,9 @@ describe("BudgetListItemActions — orphan contact dialog", () => {
 
     renderActions();
 
-    fireEvent.click(screen.getByRole("button", { name: "Eliminar pressupost" }));
+    fireEvent.click(
+      screen.getByRole("button", { name: "Eliminar pressupost" })
+    );
     fireEvent.click(screen.getByRole("button", { name: "Eliminar" }));
 
     await waitFor(() => {
@@ -136,7 +132,7 @@ describe("BudgetListItemActions — orphan contact dialog", () => {
     });
   });
 
-  it("refreshes immediately when the contact is auto-deleted (no second dialog)", async () => {
+  it("refreshes immediately when orphan contact is auto-deleted", async () => {
     mockFetchSequence([
       {
         ok: true,
@@ -146,7 +142,9 @@ describe("BudgetListItemActions — orphan contact dialog", () => {
 
     renderActions();
 
-    fireEvent.click(screen.getByRole("button", { name: "Eliminar pressupost" }));
+    fireEvent.click(
+      screen.getByRole("button", { name: "Eliminar pressupost" })
+    );
     fireEvent.click(screen.getByRole("button", { name: "Eliminar" }));
 
     await waitFor(() => {
@@ -156,29 +154,5 @@ describe("BudgetListItemActions — orphan contact dialog", () => {
     expect(
       screen.queryByText("Eliminar contacte sense dades?")
     ).not.toBeInTheDocument();
-  });
-
-  it("shows missing invoice requirements when tax id, fiscal address or VAT are missing", () => {
-    renderActions({ variant: "full" });
-
-    expect(
-      screen.getByText("Falta: NIF/NIE, adreca fiscal completa, IVA")
-    ).toBeInTheDocument();
-
-    expect(screen.getByRole("button", { name: "Generar factura" })).toBeDisabled();
-  });
-
-  it("enables invoicing when fiscal data and VAT are present", () => {
-    renderActions({
-      variant: "full",
-      clientTaxId: "B12345678",
-      clientAddressStreet: "Carrer Major, 1",
-      clientAddressPostalCode: "08001",
-      clientAddressCity: "Barcelona",
-      taxRate: 0,
-    });
-
-    expect(screen.queryByText(/^Falta:/)).not.toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "Generar factura" })).toBeEnabled();
   });
 });

@@ -389,7 +389,7 @@ export async function getBudgets(
   let q = supabase
     .from("budgets")
     .select(
-      "id,title,job_address,job_address_street,job_address_postal_code,job_address_city,client_tax_id,client_address_street,client_address_postal_code,client_address_city,tax_rate,status,document_date,quote_number,created_at,lang,invoices!budget_id(id)"
+      "id,title,job_address,job_address_street,job_address_postal_code,job_address_city,status,document_date,quote_number,created_at,lang,invoices!budget_id(id)"
     )
     .order("document_date", { ascending: false, nullsFirst: false })
     .order("created_at", { ascending: false });
@@ -492,8 +492,14 @@ export async function updateBudgetWithLines(args: {
   taxRate?: number | null;
   status?: BudgetStatus;
 }): Promise<void> {
-  const { budgetId, contactId, client, items, taxRate, status = "draft" } =
-    args;
+  const {
+    budgetId,
+    contactId,
+    client,
+    items,
+    taxRate,
+    status = "draft",
+  } = args;
   const normalizedContactId = (contactId ?? "").trim();
 
   const candidateTaxRate = client.taxRate ?? taxRate ?? null;

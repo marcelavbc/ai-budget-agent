@@ -51,7 +51,8 @@ export function InvoiceModal({
           {normalizedClient
             ? `Es creara una factura per a ${normalizedClient}.`
             : "Es creara una factura per a aquest pressupost."}{" "}
-          Aquesta accio es irreversible: el pressupost passara a estat facturat i ja no es podra editar.
+          Aquesta accio es irreversible: el pressupost passara a estat facturat
+          i ja no es podra editar.
         </p>
 
         <div className={dialogStyles.actions}>

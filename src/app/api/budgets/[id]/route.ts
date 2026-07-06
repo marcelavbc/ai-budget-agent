@@ -1,6 +1,9 @@
 import { NextResponse } from "next/server";
 import { revalidatePath } from "next/cache";
-import type { BudgetClientDetails, BudgetClientItem } from "@/features/budgets/types/budget";
+import type {
+  BudgetClientDetails,
+  BudgetClientItem,
+} from "@/features/budgets/types/budget";
 import type { BudgetStatus } from "@/features/budgets/lib/budgetStatus";
 import {
   deleteBudgetWithLines,
@@ -100,4 +103,3 @@ export async function DELETE(
     );
   }
 }
-

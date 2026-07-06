@@ -65,6 +65,13 @@
   flex-wrap: wrap;
 }
 
+.headerHint {
+  width: 100%;
+  margin: 0.35rem 0 0;
+  font-size: 0.82rem;
+  color: var(--text-muted);
+}
+
 .statusPill {
   display: inline-flex;
   align-items: center;

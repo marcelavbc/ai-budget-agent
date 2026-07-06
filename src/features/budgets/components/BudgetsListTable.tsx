@@ -5,7 +5,7 @@ import { StatusPill } from "@/features/budgets/components/StatusPill";
 import { formatBudgetListDate } from "@/features/budgets/lib/budgetsListFormatting";
 import type { BudgetStatus } from "@/features/budgets/lib/budgetStatus";
 import type { BudgetListRow } from "@/features/budgets/types/budgetsDb";
-import { BudgetListItemActions } from "./BudgetListItemActions";
+import { BudgetListItemActions } from "@/features/budgets/components/BudgetListItemActions";
 import styles from "./BudgetsListTable.module.css";
 
 export function BudgetsListTable({
@@ -71,12 +71,6 @@ export function BudgetsListTable({
                       budgetStatus={b.status}
                       budgetLang={b.lang}
                       invoiceId={b.invoice_id ?? null}
-                      clientName={b.title}
-                      clientTaxId={b.client_tax_id ?? null}
-                      clientAddressStreet={b.client_address_street}
-                      clientAddressPostalCode={b.client_address_postal_code}
-                      clientAddressCity={b.client_address_city}
-                      taxRate={b.tax_rate ?? null}
                       variant="icons"
                     />
                   </div>

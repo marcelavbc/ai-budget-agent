@@ -1,5 +1,11 @@
-import type { BudgetClientDetails, BudgetClientItem } from "@/features/budgets/types/budget";
-import type { BudgetListRow, BudgetRow } from "@/features/budgets/types/budgetsDb";
+import type {
+  BudgetClientDetails,
+  BudgetClientItem,
+} from "@/features/budgets/types/budget";
+import type {
+  BudgetListRow,
+  BudgetRow,
+} from "@/features/budgets/types/budgetsDb";
 import type { BudgetStatus } from "@/features/budgets/lib/budgetStatus";
 import { budgetRowToListRow } from "@/features/budgets/lib/budgetRowToListRow";
 
@@ -30,7 +36,8 @@ export async function saveBudgetWithLines(args: {
     body: JSON.stringify(args),
   });
   const data = await readJson(res);
-  if (!res.ok) throw new Error(errorMessage(data, "No s'ha pogut guardar el pressupost."));
+  if (!res.ok)
+    throw new Error(errorMessage(data, "No s'ha pogut guardar el pressupost."));
   const budgetId =
     typeof data === "object" && data !== null
       ? (data as { budgetId?: unknown }).budgetId
@@ -63,7 +70,10 @@ export async function updateBudgetWithLines(args: {
     body: JSON.stringify(body),
   });
   const data = await readJson(res);
-  if (!res.ok) throw new Error(errorMessage(data, "No s'ha pogut actualitzar el pressupost."));
+  if (!res.ok)
+    throw new Error(
+      errorMessage(data, "No s'ha pogut actualitzar el pressupost.")
+    );
 }
 
 export async function updateBudgetById(
@@ -76,7 +86,10 @@ export async function updateBudgetById(
     body: JSON.stringify(patch),
   });
   const data = await readJson(res);
-  if (!res.ok) throw new Error(errorMessage(data, "No s'ha pogut actualitzar el pressupost."));
+  if (!res.ok)
+    throw new Error(
+      errorMessage(data, "No s'ha pogut actualitzar el pressupost.")
+    );
 }
 
 export type DeleteBudgetResult =
@@ -89,7 +102,10 @@ export async function deleteBudgetWithLines(
 ): Promise<DeleteBudgetResult> {
   const res = await fetch(`/api/budgets/${budgetId}`, { method: "DELETE" });
   const data = await readJson(res);
-  if (!res.ok) throw new Error(errorMessage(data, "No s'ha pogut eliminar el pressupost."));
+  if (!res.ok)
+    throw new Error(
+      errorMessage(data, "No s'ha pogut eliminar el pressupost.")
+    );
   return data as DeleteBudgetResult;
 }
 
@@ -109,7 +125,9 @@ export async function fetchBudgetById(
 export async function getBudgetExportData(budgetId: string): Promise<unknown> {
   const res = await fetch(`/api/budgets/${budgetId}/export`, { method: "GET" });
   const data = await readJson(res);
-  if (!res.ok) throw new Error(errorMessage(data, "No s'ha pogut exportar el pressupost."));
+  if (!res.ok)
+    throw new Error(
+      errorMessage(data, "No s'ha pogut exportar el pressupost.")
+    );
   return data;
 }
-

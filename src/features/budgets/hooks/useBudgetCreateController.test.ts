@@ -52,7 +52,7 @@ describe("useBudgetCreateController", () => {
     push.mockClear();
   });
 
-  it("navigates to the list with the new budget id after first save", async () => {
+  it("navigates to edit with the new budget id after first save", async () => {
     // mock de /api/budgets
     vi.stubGlobal(
       "fetch",
@@ -79,7 +79,7 @@ describe("useBudgetCreateController", () => {
         items: [],
       })
     );
-    expect(push).toHaveBeenCalledWith("/budgets?new=1");
+    expect(push).toHaveBeenCalledWith("/budgets/1/edit");
   });
   it("appends AI lines to the items", async () => {
     const { result } = renderHook(() => useBudgetCreateController());

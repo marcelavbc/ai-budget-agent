@@ -28,7 +28,17 @@ export function useBudgetCreateController() {
         items,
         contactId: selectedContactIdRef.current,
       });
-      router.push(`/budgets?new=${encodeURIComponent(budgetId)}`);
+      const target = `/budgets/${encodeURIComponent(budgetId)}/edit`;
+      router.push(target);
+
+      // Fallback for cases where another client navigation wins after save.
+      if (process.env.NODE_ENV !== "test") {
+        window.setTimeout(() => {
+          if (window.location.pathname !== target) {
+            window.location.assign(target);
+          }
+        }, 0);
+      }
     },
   });
 

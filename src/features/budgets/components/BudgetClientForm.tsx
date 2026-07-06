@@ -358,11 +358,8 @@ export function BudgetClientForm({
       );
     } else {
       setUseDifferentFiscalAddress(false);
-      setFiscalMirrorsJob(mode === "create");
-      if (
-        mode === "create" &&
-        hasAnyAddressValue(jobStreet, jobPostal, jobCity)
-      ) {
+      setFiscalMirrorsJob(true);
+      if (hasAnyAddressValue(jobStreet, jobPostal, jobCity)) {
         applyFiscalAddress({
           street: client.jobAddressStreet ?? "",
           postalCode: client.jobAddressPostalCode ?? "",
@@ -384,7 +381,6 @@ export function BudgetClientForm({
   ]);
 
   useEffect(() => {
-    if (mode !== "create") return;
     if (!fiscalMirrorsJob) return;
 
     applyFiscalAddress({
@@ -393,7 +389,6 @@ export function BudgetClientForm({
       city: client.jobAddressCity ?? "",
     });
   }, [
-    mode,
     fiscalMirrorsJob,
     client.jobAddressStreet,
     client.jobAddressPostalCode,

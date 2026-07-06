@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { FileDown } from "lucide-react";
 import type {
   BudgetClientDetails,
@@ -16,8 +17,15 @@ import { usePdfExport } from "@/features/budgets/hooks/usePdfExport";
 import { useTranslation } from "@/features/budgets/hooks/useTranslation";
 import { StatusPill } from "@/features/budgets/components/StatusPill";
 import { BudgetItemCard } from "@/features/budgets/components/BudgetItemCard";
+import { createInvoiceFromBudget } from "@/features/invoices/lib/invoicesClient";
+import { InvoiceModal } from "@/features/invoices/components/InvoiceModal";
+import { useInvoiceModal } from "@/features/invoices/hooks/useInvoiceModal";
 import styles from "./BudgetDraftView.module.css";
 import { BudgetClientForm } from "./BudgetClientForm";
+
+function hasNonEmpty(value: string | null | undefined): boolean {
+  return Boolean((value ?? "").trim());
+}
 
 type DraftSegment =
   | { kind: "single"; item: BudgetClientItem }
@@ -109,7 +117,11 @@ export function BudgetDraftView({
 }: Props) {
   const [isSaving, setIsSaving] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
+  const [isInvoicing, setIsInvoicing] = useState(false);
+  const [invoiceError, setInvoiceError] = useState<string | null>(null);
   const { exportPdf, generating, pdfError } = usePdfExport();
+  const router = useRouter();
+  const invoiceModal = useInvoiceModal();
   const {
     isTranslating,
     handleTranslate,
@@ -124,6 +136,27 @@ export function BudgetDraftView({
 
   const draftComplete = isBudgetDraftComplete({ client, items });
   const status = normalizeBudgetStatus(budgetStatus);
+  const isEditMode = mode === "edit";
+  const canShowInvoiceAction = isEditMode && status !== "invoiced";
+  const missingInvoiceFields: string[] = [];
+
+  if (canShowInvoiceAction) {
+    if (!hasNonEmpty(client.clientTaxId)) missingInvoiceFields.push("NIF/NIE");
+
+    const hasFiscalAddress =
+      hasNonEmpty(client.clientAddressStreet) &&
+      hasNonEmpty(client.clientAddressPostalCode) &&
+      hasNonEmpty(client.clientAddressCity);
+    if (!hasFiscalAddress) missingInvoiceFields.push("adreca fiscal completa");
+
+    if (client.taxRate == null) missingInvoiceFields.push("IVA");
+  }
+
+  const canInvoice = canShowInvoiceAction && missingInvoiceFields.length === 0;
+  const missingInvoiceMessage =
+    canShowInvoiceAction && missingInvoiceFields.length > 0
+      ? `Falta: ${missingInvoiceFields.join(", ")}`
+      : null;
 
   async function handleSaveBudget() {
     if (!draftComplete || isSaving) return;
@@ -149,6 +182,25 @@ export function BudgetDraftView({
 
   async function handleGenerateBudgetPdf() {
     await exportPdf({ client, items });
+  }
+
+  async function handleConfirmInvoice() {
+    if (!budgetId || !canInvoice || isInvoicing) return;
+
+    setInvoiceError(null);
+    setIsInvoicing(true);
+    try {
+      const { invoiceId } = await createInvoiceFromBudget(budgetId);
+      invoiceModal.closeModal();
+      router.push(`/invoices/${invoiceId}`);
+      router.refresh();
+    } catch (err) {
+      setInvoiceError(
+        err instanceof Error ? err.message : "No s'ha pogut generar la factura."
+      );
+    } finally {
+      setIsInvoicing(false);
+    }
   }
 
   const translationButtons =
@@ -203,6 +255,25 @@ export function BudgetDraftView({
                 </span>
               )}
               {translationButtons}
+              {canShowInvoiceAction ? (
+                <button
+                  type="button"
+                  className={styles.generateBudgetBtn}
+                  disabled={!canInvoice || isInvoicing || !budgetId}
+                  aria-busy={isInvoicing || undefined}
+                  onClick={() => {
+                    if (!canInvoice || !budgetId || isInvoicing) return;
+                    invoiceModal.openModal();
+                  }}
+                  title={
+                    canInvoice
+                      ? "Facturar"
+                      : (missingInvoiceMessage ?? "Facturar")
+                  }
+                >
+                  {isInvoicing ? "Facturant..." : "Facturar"}
+                </button>
+              ) : null}
               <button
                 type="button"
                 className={styles.generateBudgetBtn}
@@ -220,6 +291,11 @@ export function BudgetDraftView({
                 )}
               </button>
             </div>
+            {missingInvoiceMessage ? (
+              <p className={styles.headerHint} role="note">
+                {missingInvoiceMessage}
+              </p>
+            ) : null}
           </>
         ) : (
           <span className={styles.draftBadge}>ESBORRANY DEL PRESSUPOST</span>
@@ -293,6 +369,11 @@ export function BudgetDraftView({
             {pdfError}
           </p>
         ) : null}
+        {mode === "edit" && invoiceError ? (
+          <p className={styles.saveError} role="alert">
+            {invoiceError}
+          </p>
+        ) : null}
         <div className={styles.footerBtns}>
           <button
             type="button"
@@ -308,6 +389,15 @@ export function BudgetDraftView({
           </button>
         </div>
       </div>
+
+      {canShowInvoiceAction && invoiceModal.open ? (
+        <InvoiceModal
+          loading={isInvoicing}
+          clientName={client.nameOrCompany}
+          onConfirm={handleConfirmInvoice}
+          onClose={invoiceModal.closeModal}
+        />
+      ) : null}
     </section>
   );
 }

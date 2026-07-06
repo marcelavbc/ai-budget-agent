@@ -10,10 +10,13 @@ import {
 import type { ContactSuggestion } from "@/features/budgets/components/BudgetClientForm";
 import { useState, type ComponentProps } from "react";
 
+const push = vi.fn();
+const refresh = vi.fn();
+
 vi.mock("next/navigation", () => ({
   useRouter: () => ({
-    push: vi.fn(),
-    refresh: vi.fn(),
+    push,
+    refresh,
     replace: vi.fn(),
   }),
   usePathname: () => "/budgets",
@@ -67,7 +70,7 @@ const emptyClientDetails: BudgetClientDetails = {
   quoteNumber: "",
   date: "",
   estimatedTime: "",
-  taxRate: 0,
+  taxRate: null,
   lang: "ca",
 };
 
@@ -173,7 +176,11 @@ function renderBudgetDraftView(
 }
 
 describe("Create budget", () => {
-  afterEach(() => vi.unstubAllGlobals());
+  afterEach(() => {
+    vi.unstubAllGlobals();
+    push.mockClear();
+    refresh.mockClear();
+  });
   it("shows contact suggestions when user types a name", async () => {
     stubContactSearchFetch();
     renderBudgetDraftViewWithState();
@@ -445,5 +452,158 @@ describe("Create budget", () => {
     expect(
       screen.getByLabelText("Adreça fiscal (carrer i número)")
     ).toHaveValue("Obra 2");
+  });
+
+  it("mirrors job address in edit mode when fiscal address is empty", async () => {
+    render(
+      <BudgetDraftViewWrapper
+        initialClientDetails={{
+          nameOrCompany: "Client Edit",
+          quoteNumber: "CE-1",
+          date: "2026-07-03",
+          estimatedTime: "",
+          taxRate: 21,
+          lang: "ca",
+          jobAddressStreet: "",
+          jobAddressPostalCode: "",
+          jobAddressCity: "",
+          clientAddressStreet: "",
+          clientAddressPostalCode: "",
+          clientAddressCity: "",
+        }}
+        overrides={{
+          mode: "edit",
+          budgetId: "budget-1",
+          budgetStatus: "draft",
+        }}
+      />
+    );
+
+    fireEvent.click(screen.getByRole("button", { name: "Editar dades" }));
+
+    fireEvent.change(screen.getByLabelText("Carrer i número"), {
+      target: { value: "Obra 77" },
+    });
+    fireEvent.change(screen.getByLabelText("Codi postal"), {
+      target: { value: "08007" },
+    });
+    fireEvent.change(screen.getByLabelText("Població"), {
+      target: { value: "Barcelona" },
+    });
+
+    await waitFor(() => {
+      expect(
+        screen.getByLabelText("Adreça fiscal (carrer i número)")
+      ).toHaveValue("Obra 77");
+      expect(screen.getByLabelText("Codi postal fiscal")).toHaveValue("08007");
+      expect(screen.getByLabelText("Població fiscal")).toHaveValue("Barcelona");
+    });
+  });
+
+  it("shows disabled Facturar with missing fields message on edit mode", () => {
+    render(
+      <BudgetDraftView
+        mode="edit"
+        budgetId="budget-1"
+        budgetStatus="draft"
+        items={[]}
+        clientDetails={emptyClientDetails}
+        onClientDetailsChange={() => {}}
+        onItemChange={() => {}}
+        onQuoteNumberChange={() => {}}
+        onResetQuoteAutomation={() => {}}
+        quoteManuallyEdited={false}
+      />
+    );
+
+    expect(screen.getByRole("button", { name: "Facturar" })).toBeDisabled();
+    expect(
+      screen.getByText("Falta: NIF/NIE, adreca fiscal completa, IVA")
+    ).toBeInTheDocument();
+  });
+
+  it("opens confirmation modal and redirects after confirming invoice creation", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockResolvedValue({
+        ok: true,
+        json: async () => ({ invoiceId: "inv-1" }),
+      })
+    );
+
+    render(
+      <BudgetDraftView
+        mode="edit"
+        budgetId="budget-1"
+        budgetStatus="draft"
+        items={[]}
+        clientDetails={{
+          nameOrCompany: "Client Test",
+          quoteNumber: "Q1",
+          date: "2026-07-03",
+          estimatedTime: "",
+          taxRate: 0,
+          lang: "ca",
+          clientTaxId: "B12345678",
+          clientAddressStreet: "Carrer Major 1",
+          clientAddressPostalCode: "08001",
+          clientAddressCity: "Barcelona",
+        }}
+        onClientDetailsChange={() => {}}
+        onItemChange={() => {}}
+        onQuoteNumberChange={() => {}}
+        onResetQuoteAutomation={() => {}}
+        quoteManuallyEdited={false}
+      />
+    );
+
+    fireEvent.click(screen.getByRole("button", { name: "Facturar" }));
+
+    expect(screen.getByText("Confirmar facturacio")).toBeInTheDocument();
+    expect(screen.getByText(/irreversible/i)).toBeInTheDocument();
+
+    fireEvent.click(
+      screen.getByRole("button", { name: "Confirmar i facturar" })
+    );
+
+    await waitFor(() => {
+      expect(push).toHaveBeenCalledWith("/invoices/inv-1");
+    });
+  });
+
+  it("closes invoice confirmation modal on cancel without redirect", () => {
+    render(
+      <BudgetDraftView
+        mode="edit"
+        budgetId="budget-1"
+        budgetStatus="draft"
+        items={[]}
+        clientDetails={{
+          nameOrCompany: "Client Test",
+          quoteNumber: "Q1",
+          date: "2026-07-03",
+          estimatedTime: "",
+          taxRate: 21,
+          lang: "ca",
+          clientTaxId: "B12345678",
+          clientAddressStreet: "Carrer Major 1",
+          clientAddressPostalCode: "08001",
+          clientAddressCity: "Barcelona",
+        }}
+        onClientDetailsChange={() => {}}
+        onItemChange={() => {}}
+        onQuoteNumberChange={() => {}}
+        onResetQuoteAutomation={() => {}}
+        quoteManuallyEdited={false}
+      />
+    );
+
+    fireEvent.click(screen.getByRole("button", { name: "Facturar" }));
+    expect(screen.getByText("Confirmar facturacio")).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole("button", { name: "Cancel·lar" }));
+
+    expect(screen.queryByText("Confirmar facturacio")).not.toBeInTheDocument();
+    expect(push).not.toHaveBeenCalled();
   });
 });

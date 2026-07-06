@@ -1,7 +1,12 @@
-import type { BudgetClientDetails, BudgetClientItem } from "@/features/budgets/types/budget";
+import type {
+  BudgetClientDetails,
+  BudgetClientItem,
+} from "@/features/budgets/types/budget";
 import type { TablesInsert } from "@/core/types/supabase";
 
-export function normalizeOptionalString(value: string | null | undefined): string | null {
+export function normalizeOptionalString(
+  value: string | null | undefined
+): string | null {
   const v = (value ?? "").trim();
   return v.length > 0 ? v : null;
 }
@@ -44,8 +49,7 @@ export function toBudgetLineRows(
     const quantity = item.quantity ?? 1;
     const lineTotal = item.total ?? 0;
     const unitPrice =
-      item.unitPrice ??
-      (quantity > 0 ? round2(lineTotal / quantity) : 0);
+      item.unitPrice ?? (quantity > 0 ? round2(lineTotal / quantity) : 0);
 
     return {
       budget_id: budgetId,
@@ -61,4 +65,3 @@ export function toBudgetLineRows(
     };
   });
 }
-
