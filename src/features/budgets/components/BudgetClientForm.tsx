@@ -729,7 +729,7 @@ export function BudgetClientForm({
                       type="radio"
                       name="taxRate"
                       value={rate}
-                      checked={Number(client.taxRate ?? 0) === rate}
+                      checked={client.taxRate === rate}
                       disabled={identityLocked}
                       onChange={() => setClientField("taxRate", rate)}
                     />

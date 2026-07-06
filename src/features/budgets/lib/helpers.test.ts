@@ -106,6 +106,15 @@ describe("calcBudgetHeaderAmounts", () => {
       tax_amount: 21.01,
     });
   });
+
+  it("taxRate null calculates zero tax_amount without mutating intent", () => {
+    const items = [makeItem({ total: 100.05 })];
+
+    expect(calcBudgetHeaderAmounts(items, null)).toEqual({
+      subtotal: 100.05,
+      tax_amount: 0,
+    });
+  });
 });
 
 describe("calcTotalsFromSubtotal", () => {
@@ -130,6 +139,14 @@ describe("calcTotalsFromSubtotal", () => {
       subtotal: 0.30000000000000004,
       tax_amount: 0.06,
       total: 0.36,
+    });
+  });
+
+  it("taxRate null behaves as 0 for totals", () => {
+    expect(calcTotalsFromSubtotal(99.99, null)).toEqual({
+      subtotal: 99.99,
+      tax_amount: 0,
+      total: 99.99,
     });
   });
 });

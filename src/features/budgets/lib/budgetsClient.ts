@@ -53,7 +53,7 @@ export async function updateBudgetWithLines(args: {
   contactId: string | null;
   client: BudgetClientDetails;
   items: BudgetClientItem[];
-  taxRate?: number;
+  taxRate?: number | null;
   status?: BudgetStatus;
 }): Promise<void> {
   const { budgetId, ...body } = args;

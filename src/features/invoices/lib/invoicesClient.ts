@@ -1,6 +1,3 @@
-import type { InvoicePricingMode } from "@/features/invoices/types/invoice";
-import { isInvoicePricingMode } from "@/features/invoices/types/invoice";
-
 async function readJson(res: Response): Promise<unknown> {
   try {
     return (await res.json()) as unknown;
@@ -18,25 +15,13 @@ function errorMessage(data: unknown, fallback: string): string {
 }
 
 export async function createInvoiceFromBudget(
-  budgetId: string,
-  pricingMode: InvoicePricingMode,
-  issueDate?: string,
-  dueDate?: string,
-  taxRate?: number
+  budgetId: string
 ): Promise<{ invoiceId: string }> {
-  if (!isInvoicePricingMode(pricingMode)) {
-    throw new Error("Mode de facturació no vàlid.");
-  }
-
   const res = await fetch("/api/invoices/from-budget", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
       budgetId,
-      pricingMode,
-      issueDate,
-      dueDate,
-      taxRate,
     }),
   });
 

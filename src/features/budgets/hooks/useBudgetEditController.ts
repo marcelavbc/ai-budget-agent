@@ -44,7 +44,7 @@ export function useBudgetEditController(args: {
         contactId: selectedContactIdRef.current ?? budget.contact_id,
         client,
         items,
-        taxRate: budget.tax_rate ?? 0,
+        taxRate: budget.tax_rate ?? null,
         status: normalizeBudgetStatus(budget.status),
       });
     },

@@ -7,8 +7,6 @@ import {
   matchesDateFilter,
   type DateFilter,
 } from "@/shared/lib/dateFilter";
-import type { InvoicePricingMode } from "@/features/invoices/types/invoice";
-import { isInvoicePricingMode } from "@/features/invoices/types/invoice";
 import type { Tables, TablesInsert } from "@/core/types/supabase";
 
 export type InvoiceRow = Tables<"invoices">;
@@ -99,29 +97,50 @@ export async function getInvoiceLinesByInvoiceId(
 }
 
 export async function createInvoiceFromBudget(
-  budgetId: string,
-  pricingMode: InvoicePricingMode,
-  issueDate?: string,
-  dueDate?: string,
-  taxRate?: number
+  budgetId: string
 ): Promise<{ invoiceId: string }> {
-  if (!isInvoicePricingMode(pricingMode)) {
-    throw new Error("Mode de facturació no vàlid.");
-  }
-
   const budgetIdNormalized = budgetId.trim();
   if (!budgetIdNormalized) throw new Error("Invalid budgetId.");
 
   const supabase = getSupabaseClient();
+
+  const { data: budget, error: budgetError } = await supabase
+    .from("budgets")
+    .select(
+      "tax_rate,client_tax_id,client_address_street,client_address_postal_code,client_address_city"
+    )
+    .eq("id", budgetIdNormalized)
+    .maybeSingle();
+
+  if (budgetError) throw new Error(budgetError.message);
+  if (!budget) throw new Error("No s'ha trobat el pressupost.");
+
+  const hasTaxId = Boolean((budget.client_tax_id ?? "").trim());
+  const hasFiscalAddress =
+    Boolean((budget.client_address_street ?? "").trim()) &&
+    Boolean((budget.client_address_postal_code ?? "").trim()) &&
+    Boolean((budget.client_address_city ?? "").trim());
+  const hasTaxRate = budget.tax_rate != null;
+
+  if (!hasTaxId || !hasFiscalAddress || !hasTaxRate) {
+    throw new Error(
+      "Falten dades fiscals o IVA al pressupost. Revisa NIF, adreca fiscal i IVA abans de facturar."
+    );
+  }
+
+  const pricingMode =
+    typeof budget.tax_rate === "number" && budget.tax_rate > 0
+      ? "with_iva"
+      : "without_iva";
 
   const { data: invoiceId, error: rpcError } = await supabase.rpc(
     "create_invoice_from_budget",
     {
       p_budget_id: budgetIdNormalized,
       p_pricing_mode: pricingMode,
-      ...(issueDate ? { p_issue_date: issueDate } : {}),
-      ...(dueDate ? { p_due_date: dueDate } : {}),
-      ...(taxRate != null ? { p_tax_rate: taxRate } : {}),
+      ...(typeof budget.tax_rate === "number"
+        ? { p_tax_rate: budget.tax_rate }
+        : {}),
     }
   );
 

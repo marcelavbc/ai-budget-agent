@@ -143,6 +143,15 @@ describe("buildInitialBudgetEditClientDetails", () => {
       lang: "ca",
     });
   });
+
+  it("keeps taxRate as null when budget tax_rate is null", () => {
+    const budget = makeBudgetRow({ tax_rate: null });
+    const contact = makeContactRow();
+
+    const details = buildInitialBudgetEditClientDetails({ budget, contact });
+
+    expect(details.taxRate).toBeNull();
+  });
 });
 
 describe("buildInitialBudgetEditItems", () => {

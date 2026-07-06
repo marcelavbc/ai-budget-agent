@@ -26,6 +26,10 @@ function renderActions(
       invoiceId={null}
       clientName="Test Client"
       clientTaxId={null}
+      clientAddressStreet={null}
+      clientAddressPostalCode={null}
+      clientAddressCity={null}
+      taxRate={null}
       variant="icons"
       {...overrides}
     />
@@ -152,5 +156,29 @@ describe("BudgetListItemActions — orphan contact dialog", () => {
     expect(
       screen.queryByText("Eliminar contacte sense dades?")
     ).not.toBeInTheDocument();
+  });
+
+  it("shows missing invoice requirements when tax id, fiscal address or VAT are missing", () => {
+    renderActions({ variant: "full" });
+
+    expect(
+      screen.getByText("Falta: NIF/NIE, adreca fiscal completa, IVA")
+    ).toBeInTheDocument();
+
+    expect(screen.getByRole("button", { name: "Generar factura" })).toBeDisabled();
+  });
+
+  it("enables invoicing when fiscal data and VAT are present", () => {
+    renderActions({
+      variant: "full",
+      clientTaxId: "B12345678",
+      clientAddressStreet: "Carrer Major, 1",
+      clientAddressPostalCode: "08001",
+      clientAddressCity: "Barcelona",
+      taxRate: 0,
+    });
+
+    expect(screen.queryByText(/^Falta:/)).not.toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Generar factura" })).toBeEnabled();
   });
 });

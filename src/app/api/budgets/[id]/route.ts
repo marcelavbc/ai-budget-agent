@@ -29,7 +29,7 @@ type PutBody = {
   contactId: string | null;
   client: BudgetClientDetails;
   items: BudgetClientItem[];
-  taxRate?: number;
+  taxRate?: number | null;
   status?: BudgetStatus;
 };
 

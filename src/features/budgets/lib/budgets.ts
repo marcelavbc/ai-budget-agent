@@ -44,7 +44,7 @@ export interface CreateBudgetInput {
   contactId: string;
   subtotal: number;
   status?: BudgetStatus;
-  taxRate?: number;
+  taxRate?: number | null;
 }
 
 export interface CreateBudgetResult {
@@ -192,11 +192,15 @@ export async function createBudget({
   contactId,
   status = "draft",
   subtotal,
-  taxRate = 0,
+  taxRate,
 }: CreateBudgetInput): Promise<CreateBudgetResult> {
   const supabase = getSupabaseClient();
-  const appliedTaxRate = Number(client.taxRate ?? taxRate);
-  const { tax_amount } = calcTotalsFromSubtotal(subtotal, appliedTaxRate);
+  const candidateTaxRate = client.taxRate ?? taxRate ?? null;
+  const selectedTaxRate =
+    typeof candidateTaxRate === "number" && Number.isFinite(candidateTaxRate)
+      ? candidateTaxRate
+      : null;
+  const { tax_amount } = calcTotalsFromSubtotal(subtotal, selectedTaxRate);
   const derivedTitle = deriveBudgetTitle(client);
 
   const { data, error } = await supabase
@@ -213,7 +217,7 @@ export async function createBudget({
         status,
         notes: null,
         subtotal,
-        tax_rate: appliedTaxRate,
+        tax_rate: selectedTaxRate,
         tax_amount,
         lang: client.lang,
         project_name: normalizeOptionalString(
@@ -385,7 +389,7 @@ export async function getBudgets(
   let q = supabase
     .from("budgets")
     .select(
-      "id,title,job_address,job_address_street,job_address_postal_code,job_address_city,status,document_date,quote_number,created_at,lang,invoices!budget_id(id)"
+      "id,title,job_address,job_address_street,job_address_postal_code,job_address_city,client_tax_id,client_address_street,client_address_postal_code,client_address_city,tax_rate,status,document_date,quote_number,created_at,lang,invoices!budget_id(id)"
     )
     .order("document_date", { ascending: false, nullsFirst: false })
     .order("created_at", { ascending: false });
@@ -485,23 +489,21 @@ export async function updateBudgetWithLines(args: {
   contactId: string | null;
   client: BudgetClientDetails;
   items: BudgetClientItem[];
-  taxRate?: number;
+  taxRate?: number | null;
   status?: BudgetStatus;
 }): Promise<void> {
-  const {
-    budgetId,
-    contactId,
-    client,
-    items,
-    taxRate = 0,
-    status = "draft",
-  } = args;
+  const { budgetId, contactId, client, items, taxRate, status = "draft" } =
+    args;
   const normalizedContactId = (contactId ?? "").trim();
 
-  const appliedTaxRate = Number(client.taxRate ?? taxRate);
+  const candidateTaxRate = client.taxRate ?? taxRate ?? null;
+  const selectedTaxRate =
+    typeof candidateTaxRate === "number" && Number.isFinite(candidateTaxRate)
+      ? candidateTaxRate
+      : null;
   const { subtotal, tax_amount } = calcBudgetHeaderAmounts(
     items,
-    appliedTaxRate
+    selectedTaxRate
   );
   const derivedTitle = deriveBudgetTitle(client);
 
@@ -524,7 +526,7 @@ export async function updateBudgetWithLines(args: {
     estimated_time: normalizeOptionalString(client.estimatedTime),
     status,
     subtotal,
-    tax_rate: appliedTaxRate,
+    tax_rate: selectedTaxRate,
     tax_amount,
     lang: client.lang,
     project_name: normalizeOptionalString((client.projectName ?? "").trim()),

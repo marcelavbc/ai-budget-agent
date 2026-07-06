@@ -66,10 +66,11 @@ export function BudgetsListCards({
                     budgetLang={b.lang}
                     invoiceId={b.invoice_id ?? null}
                     clientName={b.title}
-                    clientTaxId={null}
-                    jobAddressStreet={b.job_address_street}
-                    jobAddressPostalCode={b.job_address_postal_code}
-                    jobAddressCity={b.job_address_city}
+                    clientTaxId={b.client_tax_id ?? null}
+                    clientAddressStreet={b.client_address_street}
+                    clientAddressPostalCode={b.client_address_postal_code}
+                    clientAddressCity={b.client_address_city}
+                    taxRate={b.tax_rate ?? null}
                     variant="icons"
                   />
                 </div>

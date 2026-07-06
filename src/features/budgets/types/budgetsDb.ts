@@ -23,7 +23,14 @@ export type BudgetListRow = Pick<
   Partial<
     Pick<
       BudgetRow,
-      "job_address_street" | "job_address_postal_code" | "job_address_city"
+      | "job_address_street"
+      | "job_address_postal_code"
+      | "job_address_city"
+      | "client_tax_id"
+      | "client_address_street"
+      | "client_address_postal_code"
+      | "client_address_city"
+      | "tax_rate"
     >
   > & {
     invoice_id?: string | null;

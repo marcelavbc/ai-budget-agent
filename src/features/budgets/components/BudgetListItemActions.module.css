@@ -25,6 +25,13 @@
   color: var(--error);
 }
 
+.hint {
+  width: 100%;
+  margin: 0.15rem 0 0;
+  font-size: 0.8rem;
+  color: var(--text-muted);
+}
+
 .btn {
   display: inline-flex;
   align-items: center;

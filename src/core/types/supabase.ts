@@ -90,7 +90,7 @@ export type Database = {
           status: string
           subtotal: number
           tax_amount: number
-          tax_rate: number
+          tax_rate: number | null
           title: string
           updated_at: string
         }
@@ -116,7 +116,7 @@ export type Database = {
           status?: string
           subtotal?: number
           tax_amount?: number
-          tax_rate?: number
+          tax_rate?: number | null
           title: string
           updated_at?: string
         }
@@ -142,7 +142,7 @@ export type Database = {
           status?: string
           subtotal?: number
           tax_amount?: number
-          tax_rate?: number
+          tax_rate?: number | null
           title?: string
           updated_at?: string
         }

@@ -43,7 +43,7 @@ export function buildInitialBudgetEditClientDetails(args: {
       jobStreet || (jobPostal || jobCity ? "" : legacyJobAddress),
     jobAddressPostalCode: jobPostal,
     jobAddressCity: jobCity,
-    taxRate: budget.tax_rate ?? 0,
+    taxRate: budget.tax_rate ?? null,
     projectName: (budget.project_name ?? "").trim() || undefined,
     quoteNumber: (budget.quote_number ?? "").trim(),
     date: (budget.document_date ?? "").trim(),

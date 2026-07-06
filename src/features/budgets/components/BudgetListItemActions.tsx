@@ -23,13 +23,12 @@ import {
 import { deleteContact } from "@/features/contacts/lib/contactsClient";
 import {
   createInvoiceFromBudget,
-  updateClientAddress,
-  updateClientTaxId,
 } from "@/features/invoices/lib/invoicesClient";
-import { InvoiceModal } from "@/features/invoices/components/InvoiceModal";
-import { useInvoiceModal } from "@/features/invoices/hooks/useInvoiceModal";
 import { normalizeBudgetStatus } from "@/features/budgets/lib/budgetStatus";
-import type { InvoicePricingMode } from "@/features/invoices/types/invoice";
+
+function hasNonEmpty(value: string | null | undefined): boolean {
+  return Boolean((value ?? "").trim());
+}
 
 export function BudgetListItemActions({
   budgetId,
@@ -38,9 +37,10 @@ export function BudgetListItemActions({
   invoiceId,
   clientName,
   clientTaxId,
-  jobAddressStreet,
-  jobAddressPostalCode,
-  jobAddressCity,
+  clientAddressStreet,
+  clientAddressPostalCode,
+  clientAddressCity,
+  taxRate,
   variant = "full",
 }: {
   budgetId: string;
@@ -49,9 +49,10 @@ export function BudgetListItemActions({
   invoiceId?: string | null;
   clientName: string | null;
   clientTaxId: string | null;
-  jobAddressStreet?: string | null;
-  jobAddressPostalCode?: string | null;
-  jobAddressCity?: string | null;
+  clientAddressStreet?: string | null;
+  clientAddressPostalCode?: string | null;
+  clientAddressCity?: string | null;
+  taxRate?: number | null;
   variant?: "full" | "icons";
 }) {
   const { exportPdf, generating, pdfError, setPdfError } = usePdfExport();
@@ -64,17 +65,33 @@ export function BudgetListItemActions({
   const [contactDeleteError, setContactDeleteError] = useState<string | null>(
     null
   );
-  const modal = useInvoiceModal(clientTaxId, budgetId, {
-    street: jobAddressStreet,
-    postalCode: jobAddressPostalCode,
-    city: jobAddressCity,
-  });
+  const [invoiceConfirmOpen, setInvoiceConfirmOpen] = useState(false);
   const [isInvoicing, startInvoicing] = useTransition();
   const [invoiceError, setInvoiceError] = useState<string | null>(null);
   const router = useRouter();
 
   const isApproved = normalizeBudgetStatus(budgetStatus) === "approved";
   const isInvoiced = normalizeBudgetStatus(budgetStatus) === "invoiced";
+  const missingInvoiceFields: string[] = [];
+
+  if (!hasNonEmpty(clientTaxId)) missingInvoiceFields.push("NIF/NIE");
+
+  const missingAddressParts = [
+    hasNonEmpty(clientAddressStreet),
+    hasNonEmpty(clientAddressPostalCode),
+    hasNonEmpty(clientAddressCity),
+  ];
+  if (!missingAddressParts.every(Boolean)) {
+    missingInvoiceFields.push("adreca fiscal completa");
+  }
+
+  if (taxRate == null) missingInvoiceFields.push("IVA");
+
+  const canInvoice = missingInvoiceFields.length === 0;
+  const missingInvoiceMessage =
+    missingInvoiceFields.length > 0
+      ? `Falta: ${missingInvoiceFields.join(", ")}`
+      : null;
 
   async function handleGeneratePdf(e: React.MouseEvent<HTMLButtonElement>) {
     e.preventDefault();
@@ -187,37 +204,13 @@ export function BudgetListItemActions({
     }
   }
 
-  async function handleCreateInvoice(pricingMode: InvoicePricingMode) {
-    modal.closeModal();
+  async function handleCreateInvoice() {
+    setInvoiceConfirmOpen(false);
     setInvoiceError(null);
     startInvoicing(() => {
       void (async () => {
         try {
-          if (
-            modal.taxId.trim() &&
-            modal.taxId.trim() !== (clientTaxId ?? "").trim()
-          ) {
-            await updateClientTaxId(budgetId, modal.taxId.trim());
-          }
-
-          const shouldUpdateAddress =
-            !modal.useDifferentFiscalAddress || modal.addressStreet.trim();
-
-          if (shouldUpdateAddress) {
-            await updateClientAddress(budgetId, {
-              address_street: modal.addressStreet,
-              address_postal_code: modal.addressPostalCode,
-              address_city: modal.addressCity,
-            });
-          }
-
-          const { invoiceId } = await createInvoiceFromBudget(
-            budgetId,
-            pricingMode,
-            modal.issueDate,
-            modal.dueDate,
-            pricingMode === "with_iva" ? modal.taxRate : undefined
-          );
+          const { invoiceId } = await createInvoiceFromBudget(budgetId);
           router.push(`/invoices/${invoiceId}`);
           router.refresh();
         } catch (err) {
@@ -258,66 +251,54 @@ export function BudgetListItemActions({
               {deleteError}
             </p>
           ) : null}
-          {isApproved ? (
-            <>
-              <Link
-                href={`/budgets/${budgetId}/edit`}
-                onClick={(e) => e.stopPropagation()}
-                className={variant === "icons" ? styles.iconBtn : styles.btn}
-                aria-label="Editar pressupost"
-                title="Editar"
-              >
-                {variant === "icons" ? (
-                  <Pencil size={18} aria-hidden="true" />
-                ) : (
-                  "Editar"
-                )}
-              </Link>
-              <button
-                type="button"
-                className={
-                  variant === "icons"
-                    ? styles.iconBtn
-                    : `${styles.btn} ${styles.primary}`
-                }
-                disabled={isInvoicing}
-                aria-busy={isInvoicing || undefined}
-                aria-label="Generar factura"
-                title="Generar factura"
-                onClick={(e) => {
-                  e.preventDefault();
-                  e.stopPropagation();
-                  modal.openModal();
-                }}
-              >
-                {variant === "icons" ? (
-                  isInvoicing ? (
-                    "…"
-                  ) : (
-                    <Receipt size={18} aria-hidden="true" />
-                  )
-                ) : isInvoicing ? (
-                  "…"
-                ) : (
-                  "Facturar"
-                )}
-              </button>
-            </>
-          ) : (
-            <Link
-              href={`/budgets/${budgetId}/edit`}
-              onClick={(e) => e.stopPropagation()}
-              className={variant === "icons" ? styles.iconBtn : styles.btn}
-              aria-label="Editar pressupost"
-              title="Editar"
-            >
-              {variant === "icons" ? (
-                <Pencil size={18} aria-hidden="true" />
+          <Link
+            href={`/budgets/${budgetId}/edit`}
+            onClick={(e) => e.stopPropagation()}
+            className={variant === "icons" ? styles.iconBtn : styles.btn}
+            aria-label="Editar pressupost"
+            title="Editar"
+          >
+            {variant === "icons" ? (
+              <Pencil size={18} aria-hidden="true" />
+            ) : (
+              "Editar"
+            )}
+          </Link>
+          <button
+            type="button"
+            className={
+              variant === "icons"
+                ? styles.iconBtn
+                : `${styles.btn} ${styles.primary}`
+            }
+            disabled={!canInvoice || isInvoicing}
+            aria-busy={isInvoicing || undefined}
+            aria-label="Generar factura"
+            title={canInvoice ? "Generar factura" : missingInvoiceMessage ?? "Generar factura"}
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              if (!canInvoice || isInvoicing) return;
+              setInvoiceConfirmOpen(true);
+            }}
+          >
+            {variant === "icons" ? (
+              isInvoicing ? (
+                "…"
               ) : (
-                "Editar"
-              )}
-            </Link>
-          )}
+                <Receipt size={18} aria-hidden="true" />
+              )
+            ) : isInvoicing ? (
+              "…"
+            ) : (
+              "Facturar"
+            )}
+          </button>
+          {!canInvoice ? (
+            <p className={styles.hint} role="note">
+              {missingInvoiceMessage}
+            </p>
+          ) : null}
           {!isApproved ? (
             <button
               type="button"
@@ -373,41 +354,16 @@ export function BudgetListItemActions({
         </>
       )}
 
-      {!isInvoiced && modal.open ? (
-        <InvoiceModal
-          loading={isInvoicing}
-          clientName={clientName}
-          clientTaxId={clientTaxId}
-          taxId={modal.taxId}
-          setTaxId={modal.setTaxId}
-          issueDate={modal.issueDate}
-          setIssueDate={modal.setIssueDate}
-          dueDate={modal.dueDate}
-          setDueDate={modal.setDueDate}
-          step={modal.step}
-          selectedPricingMode={modal.selectedPricingMode}
-          taxRate={modal.taxRate}
-          setTaxRate={modal.setTaxRate}
-          onSelectPricing={modal.selectPricing}
-          onConfirmTaxRate={modal.confirmTaxRate}
-          onConfirm={() => {
-            if (modal.selectedPricingMode)
-              handleCreateInvoice(modal.selectedPricingMode);
-          }}
-          onBack={modal.goBack}
-          onClose={modal.closeModal}
-          addressStreet={modal.addressStreet}
-          setAddressStreet={modal.setAddressStreet}
-          addressPostalCode={modal.addressPostalCode}
-          setAddressPostalCode={modal.setAddressPostalCode}
-          addressCity={modal.addressCity}
-          setAddressCity={modal.setAddressCity}
-          hasFiscalAddress={modal.hasFiscalAddress}
-          useDifferentFiscalAddress={modal.useDifferentFiscalAddress}
-          onToggleDifferentFiscalAddress={modal.toggleDifferentFiscalAddress}
-          clientDataLoading={modal.clientDataLoading}
-        />
-      ) : null}
+      <ConfirmDialog
+        open={!isInvoiced && invoiceConfirmOpen}
+        title="Confirmar facturacio"
+        description={`Aquesta accio es irreversible: el pressupost${(clientName ?? "").trim() ? ` de ${(clientName ?? "").trim()}` : ""} passara a facturat i ja no es podra editar.`}
+        confirmLabel="Confirmar i facturar"
+        cancelLabel="Cancel·lar"
+        loading={isInvoicing}
+        onClose={() => setInvoiceConfirmOpen(false)}
+        onConfirm={handleCreateInvoice}
+      />
 
       <ConfirmDialog
         open={confirmOpen}

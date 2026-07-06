@@ -18,15 +18,20 @@ function round2(n: number): number {
 
 export function calcBudgetHeaderAmounts(
   items: BudgetClientItem[],
-  taxRate: number
+  taxRate: number | null
 ) {
   const subtotal = items.reduce((sum, item) => sum + (item.total ?? 0), 0);
-  const tax_amount = round2(subtotal * (taxRate / 100));
+  const appliedTaxRate = typeof taxRate === "number" ? taxRate : 0;
+  const tax_amount = round2(subtotal * (appliedTaxRate / 100));
   return { subtotal, tax_amount };
 }
 
-export function calcTotalsFromSubtotal(subtotal: number, taxRate: number) {
-  const tax_amount = round2(subtotal * (taxRate / 100));
+export function calcTotalsFromSubtotal(
+  subtotal: number,
+  taxRate: number | null
+) {
+  const appliedTaxRate = typeof taxRate === "number" ? taxRate : 0;
+  const tax_amount = round2(subtotal * (appliedTaxRate / 100));
   const total = round2(subtotal + tax_amount);
   return { subtotal, tax_amount, total };
 }

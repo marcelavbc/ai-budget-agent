@@ -19,6 +19,14 @@ describe("budgetRowToListRow", () => {
   it("converts a BudgetRow to a BudgetListRow", () => {
     const input = createMockBudgetRow(mockRowData);
     const result = budgetRowToListRow(input);
-    expect(result).toEqual({ ...mockRowData, invoice_id: null });
+    expect(result).toEqual({
+      ...mockRowData,
+      client_tax_id: input.client_tax_id,
+      client_address_street: input.client_address_street,
+      client_address_postal_code: input.client_address_postal_code,
+      client_address_city: input.client_address_city,
+      tax_rate: input.tax_rate,
+      invoice_id: null,
+    });
   });
 });
