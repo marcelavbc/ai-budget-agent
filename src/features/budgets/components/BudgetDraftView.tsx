@@ -64,8 +64,6 @@ function segmentDraftItems(items: BudgetClientItem[]): DraftSegment[] {
 }
 
 function statusPillClass(value: BudgetStatus): string {
-  if (value === "sent") return styles.statusPillSent;
-  if (value === "approved") return styles.statusPillApproved;
   if (value === "invoiced") return styles.statusPillInvoiced;
   return styles.statusPillDraft;
 }

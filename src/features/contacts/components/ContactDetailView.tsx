@@ -106,8 +106,6 @@ function formatFiscalAddressSummary(form: FormState): string {
 }
 
 function budgetPillClass(status: BudgetStatus): string {
-  if (status === "sent") return styles.pillSent;
-  if (status === "approved") return styles.pillApproved;
   if (status === "invoiced") return styles.pillInvoiced;
   return styles.pillDraft;
 }

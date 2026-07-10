@@ -61,7 +61,7 @@ describe("resolveBudgetClientIdentity", () => {
       fiscal_address_city: "Girona",
     });
 
-    for (const status of ["draft", "sent", "approved"] as const) {
+    for (const status of ["draft"] as const) {
       const budget = makeBudget({
         status,
         client_name: "Client pressupost",

@@ -29,7 +29,7 @@ describe("useBudgetsListFilters", () => {
       useBudgetsListFilters([mockBudgetRow, mockBudgetRowTwo])
     );
     act(() => {
-      result.current.toggleStatus("sent");
+      result.current.toggleStatus("invoiced");
     });
     expect(result.current.filtered).toHaveLength(1);
     expect(result.current.filtered[0]!.title).toBe("Test Item Two");
@@ -43,7 +43,7 @@ describe("useBudgetsListFilters", () => {
       result.current.searchInputProps.onChange({
         target: { value: "Test Item Two" },
       } as ChangeEvent<HTMLInputElement>);
-      result.current.toggleStatus("sent");
+      result.current.toggleStatus("invoiced");
     });
 
     expect(result.current.filtered).toHaveLength(1);
@@ -81,7 +81,7 @@ describe("useBudgetsListFilters", () => {
       id: "2",
       title: "Test Item Two",
       document_date: toYMD(now),
-      status: "sent",
+      status: "invoiced",
     });
     const { result } = renderHook(() =>
       useBudgetsListFilters([inMonthDraft, inMonthSent])
@@ -93,7 +93,7 @@ describe("useBudgetsListFilters", () => {
     expect(result.current.resultsLabel).toBe("2 de 2");
 
     act(() => {
-      result.current.toggleStatus("sent");
+      result.current.toggleStatus("invoiced");
     });
     expect(result.current.resultsLabel).toBe("1 de 2");
 

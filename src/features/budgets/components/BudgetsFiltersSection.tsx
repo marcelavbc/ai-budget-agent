@@ -79,7 +79,7 @@ export function BudgetsFiltersSection({
               role="menu"
               aria-label="Seleccionar estats"
             >
-              {(["draft", "sent", "approved"] as const).map((s) => {
+              {(["draft", "invoiced"] as const).map((s) => {
                 const checked = filters.selectedStatuses.has(s);
                 return (
                   <label key={s} className={styles.menuRow}>

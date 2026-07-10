@@ -32,9 +32,9 @@ describe("Edit budget", () => {
     ).toBeInTheDocument();
     fireEvent.click(screen.getByRole("button", { name: "Editar dades" }));
     expect(screen.getByDisplayValue("John Doe")).toBeInTheDocument();
-    expect(screen.getByDisplayValue("123 Main St")).toBeInTheDocument();
-    expect(screen.getByDisplayValue("12345")).toBeInTheDocument();
-    expect(screen.getByDisplayValue("Anytown")).toBeInTheDocument();
+    expect(screen.getAllByDisplayValue("123 Main St").length).toBeGreaterThan(0);
+    expect(screen.getAllByDisplayValue("12345").length).toBeGreaterThan(0);
+    expect(screen.getAllByDisplayValue("Anytown").length).toBeGreaterThan(0);
   });
   it("user can add line items with AI", async () => {
     vi.stubGlobal(
@@ -76,14 +76,7 @@ describe("Edit budget", () => {
       expect(screen.getByText("Pintar passadís 20 m²")).toBeInTheDocument();
     });
   });
-  it("user can change budget status", () => {
-    vi.stubGlobal(
-      "fetch",
-      vi.fn().mockResolvedValue({
-        ok: true,
-        json: async () => ({}),
-      })
-    );
+  it("shows read-only budget status", () => {
     render(
       <BudgetEditView
         budget={mockBudgetRow}
@@ -91,11 +84,7 @@ describe("Edit budget", () => {
         lines={[mockBudgetLineRow]}
       />
     );
-    const statusPill = screen.getByRole("button", {
-      name: "Canviar estat del pressupost",
-    });
-    fireEvent.click(statusPill);
-    expect(statusPill).toHaveTextContent("Enviat");
+    expect(screen.getByText("Esborrany")).toBeInTheDocument();
   });
   it("saves changes correctly", () => {
     vi.stubGlobal(

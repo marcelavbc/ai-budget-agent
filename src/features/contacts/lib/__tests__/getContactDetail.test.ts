@@ -17,11 +17,11 @@ describe("buildContactDetailTotals", () => {
     const budgets = [
       { status: "draft" },
       { status: "draft" },
-      { status: "approved" },
+      { status: "invoiced" },
     ];
 
     expect(buildContactDetailTotals(budgets, [])).toEqual({
-      budgetCountByStatus: { draft: 2, approved: 1 },
+      budgetCountByStatus: { draft: 2, invoiced: 1 },
       totalIssued: 0,
       totalPaid: 0,
     });

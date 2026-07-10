@@ -75,15 +75,13 @@ export default async function HomePage(props: {
   const totals = {
     all: budgets.length,
     draft: 0,
-    sent: 0,
-    approved: 0,
+    invoiced: 0,
   };
 
   for (const b of budgets) {
     const status = normalizeBudgetStatus(b.status);
     if (status === "draft") totals.draft += 1;
-    if (status === "sent") totals.sent += 1;
-    if (status === "approved") totals.approved += 1;
+    if (status === "invoiced") totals.invoiced += 1;
   }
 
   return (
@@ -123,27 +121,23 @@ export default async function HomePage(props: {
                     {budgetStatusLabel("draft")}
                     <span className={styles.badgeCount}>{totals.draft}</span>
                   </span>
-                  <span className={`${styles.badge} ${styles.badgeSent}`}>
-                    {budgetStatusLabel("sent")}
-                    <span className={styles.badgeCount}>{totals.sent}</span>
-                  </span>
-                  <span className={`${styles.badge} ${styles.badgeApproved}`}>
-                    {budgetStatusLabel("approved")}
-                    <span className={styles.badgeCount}>{totals.approved}</span>
+                  <span className={`${styles.badge} ${styles.badgeInvoiced}`}>
+                    {budgetStatusLabel("invoiced")}
+                    <span className={styles.badgeCount}>{totals.invoiced}</span>
                   </span>
                 </div>
               </div>
 
               <div className={styles.stat}>
-                <p className={styles.statKicker}>Aprovats</p>
-                <p className={styles.statValue}>{totals.approved}</p>
-                <p className={styles.statHint}>Pressupostos aprovats</p>
+                <p className={styles.statKicker}>Facturats</p>
+                <p className={styles.statValue}>{totals.invoiced}</p>
+                <p className={styles.statHint}>Pressupostos facturats</p>
               </div>
 
               <div className={styles.stat}>
-                <p className={styles.statKicker}>Pendents d&apos;aprovació</p>
-                <p className={styles.statValue}>{totals.sent}</p>
-                <p className={styles.statHint}>Pressupostos enviats</p>
+                <p className={styles.statKicker}>En esborrany</p>
+                <p className={styles.statValue}>{totals.draft}</p>
+                <p className={styles.statHint}>Pressupostos pendents de facturar</p>
               </div>
             </div>
           </section>

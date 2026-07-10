@@ -22,8 +22,8 @@ describe("useBudgetsListData", () => {
       useBudgetsListData({ budgets: [mockBudgetRow, mockBudgetRowTwo] })
     );
     act(() => {
-      result.current.setBudgetStatus(mockBudgetRow.id, "sent");
+      result.current.setBudgetStatus(mockBudgetRow.id, "invoiced");
     });
-    expect(result.current.items[0]!.status).toBe("sent");
+    expect(result.current.items[0]!.status).toBe("invoiced");
   });
 });

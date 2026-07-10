@@ -1,6 +1,6 @@
 import type { BudgetListRow } from "@/features/budgets/types/budgetsDb";
 import {
-  normalizeBudgetStatusOrAll,
+  normalizeBudgetStatus,
   type BudgetStatus,
 } from "@/features/budgets/lib/budgetStatus";
 import { toComparableBudgetListDate } from "@/features/budgets/lib/budgetsListFormatting";
@@ -20,8 +20,7 @@ export function filterBudgets(
 
   return items.filter((b) => {
     if (filters.selectedStatuses.size > 0) {
-      const s = normalizeBudgetStatusOrAll(b.status);
-      if (s === "all") return false;
+      const s = normalizeBudgetStatus(b.status);
       if (!filters.selectedStatuses.has(s)) return false;
     }
 

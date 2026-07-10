@@ -48,7 +48,6 @@ export function BudgetListItemActions({
   );
   const router = useRouter();
 
-  const isApproved = normalizeBudgetStatus(budgetStatus) === "approved";
   const isInvoiced = normalizeBudgetStatus(budgetStatus) === "invoiced";
 
   async function handleGeneratePdf(e: React.MouseEvent<HTMLButtonElement>) {
@@ -204,33 +203,31 @@ export function BudgetListItemActions({
             )}
           </Link>
 
-          {!isApproved ? (
-            <button
-              type="button"
-              disabled={generating}
-              className={
-                variant === "icons"
-                  ? styles.iconBtn
-                  : `${styles.btn} ${styles.primary}`
-              }
-              aria-busy={generating || undefined}
-              aria-label="Generar PDF"
-              title="PDF"
-              onClick={handleGeneratePdf}
-            >
-              {variant === "icons" ? (
-                generating ? (
-                  "..."
-                ) : (
-                  <FileDown size={18} aria-hidden="true" />
-                )
-              ) : generating ? (
-                "PDF..."
+          <button
+            type="button"
+            disabled={generating}
+            className={
+              variant === "icons"
+                ? styles.iconBtn
+                : `${styles.btn} ${styles.primary}`
+            }
+            aria-busy={generating || undefined}
+            aria-label="Generar PDF"
+            title="PDF"
+            onClick={handleGeneratePdf}
+          >
+            {variant === "icons" ? (
+              generating ? (
+                "..."
               ) : (
-                "PDF"
-              )}
-            </button>
-          ) : null}
+                <FileDown size={18} aria-hidden="true" />
+              )
+            ) : generating ? (
+              "PDF..."
+            ) : (
+              "PDF"
+            )}
+          </button>
 
           <button
             type="button"
@@ -289,7 +286,7 @@ export function BudgetListItemActions({
         </p>
       ) : null}
 
-      {!isInvoiced && !isApproved && pdfError ? (
+      {!isInvoiced && pdfError ? (
         <p className={styles.error} role="alert">
           {pdfError}
         </p>

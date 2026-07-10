@@ -30,7 +30,7 @@ const mockBudgets: BudgetListRow[] = [
     id: "2",
     title: "Budget 2",
     job_address: "456 Secondary St",
-    status: "sent",
+    status: "invoiced",
     document_date: "2024-04-01",
     quote_number: "0987654321",
     created_at: "2024-04-01",

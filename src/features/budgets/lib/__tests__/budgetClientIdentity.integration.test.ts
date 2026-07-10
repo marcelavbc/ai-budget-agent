@@ -8,7 +8,6 @@ import {
   createBudget,
   getBudgetById,
   saveBudgetWithLines,
-  updateBudgetById,
   updateBudgetWithLines,
 } from "@/features/budgets/lib/budgets";
 import type { BudgetClientItem } from "@/features/budgets/types/budget";
@@ -144,30 +143,28 @@ describe("budget client identity (integration, sanmarti-dev)", () => {
     expect(terrassaRow?.client_name).toBe("Jordi - Terrassa");
   });
 
-  it("approved budget's client field is editable (not locked)", async () => {
-    const contact = await createContact({ name: "__test__ Approved Client" });
+  it("draft budget's client field is editable (not locked)", async () => {
+    const contact = await createContact({ name: "__test__ Draft Client" });
     createdContactIds.push(contact.id);
 
     const budget = await createBudget({
-      client: testClient({ nameOrCompany: "__test__ Approved Client" }),
+      client: testClient({ nameOrCompany: "__test__ Draft Client" }),
       contactId: contact.id,
       subtotal: 100,
       status: "draft",
     });
     createdBudgetIds.push(budget.id);
 
-    await updateBudgetById(budget.id, { status: "approved" });
-
     await updateBudgetWithLines({
       budgetId: budget.id,
       contactId: contact.id,
-      client: testClient({ nameOrCompany: "__test__ Approved Renamed" }),
+      client: testClient({ nameOrCompany: "__test__ Draft Renamed" }),
       items: testItems(),
-      status: "approved",
+      status: "draft",
     });
 
     const updated = await getBudgetById(budget.id);
-    expect(updated?.status).toBe("approved");
-    expect(updated?.client_name).toBe("__test__ Approved Renamed");
+    expect(updated?.status).toBe("draft");
+    expect(updated?.client_name).toBe("__test__ Draft Renamed");
   });
 });

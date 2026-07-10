@@ -81,7 +81,7 @@ export const mockBudgetRow = createMockBudgetRow();
 export const mockBudgetRowTwo = createMockBudgetRow({
   id: "2",
   title: "Test Item Two",
-  status: "sent",
+  status: "invoiced",
   quote_number: "2025-99",
   job_address: "Plaça Nova 3",
   document_date: "2025-06-01",

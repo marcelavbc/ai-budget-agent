@@ -85,7 +85,7 @@ describe("filterBudgets", () => {
     it("empty selectedStatuses returns all items", () => {
       const items = [
         makeBudget({ id: "a", status: "draft" }),
-        makeBudget({ id: "b", status: "sent" }),
+        makeBudget({ id: "b", status: "invoiced" }),
       ];
       expect(filterBudgets(items, baseFilters({ selectedStatuses: new Set() }))).toEqual(
         items
@@ -94,8 +94,8 @@ describe("filterBudgets", () => {
 
     it('selectedStatuses has "draft" returns only draft items', () => {
       const draft = makeBudget({ id: "d", status: "draft" });
-      const sent = makeBudget({ id: "s", status: "sent" });
-      const items = [draft, sent];
+      const invoiced = makeBudget({ id: "i", status: "invoiced" });
+      const items = [draft, invoiced];
       expect(
         filterBudgets(items, baseFilters({ selectedStatuses: new Set<BudgetStatus>(["draft"]) }))
       ).toEqual([draft]);
@@ -103,17 +103,17 @@ describe("filterBudgets", () => {
 
     it("selectedStatuses has multiple values returns items matching any", () => {
       const draft = makeBudget({ id: "d", status: "draft" });
-      const sent = makeBudget({ id: "s", status: "sent" });
-      const approved = makeBudget({ id: "a", status: "approved" });
-      const items = [draft, sent, approved];
+      const invoiced = makeBudget({ id: "i", status: "invoiced" });
+      const legacySent = makeBudget({ id: "s", status: "sent" });
+      const items = [draft, invoiced, legacySent];
       expect(
         filterBudgets(
           items,
           baseFilters({
-            selectedStatuses: new Set<BudgetStatus>(["draft", "sent"]),
+            selectedStatuses: new Set<BudgetStatus>(["draft", "invoiced"]),
           })
         )
-      ).toEqual([draft, sent]);
+      ).toEqual([draft, invoiced, legacySent]);
     });
   });
 
@@ -174,17 +174,17 @@ describe("filterBudgets", () => {
         title: "Casa Vella",
         status: "draft",
       });
-      const matchQuerySent = makeBudget({
-        id: "qs",
+      const matchQueryInvoiced = makeBudget({
+        id: "qi",
         title: "Casa Nova",
-        status: "sent",
+        status: "invoiced",
       });
       const draftNoQuery = makeBudget({
         id: "dq",
         title: "Magatzem",
         status: "draft",
       });
-      const items = [matchQueryDraft, matchQuerySent, draftNoQuery];
+      const items = [matchQueryDraft, matchQueryInvoiced, draftNoQuery];
       expect(
         filterBudgets(
           items,
