@@ -66,15 +66,23 @@
   --focus-glow: 0 0 0 3px
     color-mix(in srgb, var(--color-gold-medium) 18%, transparent);
 
-  /* Status: readable, palette-aligned (no bright SaaS blues) */
-  --state-draft: #6b6b6b;
-  --state-draft-bg: #f2f2f0;
+  /* Status: readable, palette-aligned (use logo palette tones) */
+  --state-draft: var(--color-green-dark);
+  --state-draft-bg: color-mix(
+    in srgb,
+    var(--color-green-light) 12%,
+    var(--surface)
+  );
   --state-sent: #3d6b52;
   --state-sent-bg: #ebf3ee;
   --state-approved: #8a6a1a;
   --state-approved-bg: #fbf4e4;
-  --state-invoiced: #2d5a7a;
-  --state-invoiced-bg: #e8f2f8;
+  --state-invoiced: var(--color-gold-dark);
+  --state-invoiced-bg: color-mix(
+    in srgb,
+    var(--color-gold-light) 12%,
+    var(--surface)
+  );
 
   /* Gold reserved for totals & rare highlights */
   --total-figure: var(--color-gold-dark);
