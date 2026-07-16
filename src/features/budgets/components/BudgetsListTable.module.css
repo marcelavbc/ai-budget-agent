@@ -61,6 +61,17 @@
   white-space: nowrap;
 }
 
+.colClient {
+  font-family: var(--font-body);
+  font-size: 13px;
+  font-weight: 500;
+  line-height: 1.35;
+  color: var(--text-secondary);
+  max-width: 200px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
 .quoteLink {
   color: var(--text-muted);
   text-decoration: none;
