@@ -38,7 +38,7 @@ partidas) y **`draft`** (datos del cliente y guardar).
    - Los cambios de precio/cantidad pasan por `handleDraftItemChange`, que sincroniza `draftItems` y `updateLine` para recalcular `hasPending`.
 
 3. **Generar borrador**
-   - Botón **«Generar esborrany»** (visible solo si hay partidas y `hasPending === false`).
+   - Botón **«Generar pressupost»** (visible solo si hay partidas y `hasPending === false`).
    - No llama a la API: solo `setView("draft")`. Los `BudgetClientItem` ya están en `draftItems`.
 
 ### Fase 2 — Vista `draft` (cliente y guardar)
@@ -109,7 +109,7 @@ partidas) y **`draft`** (datos del cliente y guardar).
 ## Evolución prevista
 
 Unificar creación y edición en una sola pantalla (como `/budgets/[id]/edit`),
-eliminando el paso «Generar esborrany». Ver `progress.md` → Pendientes.
+eliminando el paso «Generar pressupost». Ver `progress.md` → Pendientes.
 
 ---
 

@@ -21,7 +21,7 @@ export async function POST(request: Request) {
     });
   } catch {
     return NextResponse.json(
-      { error: "S’ha produït un error en generar l’esborrany." },
+      { error: "S’ha produït un error en generar el pressupost." },
       { status: 500 }
     );
   }

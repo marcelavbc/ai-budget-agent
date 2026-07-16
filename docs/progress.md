@@ -50,7 +50,7 @@ Aplicación Next.js (App Router) para gestionar **presupuestos** y **facturas**,
 ### Creación (`/budgets/nou`) — flujo actual en dos pasos
 
 1. **Vista `lines`**: `BudgetForm` + IA (`BudgetAIInput`) → partidas en `useBudgetLines` + vista previa en `BudgetDraftEditor`.
-2. **Vista `draft`**: botón «Generar esborrany» → `BudgetDraftView` (datos cliente + guardar).
+2. **Vista `draft`**: botón «Generar pressupost» → `BudgetDraftView` (datos cliente + guardar).
 
 Post-guardado: navega a `/budgets?new={budgetId}`. El listado lee el param `new`, hace un fetch puntual de ese presupuesto y lo inyecta optimistamente mientras carga la lista general. Una vez cargada, hace `router.replace('/budgets')` para limpiar la URL.
 
@@ -125,7 +125,7 @@ pnpm run dev     # http://localhost:3001
 
 ### 1. Unificar flujo de creación (acordado, no implementado)
 
-Eliminar `view: "lines" | "draft"` y el botón «Generar esborrany». Reutilizar en `/budgets/nou` el mismo patrón que `/budgets/[id]/edit` (`BudgetDraftView` + `BudgetAIInput` + guardar con POST).
+Eliminar `view: "lines" | "draft"` y el botón «Generar pressupost». Reutilizar en `/budgets/nou` el mismo patrón que `/budgets/[id]/edit` (`BudgetDraftView` + `BudgetAIInput` + guardar con POST).
 
 ### 2. UX descripción Roger (diseñado, no en el repo)
 
@@ -149,7 +149,7 @@ El contacto asociado debería eliminarse si no tiene otros presupuestos. Actualm
 
 ## Comportamiento actual que conviene recordar
 
-- **Botón «Generar esborrany»**: deshabilitado mientras `hasPending` (partidas sin precio válido).
+- **Botón «Generar pressupost»**: deshabilitado mientras `hasPending` (partidas sin precio válido).
 - **Botón «Guardar pressupost»**: habilitado con solo el nombre/empresa del cliente.
 - **Descripciones al crear**: plantillas por tipo (`generateBudgetDraft`); Roger las edita manualmente.
 - **Guardar con descripciones vacías**: OK en UI; en BD se persisten como `""`.

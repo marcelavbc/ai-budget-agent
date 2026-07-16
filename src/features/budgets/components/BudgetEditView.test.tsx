@@ -32,7 +32,9 @@ describe("Edit budget", () => {
     ).toBeInTheDocument();
     fireEvent.click(screen.getByRole("button", { name: "Editar dades" }));
     expect(screen.getByDisplayValue("John Doe")).toBeInTheDocument();
-    expect(screen.getAllByDisplayValue("123 Main St").length).toBeGreaterThan(0);
+    expect(screen.getAllByDisplayValue("123 Main St").length).toBeGreaterThan(
+      0
+    );
     expect(screen.getAllByDisplayValue("12345").length).toBeGreaterThan(0);
     expect(screen.getAllByDisplayValue("Anytown").length).toBeGreaterThan(0);
   });
@@ -84,7 +86,7 @@ describe("Edit budget", () => {
         lines={[mockBudgetLineRow]}
       />
     );
-    expect(screen.getByText("Esborrany")).toBeInTheDocument();
+    expect(screen.getByText("Pressupost")).toBeInTheDocument();
   });
   it("saves changes correctly", () => {
     vi.stubGlobal(

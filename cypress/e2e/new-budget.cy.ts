@@ -23,34 +23,34 @@ describe("New budget", () => {
     cy.contains("Pintura de parets i sostre").should("exist");
   });
 
-  it("shows 'Generar esborrany' button after lines are added", () => {
+  it("shows 'Generar pressupost' button after lines are added", () => {
     cy.interceptGroq("groq-draft-simple");
     cy.get('textarea[aria-label="Descripció del treball"]').type(
       "Pintar menjador 20m²"
     );
     cy.get('button[type="submit"]').click();
     cy.wait("@generateDraft");
-    cy.contains("button", "Generar esborrany").should("exist");
+    cy.contains("button", "Generar pressupost").should("exist");
   });
 
-  it("navigates to draft view after clicking 'Generar esborrany'", () => {
+  it("navigates to draft view after clicking 'Generar pressupost'", () => {
     cy.interceptGroq("groq-draft-simple");
     cy.get('textarea[aria-label="Descripció del treball"]').type(
       "Pintar menjador 20m²"
     );
     cy.get('button[type="submit"]').click();
     cy.wait("@generateDraft");
-    cy.contains("button", "Generar esborrany").click();
+    cy.contains("button", "Generar pressupost").click();
     cy.get('input[name="nameOrCompany"]').should("exist");
   });
-  it("does not show 'Generar esborrany' when lines have pending prices", () => {
+  it("does not show 'Generar pressupost' when lines have pending prices", () => {
     cy.interceptGroq("groq-draft-pending");
     cy.get('textarea[aria-label="Descripció del treball"]').type(
       "Reparar esquerdes"
     );
     cy.get('button[type="submit"]').click();
     cy.wait("@generateDraft");
-    cy.contains("button", "Generar esborrany").should("not.exist");
+    cy.contains("button", "Generar pressupost").should("not.exist");
   });
 
   it("shows price per sqm slider", () => {

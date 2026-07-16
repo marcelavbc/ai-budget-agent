@@ -3,7 +3,10 @@ import { connection } from "next/server";
 import { getBudgets } from "@/features/budgets/lib/budgets";
 import { getInvoiceDashboardStats } from "@/features/invoices/lib/invoices";
 import { formatEUR } from "@/shared/lib/formatCurrency";
-import { budgetStatusLabel, normalizeBudgetStatus } from "@/features/budgets/lib/budgetStatus";
+import {
+  budgetStatusLabel,
+  normalizeBudgetStatus,
+} from "@/features/budgets/lib/budgetStatus";
 import { parseDateFilter, type DateFilter } from "@/shared/lib/dateFilter";
 
 import styles from "./page.module.css";
@@ -33,7 +36,9 @@ function formatFilterLabel(filter: DateFilter): string {
 
   if (months.length === 1 && !hasYear) {
     const dt = new Date(Date.UTC(2000, months[0] - 1, 1));
-    const month = new Intl.DateTimeFormat("ca-ES", { month: "long" }).format(dt);
+    const month = new Intl.DateTimeFormat("ca-ES", { month: "long" }).format(
+      dt
+    );
     const titleMonth = month.charAt(0).toUpperCase() + month.slice(1);
     return `${titleMonth} · Tots els anys`;
   }
@@ -44,7 +49,9 @@ function formatFilterLabel(filter: DateFilter): string {
 
   if (months.length === 1 && hasYear) {
     const dt = new Date(Date.UTC(filter.year!, months[0] - 1, 1));
-    const month = new Intl.DateTimeFormat("ca-ES", { month: "long" }).format(dt);
+    const month = new Intl.DateTimeFormat("ca-ES", { month: "long" }).format(
+      dt
+    );
     const titleMonth = month.charAt(0).toUpperCase() + month.slice(1);
     return `${titleMonth} ${filter.year}`;
   }
@@ -90,7 +97,9 @@ export default async function HomePage(props: {
         <header className={styles.header}>
           <div className={styles.headerTop}>
             <h1 className={styles.title}>Tauler</h1>
-            <span className={styles.filterLabel}>{formatFilterLabel(filter)}</span>
+            <span className={styles.filterLabel}>
+              {formatFilterLabel(filter)}
+            </span>
           </div>
           <FilterBar />
         </header>
@@ -135,9 +144,11 @@ export default async function HomePage(props: {
               </div>
 
               <div className={styles.stat}>
-                <p className={styles.statKicker}>En esborrany</p>
+                <p className={styles.statKicker}>En pressupost</p>
                 <p className={styles.statValue}>{totals.draft}</p>
-                <p className={styles.statHint}>Pressupostos pendents de facturar</p>
+                <p className={styles.statHint}>
+                  Pressupostos pendents de facturar
+                </p>
               </div>
             </div>
           </section>

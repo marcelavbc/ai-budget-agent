@@ -19,7 +19,7 @@ export function normalizeBudgetStatusOrAll(
 
 export function budgetStatusLabel(value: BudgetStatus): string {
   if (value === "invoiced") return "Facturat";
-  return "Esborrany";
+  return "Pressupost";
 }
 
 export function budgetStatusOrAllLabel(value: BudgetStatus | "all"): string {

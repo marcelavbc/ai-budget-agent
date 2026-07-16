@@ -77,7 +77,7 @@ En `/budgets/nou` (vista `lines`), **`BudgetDraftEditor`** usa `segmentDraftItem
 
 ### 7 — Pasar al borrador (`draft`)
 
-Al pulsar **«Generar esborrany»**, `draftItems` ya contienen `optionGroupId` / `optionLabel` por partida. `generateBudgetDraft` preserva esos metadatos al mapear desde `BudgetListItem[]`.
+Al pulsar **«Generar pressupost»**, `draftItems` ya contienen `optionGroupId` / `optionLabel` por partida. `generateBudgetDraft` preserva esos metadatos al mapear desde `BudgetListItem[]`.
 
 ### 8 — Vista borrador: `BudgetDraftView`
 
@@ -106,15 +106,15 @@ BudgetClientItem (borrador / BD / PDF)
 
 ## Archivos clave
 
-| Archivo | Rol |
-|---------|-----|
-| `parseBudgetLinesWithAI.ts` | Prompt + validación; emite metadatos de grupo |
-| `budgetListItems.ts` | `buildOptionGroups`, `stripLine`, `getAllLines` |
-| `useBudgetLines.ts` | Estado; agrupa en cada add/remove |
-| `generateBudgetDraft.ts` | Aplana grupos a `BudgetClientItem[]` |
-| `BudgetDraftEditor.tsx` | UI de grupos en vista `lines` |
-| `BudgetDraftView.tsx` | UI de grupos en vista `draft` / edición |
-| `types/budget.ts` | `BudgetLine`, `BudgetOptionGroup`, `BudgetListItem` |
+| Archivo                     | Rol                                                 |
+| --------------------------- | --------------------------------------------------- |
+| `parseBudgetLinesWithAI.ts` | Prompt + validación; emite metadatos de grupo       |
+| `budgetListItems.ts`        | `buildOptionGroups`, `stripLine`, `getAllLines`     |
+| `useBudgetLines.ts`         | Estado; agrupa en cada add/remove                   |
+| `generateBudgetDraft.ts`    | Aplana grupos a `BudgetClientItem[]`                |
+| `BudgetDraftEditor.tsx`     | UI de grupos en vista `lines`                       |
+| `BudgetDraftView.tsx`       | UI de grupos en vista `draft` / edición             |
+| `types/budget.ts`           | `BudgetLine`, `BudgetOptionGroup`, `BudgetListItem` |
 
 ## Tests
 
