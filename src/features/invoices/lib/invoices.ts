@@ -2,6 +2,7 @@ import "server-only";
 
 import { getSupabaseClient } from "@/core/lib/supabaseClient";
 import { getBudgetLinesByBudgetId } from "@/features/budgets/lib/budgets";
+import { mapBudgetLineToInvoiceLineContent } from "@/features/invoices/lib/mapBudgetLineToInvoiceLine";
 import {
   dateFilterRange,
   matchesDateFilter,
@@ -153,15 +154,19 @@ export async function createInvoiceFromBudget(
 
   if (lines.length > 0) {
     const invoiceLines: TablesInsert<"invoice_lines">[] = lines.map(
-      (l, idx) => ({
-        invoice_id: invoiceIdStr,
-        description: ((l.title ?? "").trim() || "Partida") as string,
-        quantity: l.quantity ?? 1,
-        unit_price: l.unit_price ?? 0,
-        subtotal:
-          l.line_total ?? round2((l.quantity ?? 1) * (l.unit_price ?? 0)),
-        sort_order: l.sort_order ?? idx,
-      })
+      (l, idx) => {
+        const { description, unit } = mapBudgetLineToInvoiceLineContent(l);
+        return {
+          invoice_id: invoiceIdStr,
+          description,
+          unit,
+          quantity: l.quantity ?? 1,
+          unit_price: l.unit_price ?? 0,
+          subtotal:
+            l.line_total ?? round2((l.quantity ?? 1) * (l.unit_price ?? 0)),
+          sort_order: l.sort_order ?? idx,
+        };
+      }
     );
 
     const { error: linesError } = await supabase
