@@ -1,7 +1,6 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { BudgetListItemActions } from "@/features/budgets/components/BudgetListItemActions";
 import { StatusPill } from "@/features/budgets/components/StatusPill";
 import { formatBudgetListDate } from "@/features/budgets/lib/budgetsListFormatting";
 import type { BudgetStatus } from "@/features/budgets/lib/budgetStatus";
@@ -63,16 +62,6 @@ export function BudgetsListCards({
                       {quote}
                     </span>
                   ) : null}
-                </div>
-
-                <div className={styles.cardActions}>
-                  <BudgetListItemActions
-                    budgetId={b.id}
-                    budgetStatus={b.status}
-                    budgetLang={b.lang}
-                    invoiceId={b.invoice_id ?? null}
-                    variant="icons"
-                  />
                 </div>
               </div>
             </div>

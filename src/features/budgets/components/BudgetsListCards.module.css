@@ -55,13 +55,6 @@
   margin-top: 0.6rem;
 }
 
-.cardActions {
-  display: flex;
-  gap: 0.4rem;
-  align-items: center;
-  flex-shrink: 0;
-}
-
 .cardTitle {
   margin: 0;
   font-family: var(--font-body);

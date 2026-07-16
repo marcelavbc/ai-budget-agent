@@ -5,7 +5,6 @@ import { StatusPill } from "@/features/budgets/components/StatusPill";
 import { formatBudgetListDate } from "@/features/budgets/lib/budgetsListFormatting";
 import type { BudgetStatus } from "@/features/budgets/lib/budgetStatus";
 import type { BudgetListRow } from "@/features/budgets/types/budgetsDb";
-import { BudgetListItemActions } from "@/features/budgets/components/BudgetListItemActions";
 import styles from "./BudgetsListTable.module.css";
 
 export function BudgetsListTable({
@@ -26,7 +25,6 @@ export function BudgetsListTable({
             <th className={styles.th}>Client</th>
             <th className={styles.th}>Data</th>
             <th className={`${styles.th} ${styles.colStatus}`}>Estat</th>
-            <th className={`${styles.th} ${styles.colActions}`}>Accions</th>
           </tr>
         </thead>
         <tbody>
@@ -57,17 +55,6 @@ export function BudgetsListTable({
                     initialStatus={b.status}
                     onStatusChange={(next) => onStatusChange(b.id, next)}
                   />
-                </td>
-                <td className={`${styles.td} ${styles.colActions}`}>
-                  <div className={styles.rowActions}>
-                    <BudgetListItemActions
-                      budgetId={b.id}
-                      budgetStatus={b.status}
-                      budgetLang={b.lang}
-                      invoiceId={b.invoice_id ?? null}
-                      variant="icons"
-                    />
-                  </div>
                 </td>
               </tr>
             );
