@@ -1,10 +1,7 @@
 "use client";
 
-import { useState } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { FileDown, Eye, Pencil, Trash2 } from "lucide-react";
-import { ConfirmDialog } from "@/shared/components/ConfirmDialog";
+import { FileDown, Eye, Pencil } from "lucide-react";
 import styles from "./BudgetListItemActions.module.css";
 import { usePdfExport } from "@/features/budgets/hooks/usePdfExport";
 import type {
@@ -16,11 +13,7 @@ import type {
   BudgetRow,
 } from "@/features/budgets/types/budgetsDb";
 import type { ContactRow } from "@/features/contacts/lib/contacts";
-import {
-  deleteBudgetWithLines,
-  getBudgetExportData,
-} from "@/features/budgets/lib/budgetsClient";
-import { deleteContact } from "@/features/contacts/lib/contactsClient";
+import { getBudgetExportData } from "@/features/budgets/lib/budgetsClient";
 import { normalizeBudgetStatus } from "@/features/budgets/lib/budgetStatus";
 
 export function BudgetListItemActions({
@@ -37,16 +30,6 @@ export function BudgetListItemActions({
   variant?: "full" | "icons";
 }) {
   const { exportPdf, generating, pdfError, setPdfError } = usePdfExport();
-  const [deleting, setDeleting] = useState(false);
-  const [deleteError, setDeleteError] = useState<string | null>(null);
-
-  const [confirmOpen, setConfirmOpen] = useState(false);
-  const [orphanContactId, setOrphanContactId] = useState<string | null>(null);
-  const [contactDeleting, setContactDeleting] = useState(false);
-  const [contactDeleteError, setContactDeleteError] = useState<string | null>(
-    null
-  );
-  const router = useRouter();
 
   const isInvoiced = normalizeBudgetStatus(budgetStatus) === "invoiced";
 
@@ -109,58 +92,6 @@ export function BudgetListItemActions({
     }
   }
 
-  function handleDeleteClick(e: React.MouseEvent<HTMLButtonElement>) {
-    e.preventDefault();
-    e.stopPropagation();
-    if (deleting) return;
-    setConfirmOpen(true);
-  }
-
-  async function handleConfirmDelete() {
-    setDeleting(true);
-    setDeleteError(null);
-    try {
-      const result = await deleteBudgetWithLines(budgetId);
-      if (result.contactStatus === "pending_confirmation") {
-        setOrphanContactId(result.contactId);
-      } else {
-        router.refresh();
-      }
-    } catch (err) {
-      setDeleteError(
-        err instanceof Error
-          ? err.message
-          : "No s'ha pogut eliminar el pressupost."
-      );
-    } finally {
-      setDeleting(false);
-      setConfirmOpen(false);
-    }
-  }
-
-  function closeOrphanDialog() {
-    setOrphanContactId(null);
-    router.refresh();
-  }
-
-  async function handleConfirmDeleteContact() {
-    if (!orphanContactId) return;
-    setContactDeleting(true);
-    setContactDeleteError(null);
-    try {
-      await deleteContact(orphanContactId);
-    } catch (err) {
-      setContactDeleteError(
-        err instanceof Error
-          ? err.message
-          : "No s'ha pogut eliminar el contacte."
-      );
-    } finally {
-      setContactDeleting(false);
-      closeOrphanDialog();
-    }
-  }
-
   const nonEmptyInvoiceId = (invoiceId ?? "").trim();
 
   return (
@@ -183,12 +114,6 @@ export function BudgetListItemActions({
         </>
       ) : (
         <>
-          {deleteError ? (
-            <p className={styles.error} role="alert">
-              {deleteError}
-            </p>
-          ) : null}
-
           <Link
             href={`/budgets/${budgetId}/edit`}
             onClick={(e) => e.stopPropagation()}
@@ -228,63 +153,8 @@ export function BudgetListItemActions({
               "PDF"
             )}
           </button>
-
-          <button
-            type="button"
-            onClick={handleDeleteClick}
-            disabled={deleting}
-            className={
-              variant === "icons"
-                ? `${styles.iconBtn} ${styles.iconBtnDanger}`
-                : `${styles.btn} ${styles.danger}`
-            }
-            aria-label="Eliminar pressupost"
-            title="Eliminar"
-          >
-            {variant === "icons" ? (
-              deleting ? (
-                "..."
-              ) : (
-                <Trash2 size={18} aria-hidden="true" />
-              )
-            ) : deleting ? (
-              "..."
-            ) : (
-              "Eliminar"
-            )}
-          </button>
         </>
       )}
-
-      <ConfirmDialog
-        open={confirmOpen}
-        title="Eliminar pressupost?"
-        description="Aquesta accio eliminara el pressupost i totes les seves partides. No es pot desfer."
-        confirmLabel="Eliminar"
-        cancelLabel="Cancel·lar"
-        destructive
-        loading={deleting}
-        onClose={() => setConfirmOpen(false)}
-        onConfirm={handleConfirmDelete}
-      />
-
-      <ConfirmDialog
-        open={orphanContactId !== null}
-        title="Eliminar contacte sense dades?"
-        description="El contacte ja no te pressupostos ni factures associades. Vols eliminar-lo tambe?"
-        confirmLabel="Eliminar contacte"
-        cancelLabel="Mantenir"
-        destructive
-        loading={contactDeleting}
-        onClose={closeOrphanDialog}
-        onConfirm={handleConfirmDeleteContact}
-      />
-
-      {contactDeleteError ? (
-        <p className={styles.error} role="alert">
-          {contactDeleteError}
-        </p>
-      ) : null}
 
       {!isInvoiced && pdfError ? (
         <p className={styles.error} role="alert">
