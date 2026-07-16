@@ -1,7 +1,13 @@
 // @vitest-environment jsdom
 
 import { describe, it, expect, vi, afterEach } from "vitest";
-import { fireEvent, render, screen, waitFor } from "@testing-library/react";
+import {
+  fireEvent,
+  render,
+  screen,
+  waitFor,
+  within,
+} from "@testing-library/react";
 import { BudgetDraftView } from "@/features/budgets/components/BudgetDraftView";
 import {
   type BudgetClientDetails,
@@ -172,6 +178,21 @@ function renderBudgetDraftView(
       quoteManuallyEdited={false}
       {...overrides}
     />
+  );
+}
+
+function mockFetchSequence(responses: Array<{ ok: boolean; json: unknown }>) {
+  let call = 0;
+  vi.stubGlobal(
+    "fetch",
+    vi.fn().mockImplementation(() => {
+      const response = responses[call] ?? responses[responses.length - 1]!;
+      call += 1;
+      return Promise.resolve({
+        ok: response.ok,
+        json: async () => response.json,
+      });
+    })
   );
 }
 
@@ -605,5 +626,222 @@ describe("Create budget", () => {
 
     expect(screen.queryByText("Confirmar facturacio")).not.toBeInTheDocument();
     expect(push).not.toHaveBeenCalled();
+  });
+});
+
+describe("BudgetDraftView - orphan contact dialog", () => {
+  afterEach(() => {
+    vi.unstubAllGlobals();
+    push.mockClear();
+    refresh.mockClear();
+  });
+
+  it("keeps orphan-contact dialog open after deleting the budget", async () => {
+    mockFetchSequence([
+      {
+        ok: true,
+        json: { contactStatus: "pending_confirmation", contactId: "contact-1" },
+      },
+    ]);
+
+    render(
+      <BudgetDraftView
+        mode="edit"
+        budgetId="budget-1"
+        budgetStatus="draft"
+        items={[]}
+        clientDetails={{
+          nameOrCompany: "Client Test",
+          quoteNumber: "",
+          date: "",
+          estimatedTime: "",
+          taxRate: 0,
+          lang: "ca",
+        }}
+        onClientDetailsChange={() => {}}
+        onItemChange={() => {}}
+        onQuoteNumberChange={() => {}}
+        onResetQuoteAutomation={() => {}}
+        quoteManuallyEdited={false}
+      />
+    );
+
+    // open delete confirm
+    fireEvent.click(screen.getByTitle("Eliminar pressupost"));
+
+    const deleteDialog = await screen.findByRole("dialog", {
+      name: "Eliminar pressupost?",
+    });
+
+    fireEvent.click(
+      within(deleteDialog).getByRole("button", { name: "Eliminar" })
+    );
+
+    await waitFor(() => {
+      expect(
+        screen.getByText("Eliminar contacte sense dades?")
+      ).toBeInTheDocument();
+    });
+
+    expect(push).not.toHaveBeenCalled();
+  });
+
+  it("refreshes list after confirming orphan contact deletion", async () => {
+    mockFetchSequence([
+      {
+        ok: true,
+        json: { contactStatus: "pending_confirmation", contactId: "contact-1" },
+      },
+      { ok: true, json: {} },
+    ]);
+
+    render(
+      <BudgetDraftView
+        mode="edit"
+        budgetId="budget-1"
+        budgetStatus="draft"
+        items={[]}
+        clientDetails={{
+          nameOrCompany: "Client Test",
+          quoteNumber: "",
+          date: "",
+          estimatedTime: "",
+          taxRate: 0,
+          lang: "ca",
+        }}
+        onClientDetailsChange={() => {}}
+        onItemChange={() => {}}
+        onQuoteNumberChange={() => {}}
+        onResetQuoteAutomation={() => {}}
+        quoteManuallyEdited={false}
+      />
+    );
+
+    // open delete confirm
+    fireEvent.click(screen.getByTitle("Eliminar pressupost"));
+
+    const deleteDialog = await screen.findByRole("dialog", {
+      name: "Eliminar pressupost?",
+    });
+
+    fireEvent.click(
+      within(deleteDialog).getByRole("button", { name: "Eliminar" })
+    );
+
+    const orphanDialog = await screen.findByRole("dialog", {
+      name: "Eliminar contacte sense dades?",
+    });
+
+    fireEvent.click(
+      within(orphanDialog).getByRole("button", { name: "Eliminar contacte" })
+    );
+
+    await waitFor(() => {
+      expect(push).toHaveBeenCalledWith("/budgets");
+    });
+  });
+
+  it("refreshes list after choosing to keep orphan contact", async () => {
+    mockFetchSequence([
+      {
+        ok: true,
+        json: { contactStatus: "pending_confirmation", contactId: "contact-1" },
+      },
+    ]);
+
+    render(
+      <BudgetDraftView
+        mode="edit"
+        budgetId="budget-1"
+        budgetStatus="draft"
+        items={[]}
+        clientDetails={{
+          nameOrCompany: "Client Test",
+          quoteNumber: "",
+          date: "",
+          estimatedTime: "",
+          taxRate: 0,
+          lang: "ca",
+        }}
+        onClientDetailsChange={() => {}}
+        onItemChange={() => {}}
+        onQuoteNumberChange={() => {}}
+        onResetQuoteAutomation={() => {}}
+        quoteManuallyEdited={false}
+      />
+    );
+
+    // open delete confirm
+    fireEvent.click(screen.getByTitle("Eliminar pressupost"));
+
+    const deleteDialog = await screen.findByRole("dialog", {
+      name: "Eliminar pressupost?",
+    });
+
+    fireEvent.click(
+      within(deleteDialog).getByRole("button", { name: "Eliminar" })
+    );
+
+    const orphanDialog = await screen.findByRole("dialog", {
+      name: "Eliminar contacte sense dades?",
+    });
+
+    fireEvent.click(
+      within(orphanDialog).getByRole("button", { name: "Mantenir" })
+    );
+
+    await waitFor(() => {
+      expect(push).toHaveBeenCalledWith("/budgets");
+    });
+  });
+
+  it("refreshes immediately when orphan contact is auto-deleted", async () => {
+    mockFetchSequence([
+      {
+        ok: true,
+        json: { contactStatus: "deleted_orphan", contactId: "contact-1" },
+      },
+    ]);
+
+    render(
+      <BudgetDraftView
+        mode="edit"
+        budgetId="budget-1"
+        budgetStatus="draft"
+        items={[]}
+        clientDetails={{
+          nameOrCompany: "Client Test",
+          quoteNumber: "",
+          date: "",
+          estimatedTime: "",
+          taxRate: 0,
+          lang: "ca",
+        }}
+        onClientDetailsChange={() => {}}
+        onItemChange={() => {}}
+        onQuoteNumberChange={() => {}}
+        onResetQuoteAutomation={() => {}}
+        quoteManuallyEdited={false}
+      />
+    );
+
+    // open delete confirm
+    fireEvent.click(screen.getByTitle("Eliminar pressupost"));
+
+    const deleteDialog = await screen.findByRole("dialog", {
+      name: "Eliminar pressupost?",
+    });
+
+    fireEvent.click(
+      within(deleteDialog).getByRole("button", { name: "Eliminar" })
+    );
+
+    await waitFor(() => {
+      expect(push).toHaveBeenCalledWith("/budgets");
+    });
+
+    expect(
+      screen.queryByText("Eliminar contacte sense dades?")
+    ).not.toBeInTheDocument();
   });
 });
