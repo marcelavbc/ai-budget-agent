@@ -2,7 +2,8 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { FileDown } from "lucide-react";
+import { FileDown, Trash2 } from "lucide-react";
+import { ConfirmDialog } from "@/shared/components/ConfirmDialog";
 import type {
   BudgetClientDetails,
   BudgetClientItem,
@@ -14,6 +15,8 @@ import {
   type BudgetStatus,
 } from "@/features/budgets/lib/budgetStatus";
 import { usePdfExport } from "@/features/budgets/hooks/usePdfExport";
+import { deleteBudgetWithLines } from "@/features/budgets/lib/budgetsClient";
+import { deleteContact } from "@/features/contacts/lib/contactsClient";
 import { useTranslation } from "@/features/budgets/hooks/useTranslation";
 import { StatusPill } from "@/features/budgets/components/StatusPill";
 import { BudgetItemCard } from "@/features/budgets/components/BudgetItemCard";
@@ -201,6 +204,69 @@ export function BudgetDraftView({
     }
   }
 
+  const [deleting, setDeleting] = useState(false);
+  const [deleteError, setDeleteError] = useState<string | null>(null);
+
+  const [confirmOpen, setConfirmOpen] = useState(false);
+  const [orphanContactId, setOrphanContactId] = useState<string | null>(null);
+  const [contactDeleting, setContactDeleting] = useState(false);
+  const [contactDeleteError, setContactDeleteError] = useState<string | null>(
+    null
+  );
+
+  function handleDeleteClick(e: React.MouseEvent<HTMLButtonElement>) {
+    e.preventDefault();
+    e.stopPropagation();
+    if (deleting) return;
+    setConfirmOpen(true);
+  }
+
+  async function handleConfirmDelete() {
+    if (!budgetId) return;
+    setDeleting(true);
+    setDeleteError(null);
+    try {
+      const result = await deleteBudgetWithLines(budgetId);
+      if (result.contactStatus === "pending_confirmation") {
+        setOrphanContactId(result.contactId);
+      } else {
+        router.push("/budgets");
+      }
+    } catch (err) {
+      setDeleteError(
+        err instanceof Error
+          ? err.message
+          : "No s'ha pogut eliminar el pressupost."
+      );
+    } finally {
+      setDeleting(false);
+      setConfirmOpen(false);
+    }
+  }
+
+  function closeOrphanDialog() {
+    setOrphanContactId(null);
+    router.push("/budgets");
+  }
+
+  async function handleConfirmDeleteContact() {
+    if (!orphanContactId) return;
+    setContactDeleting(true);
+    setContactDeleteError(null);
+    try {
+      await deleteContact(orphanContactId);
+    } catch (err) {
+      setContactDeleteError(
+        err instanceof Error
+          ? err.message
+          : "No s'ha pogut eliminar el contacte."
+      );
+    } finally {
+      setContactDeleting(false);
+      closeOrphanDialog();
+    }
+  }
+
   const translationButtons =
     mode === "edit" ? (
       client.lang === "ca" && !hasSnapshot ? (
@@ -272,6 +338,25 @@ export function BudgetDraftView({
                   {isInvoicing ? "Facturant..." : "Facturar"}
                 </button>
               ) : null}
+              {mode === "edit" && budgetId && status !== "invoiced" ? (
+                <button
+                  type="button"
+                  className={styles.generateBudgetBtn}
+                  onClick={handleDeleteClick}
+                  disabled={deleting}
+                  aria-busy={deleting || undefined}
+                  title="Eliminar pressupost"
+                >
+                  {deleting ? (
+                    "..."
+                  ) : (
+                    <>
+                      <Trash2 size={16} aria-hidden="true" />
+                      Eliminar
+                    </>
+                  )}
+                </button>
+              ) : null}
               <button
                 type="button"
                 className={styles.generateBudgetBtn}
@@ -292,6 +377,11 @@ export function BudgetDraftView({
             {missingInvoiceMessage ? (
               <p className={styles.headerHint} role="note">
                 {missingInvoiceMessage}
+              </p>
+            ) : null}
+            {deleteError ? (
+              <p className={styles.saveError} role="alert">
+                {deleteError}
               </p>
             ) : null}
           </>
@@ -387,6 +477,36 @@ export function BudgetDraftView({
           </button>
         </div>
       </div>
+
+      <ConfirmDialog
+        open={confirmOpen}
+        title="Eliminar pressupost?"
+        description="Aquesta accio eliminara el pressupost i totes les seves partides. No es pot desfer."
+        confirmLabel="Eliminar"
+        cancelLabel="Cancel·lar"
+        destructive
+        loading={deleting}
+        onClose={() => setConfirmOpen(false)}
+        onConfirm={handleConfirmDelete}
+      />
+
+      <ConfirmDialog
+        open={orphanContactId !== null}
+        title="Eliminar contacte sense dades?"
+        description="El contacte ja no te pressupostos ni factures associades. Vols eliminar-lo tambe?"
+        confirmLabel="Eliminar contacte"
+        cancelLabel="Mantenir"
+        destructive
+        loading={contactDeleting}
+        onClose={closeOrphanDialog}
+        onConfirm={handleConfirmDeleteContact}
+      />
+
+      {contactDeleteError ? (
+        <p className={styles.saveError} role="alert">
+          {contactDeleteError}
+        </p>
+      ) : null}
 
       {canShowInvoiceAction && invoiceModal.open ? (
         <InvoiceModal
