@@ -296,7 +296,7 @@ export function BudgetDraftView({
             ) : null}
           </>
         ) : (
-          <span className={styles.draftBadge}>ESBORRANY DEL PRESSUPOST</span>
+          <span className={styles.draftBadge}>Pressupost</span>
         )}
       </div>
 
