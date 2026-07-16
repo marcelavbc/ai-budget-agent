@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { FileDown, Eye, Pencil } from "lucide-react";
+import { FileDown, Eye } from "lucide-react";
 import styles from "./BudgetListItemActions.module.css";
 import { usePdfExport } from "@/features/budgets/hooks/usePdfExport";
 import type {
@@ -114,20 +114,6 @@ export function BudgetListItemActions({
         </>
       ) : (
         <>
-          <Link
-            href={`/budgets/${budgetId}/edit`}
-            onClick={(e) => e.stopPropagation()}
-            className={variant === "icons" ? styles.iconBtn : styles.btn}
-            aria-label="Editar pressupost"
-            title="Editar"
-          >
-            {variant === "icons" ? (
-              <Pencil size={18} aria-hidden="true" />
-            ) : (
-              "Editar"
-            )}
-          </Link>
-
           <button
             type="button"
             disabled={generating}

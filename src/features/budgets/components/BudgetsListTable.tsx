@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { StatusPill } from "@/features/budgets/components/StatusPill";
 import { formatBudgetListDate } from "@/features/budgets/lib/budgetsListFormatting";
 import type { BudgetStatus } from "@/features/budgets/lib/budgetStatus";
@@ -15,6 +16,8 @@ export function BudgetsListTable({
   budgets: BudgetListRow[];
   onStatusChange: (budgetId: string, next: BudgetStatus) => void;
 }) {
+  const router = useRouter();
+
   return (
     <div className={styles.tableWrap}>
       <table className={styles.table}>
@@ -32,17 +35,20 @@ export function BudgetsListTable({
             const quote = (b.quote_number ?? "").trim() || "—";
             const client = (b.title ?? "").trim() || "—";
             const docDate = formatBudgetListDate(b.document_date) ?? "—";
-
             return (
-              <tr key={b.id} className={styles.tr}>
-                <td className={`${styles.td} ${styles.colQuote}`}>
-                  <Link
-                    className={styles.quoteLink}
-                    href={`/budgets/${b.id}/edit`}
-                  >
-                    {quote}
-                  </Link>
-                </td>
+              <tr
+                key={b.id}
+                className={`${styles.tr} ${styles.trClickable}`}
+                onClick={() => {
+                  if (b.status === "invoiced") {
+                    const inv = (b.invoice_id ?? "").trim();
+                    if (inv) router.push(`/invoices/${inv}`);
+                    return;
+                  }
+                  router.push(`/budgets/${b.id}/edit`);
+                }}
+              >
+                <td className={`${styles.td} ${styles.colQuote}`}>{quote}</td>
                 <td className={`${styles.td} ${styles.colClient}`}>{client}</td>
                 <td className={`${styles.td} ${styles.colDate}`}>{docDate}</td>
 
