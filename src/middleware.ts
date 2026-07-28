@@ -17,6 +17,10 @@ export function middleware(request: NextRequest) {
     return NextResponse.next();
   }
 
+  if (pathname === "/api/health") {
+    return NextResponse.next();
+  }
+
   const isAuthenticated = request.cookies.get("auth_session")?.value === "1";
   const isLoginPage = pathname === "/login";
   const isLoginApi = pathname === "/api/auth/login";
