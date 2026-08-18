@@ -1,4 +1,5 @@
 import { createClient } from "@supabase/supabase-js";
+// v2 - Health check with env routing
 
 export async function GET(request: Request) {
   try {
