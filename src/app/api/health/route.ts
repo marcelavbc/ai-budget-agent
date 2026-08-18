@@ -1,13 +1,24 @@
 import { createClient } from "@supabase/supabase-js";
 
-export async function GET() {
+export async function GET(request: Request) {
   try {
-    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-    const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+    const { searchParams } = new URL(request.url);
+    const env = searchParams.get("env") || "prod";
+
+    let supabaseUrl: string | undefined;
+    let supabaseKey: string | undefined;
+
+    if (env === "dev") {
+      supabaseUrl = process.env.SUPABASE_DEV_URL;
+      supabaseKey = process.env.SUPABASE_DEV_ANON_KEY;
+    } else {
+      supabaseUrl = process.env.SUPABASE_PROD_URL;
+      supabaseKey = process.env.SUPABASE_PROD_ANON_KEY;
+    }
 
     if (!supabaseUrl || !supabaseKey) {
       return Response.json(
-        { ok: false, error: "Missing Supabase configuration" },
+        { ok: false, error: `Missing Supabase configuration for env: ${env}` },
         { status: 500 }
       );
     }
@@ -24,7 +35,7 @@ export async function GET() {
       );
     }
 
-    return Response.json({ ok: true });
+    return Response.json({ ok: true, env });
   } catch (error) {
     return Response.json({ ok: false, error: String(error) }, { status: 500 });
   }
