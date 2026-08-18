@@ -1,11 +1,19 @@
-// Force rebuild - health check endpoint
-
 import { createClient } from "@supabase/supabase-js";
 
 export async function GET(request: Request) {
   try {
     const { searchParams } = new URL(request.url);
     const env = searchParams.get("env") || "prod";
+
+    console.log("DEBUG: env param =", env);
+    console.log(
+      "DEBUG: SUPABASE_DEV_URL =",
+      process.env.SUPABASE_DEV_URL ? "SET" : "MISSING"
+    );
+    console.log(
+      "DEBUG: SUPABASE_PROD_URL =",
+      process.env.SUPABASE_PROD_URL ? "SET" : "MISSING"
+    );
 
     let supabaseUrl: string | undefined;
     let supabaseKey: string | undefined;
@@ -26,8 +34,6 @@ export async function GET(request: Request) {
     }
 
     const supabase = createClient(supabaseUrl, supabaseKey);
-
-    // Simple read query to keep the project active
     const { error } = await supabase.from("contacts").select("id").limit(1);
 
     if (error) {
