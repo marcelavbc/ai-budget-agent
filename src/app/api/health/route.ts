@@ -1,3 +1,5 @@
+// Force rebuild - health check endpoint
+
 import { createClient } from "@supabase/supabase-js";
 
 export async function GET(request: Request) {
