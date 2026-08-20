@@ -2,10 +2,11 @@ import { createClient } from "@supabase/supabase-js";
 
 export async function GET(
   request: Request,
-  { params }: { params: { env: string } }
+  { params }: { params: Promise<{ env: string }> }
 ) {
   try {
-    const env = params.env === "dev" ? "dev" : "prod";
+    const { env: envParam } = await params;
+    const env = envParam === "dev" ? "dev" : "prod";
 
     let supabaseUrl: string | undefined;
     let supabaseKey: string | undefined;
