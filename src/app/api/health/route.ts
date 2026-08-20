@@ -2,8 +2,11 @@ import { createClient } from "@supabase/supabase-js";
 
 export async function GET(request: Request) {
   try {
-    const { searchParams } = new URL(request.url);
-    const env = searchParams.get("env") || "prod";
+    // Extraer el último segmento de la URL para saber si es /prod o /dev
+    const url = new URL(request.url);
+    const pathSegments = url.pathname.split("/");
+    const env =
+      pathSegments[pathSegments.length - 1] === "dev" ? "dev" : "prod";
 
     let supabaseUrl: string | undefined;
     let supabaseKey: string | undefined;
